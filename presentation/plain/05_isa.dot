@@ -1,0 +1,27 @@
+graph isa_plain {
+  rankdir=TB;
+  bgcolor="#0D1117";
+  splines=spline;
+  overlap=false;
+  nodesep=0.8;
+  ranksep=1.1;
+  node [fontname="DejaVu Sans Mono", fontsize=13, fontcolor="#C9D1D9"];
+  edge [fontname="DejaVu Sans Mono", fontsize=11, color="#8B949E", fontcolor="#C9D1D9", penwidth=1.4];
+
+  node [shape=box, style="filled,bold", penwidth=2.4, fillcolor="#1C3326", color="#56D364", fontcolor="#E6EDF3", fontsize=15];
+  users;
+
+  node [shape=triangle, style="filled", fillcolor="#3D2C08", color="#E3B341", penwidth=2.4, fontsize=11, fontcolor="#E6EDF3", height=0.8, width=1.2];
+  isa [label="ISA"];
+
+  node [shape=box, style="filled,bold", penwidth=2, fillcolor="#1C2A22", color="#7EE787", fontcolor="#E6EDF3", fontsize=13];
+  students; teachers; admins;
+
+  edge [color="#E3B341", penwidth=2.4, fontcolor="#E3B341", fontsize=12];
+  users -- isa [label="  d"];
+  isa -- students;
+  isa -- teachers;
+  isa -- admins;
+
+  {rank=same; students; teachers; admins;}
+}

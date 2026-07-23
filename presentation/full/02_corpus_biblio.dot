@@ -1,0 +1,57 @@
+graph ilham_corpus_biblio {
+  rankdir=LR;
+  bgcolor="#0D1117";
+  splines=spline;
+  overlap=false;
+  nodesep=0.55;
+  ranksep=1.45;
+  node [fontname="DejaVu Sans Mono", fontsize=10, fontcolor="#C9D1D9"];
+  edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#8B949E"];
+
+  // ---- ENTITIES ----
+  node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3", fontsize=13];
+  collections; chapters; hadiths; hadith_subjects; hadith_translations;
+
+  // ---- RELATIONSHIPS ----
+  node [shape=diamond, style="filled", fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=11, fontcolor="#E6EDF3"];
+  r_coll_chap [label="has"];
+  r_coll_had  [label="in"];
+  r_chap_had  [label="under"];
+  r_subj      [label="tagged"];
+  r_trans     [label="translates"];
+
+  // ---- ATTRIBUTES ----
+  node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+  a_c1 [label="collection_id"]; a_c2 [label="slug (UQ)"]; a_c3 [label="title_ar"]; a_c4 [label="title_en"];
+  a_h1 [label="hadith_id\n(Ifta mainId)"]; a_h2 [label="hadith_num"]; a_h3 [label="text_plain"];
+  a_h4 [label="text_diac"]; a_h5 [label="matn_plain\n87.8% cov."]; a_h6 [label="sanad_count"];
+  a_ch1 [label="chapter_id"]; a_ch2 [label="title_ar"];
+  a_s1 [label="subject"];
+  a_t1 [label="lang ('en')"]; a_t2 [label="text_full"]; a_t3 [label="source ('LK')"];
+
+  edge [color="#484F58", style=dotted, len=0.5];
+  collections -- a_c1 [color="#E3B341", style=solid, penwidth=1.4];
+  collections -- a_c2; collections -- a_c3; collections -- a_c4;
+  chapters -- a_ch1 [color="#E3B341", style=solid, penwidth=1.4];
+  chapters -- a_ch2;
+  hadiths -- a_h1 [color="#E3B341", style=solid, penwidth=1.4];
+  hadiths -- a_h2; hadiths -- a_h3; hadiths -- a_h4; hadiths -- a_h5; hadiths -- a_h6;
+  hadith_subjects -- a_s1;
+  hadith_translations -- a_t1; hadith_translations -- a_t2; hadith_translations -- a_t3;
+
+  // ---- CARDINALITY ----
+  edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+  collections -- r_coll_chap [taillabel="1"]; r_coll_chap -- chapters [headlabel="N"];
+  collections -- r_coll_had  [taillabel="1"]; r_coll_had  -- hadiths  [headlabel="N"];
+  chapters    -- r_chap_had  [taillabel="1"]; r_chap_had  -- hadiths  [headlabel="N"];
+  hadith_subjects -- r_subj  [taillabel="N"]; r_subj  -- hadiths [headlabel="1"];
+  hadith_translations -- r_trans [taillabel="N"]; r_trans -- hadiths [headlabel="1"];
+
+  // ---- NOTES ----
+  subgraph cluster_notes {
+    label="DESIGN NOTES"; fontname="DejaVu Sans Mono Bold"; fontsize=12; fontcolor="#58A6FF";
+    style="rounded,filled"; fillcolor="#161B22"; color="#58A6FF"; penwidth=1.5;
+    node [shape=plaintext, fillcolor="none", fontcolor="#8B949E", fontsize=10];
+    n1 [label="• hadith_id is a NATURAL key (Ifta mainId), not generated.\l• hadith_num is text: some books use compound numbers.\l• chapter_id is NULLABLE — a hadith need not sit under a chapter.\l• matn_plain NULL = sanad/matn split not available for that row.\l• collections.slug is UNIQUE — the stable external identifier.\l• hadith_subjects and hadith_translations are weak entities:\l  each is existence-dependent on its parent hadith.\l"];
+  }
+}

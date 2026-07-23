@@ -1,0 +1,67 @@
+graph ilham_grading {
+  rankdir=LR;
+  bgcolor="#0D1117";
+  splines=spline;
+  overlap=false;
+  nodesep=0.55;
+  ranksep=1.45;
+  node [fontname="DejaVu Sans Mono", fontsize=10, fontcolor="#C9D1D9"];
+  edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#8B949E"];
+
+  // ---- ENTITIES ----
+  node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3", fontsize=13];
+  narrators; rank_levels; rank_map; isnad_links; hadiths;
+
+  // ---- RELATIONSHIPS ----
+  node [shape=diamond, style="filled", fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=11, fontcolor="#E6EDF3"];
+  r_rankmap [label="maps to"];
+  r_nar_ih  [label="graded by\nIbn Hajar"];
+  r_nar_dh  [label="graded by\nal-Dhahabi"];
+  r_link_nar [label="cites"];
+  r_link_had [label="of"];
+
+  // ---- ATTRIBUTES ----
+  node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+  a_rl1 [label="rank_code"]; a_rl2 [label="label_ar"];
+  a_rl3 [label="ordinal\nhigher = stronger"]; a_rl4 [label="weight\n0.00–1.00"];
+  a_rm1 [label="raw_string"];
+  a_n1 [label="rank_ibn_hajar_raw\n(display)"]; a_n2 [label="rank_dhahabi_raw\n(display)"];
+  a_n3 [label="tabaqa_raw"]; a_n4 [label="school"]; a_n5 [label="date_of_death"];
+  a_n6 [label="is_placeholder"];
+
+  edge [color="#484F58", style=dotted];
+  rank_levels -- a_rl1 [color="#E3B341", style=solid, penwidth=1.4];
+  rank_levels -- a_rl2; rank_levels -- a_rl3; rank_levels -- a_rl4;
+  rank_map -- a_rm1 [color="#E3B341", style=solid, penwidth=1.4];
+  narrators -- a_n1; narrators -- a_n2; narrators -- a_n3;
+  narrators -- a_n4; narrators -- a_n5; narrators -- a_n6;
+
+  // ---- CARDINALITY ----
+  edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+  rank_map  -- r_rankmap [taillabel="N"]; r_rankmap -- rank_levels [headlabel="1"];
+  narrators -- r_nar_ih  [taillabel="N"]; r_nar_ih  -- rank_levels [headlabel="0..1"];
+  narrators -- r_nar_dh  [taillabel="N"]; r_nar_dh  -- rank_levels [headlabel="0..1"];
+  isnad_links -- r_link_nar [taillabel="N"]; r_link_nar -- narrators [headlabel="0..1"];
+  isnad_links -- r_link_had [taillabel="N"]; r_link_had -- hadiths [headlabel="1"];
+
+  // ---- FUNCTION BOX ----
+  subgraph cluster_fn {
+    label="corpus.chain_strength(hadith) → numeric 0..1";
+    fontname="DejaVu Sans Mono Bold"; fontsize=13; fontcolor="#3FB950";
+    style="rounded,filled"; fillcolor="#122117"; color="#3FB950"; penwidth=2;
+    node [shape=plaintext, fillcolor="none", fontcolor="#7EE787", fontsize=10];
+    fn [label="Three-way narrator treatment:\l  graded            → least(weight_IH, weight_Dh)\l  ungraded (named)  → 0.50   (ungraded ≠ criticized)\l  placeholder/NULL  → 0.15   (mubham weakens chain)\l\lanʿana penalty: transmission_word = 'عن' → −0.05\lCompiler position EXCLUDED.\l\lPer sanad:  weakest link = min(w)\lPer hadith: best sanad wins = max(sanad_strength)\l\lAggregation, NOT recursion — positions are stored\lexplicitly, so WITH RECURSIVE would be artificial.\l"];
+  }
+
+  edge [color="#3FB950", fontcolor="#7EE787", style=dashed, penwidth=1.5];
+  rank_levels -- fn [label="weight"];
+  isnad_links -- fn [label="transmission_word\nis_compiler"];
+
+  // ---- SEED ----
+  subgraph cluster_seed {
+    label="rank_levels SEED"; fontname="DejaVu Sans Mono Bold"; fontsize=12; fontcolor="#D29922";
+    style="rounded,filled"; fillcolor="#241B08"; color="#D29922"; penwidth=1.5;
+    node [shape=plaintext, fillcolor="none", fontcolor="#D8C08A", fontsize=10];
+    seed [label="thiqa   6  0.95\lsaduq   5  0.80\lmaqbul  4  0.60\llayyin  3  0.40\ldaif    2  0.25\lmatruk  1  0.10\l"];
+  }
+}
