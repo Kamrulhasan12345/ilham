@@ -4,7 +4,7 @@
 **Course:** DBMS term project · **Team:** 2 members
 **Stack:** PERN — PostgreSQL, Express, React, Node
 **Status:** FINAL — all dataset, stack, and design decisions settled
-**Companion artifact:** `ilham-schema.sql` (complete DDL: schemas, routines, triggers, queries)
+**Companion artifact:** `db/schema.sql` (complete DDL: schemas, routines, triggers, queries)
 
 ---
 
@@ -204,7 +204,7 @@ GET /analytics/* , /narrators/:id , /hadiths/:id :
 
 | Wk | Deliverable | Gate |
 |---|---|---|
-| 1–2 | Spikes #2–3; run `ilham-schema.sql`; streaming loader; transforms + resolution; rank_map v1; auth | Corpus browsable; login works |
+| 1–2 | Spikes #2–3; run `db/schema.sql`; streaming loader; transforms + resolution; rank_map v1; auth | Corpus browsable; login works |
 | 3–4 | Procedure, API transactions, both triggers, chain_strength — tested in psql directly | All routines demonstrable without UI |
 | 5–6 | React: corpus browse, sets, circles, assignments | Study loop end-to-end |
 | 7–8 | Analytics pages; review/override flow with audit; polish | Demo-ready |

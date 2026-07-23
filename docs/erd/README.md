@@ -5,10 +5,23 @@ Each `.dot` renders to `.svg` (vector) and `.png` (150 dpi).
 
 No titles are baked into the images — add headings in your slide tool.
 
-Rebuild: `dot -Tsvg NN_name.dot -o NN_name.svg`
-Font: DejaVu Sans Mono (also covers the Arabic labels).
+## Layout
 
-## Diagrams
+| Path | Contents |
+|---|---|
+| `full/` | The detailed diagram set (`.dot` / `.png` / `.svg`) — every attribute shown |
+| `plain/` | Simplified variants of the same seven diagrams (note: #7 is `07_derived`) |
+| `overview.png` | Single rendered overview image |
+| `clustered_chen.dot` / `.png` | Cluster-grouped Chen diagram of the whole schema |
+| `exports/*.zip` | Zipped bundles of the full and plain sets |
+
+Rebuild a diagram from its source (font: DejaVu Sans Mono, covers Arabic labels):
+
+```bash
+dot -Tsvg full/01_overview.dot -o full/01_overview.svg
+```
+
+## Diagrams (the seven in `full/` and `plain/`)
 
 | # | File | Covers |
 |---|------|--------|
@@ -18,7 +31,7 @@ Font: DejaVu Sans Mono (also covers the Arabic labels).
 | 4 | `04_grading` | rank_map → rank_levels, dual scholar grades, chain_strength() |
 | 5 | `05_isa` | users ISA students / teachers / admins |
 | 6 | `06_app_study` | Circles, enrollments, assignments, progress, reviews |
-| 7 | `07_triggers` | Derived stats + audit shadow table |
+| 7 | `07_triggers` (`07_derived` in `plain/`) | Derived stats + audit shadow table |
 
 ## Notation legend
 
