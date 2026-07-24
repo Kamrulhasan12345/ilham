@@ -21,8 +21,16 @@ Source of truth:
 - Three schemas in one Postgres instance: `staging` (transient) / `corpus`
   (read-only) / `app` (OLTP). **Never add a runtime write path into `corpus.*`.**
 - Isnad positions are stored explicitly → aggregation, **not** `WITH RECURSIVE`.
-- `app.assign_study_set` stays a **procedure** (owns its transaction).
+- `app.assign_study_set` stays a **procedure** (owns its `COMMIT`). It must have
+  **no `EXCEPTION` handler** — that opens a subtransaction and makes the
+  `COMMIT` illegal at runtime.
 - Rijal grades: raw strings for display, `rank_levels` ordinals for math.
+  `staging.rank_map` is load-time only; narrators FK into `rank_levels` directly.
+- `app.progress` is keyed **(student, hadith, assignment)**. Count mastered
+  hadiths with `count(DISTINCT hadith_id)`.
+- IS-A uses **table inheritance**, with per-child keys and the
+  `assert_user_exists` / `assert_email_unique` triggers that compensate for what
+  Postgres does not inherit. Do not remove them — integrity breaks silently.
 - Triggers fire on `app` writes only; the corpus never fires triggers.
 - Every routine must be simple and defensible line-by-line; add each feature
   once, where it belongs.

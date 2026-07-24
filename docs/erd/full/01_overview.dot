@@ -16,31 +16,25 @@ graph ilham_full_chen {
     style="rounded,filled"; fillcolor="#161B22"; color="#58A6FF"; penwidth=2;
 
     node [shape=box, style="filled,bold", penwidth=1.5, fillcolor="#21262D", color="#58A6FF", fontcolor="#C9D1D9"];
-    collections; chapters; hadiths; rank_levels; rank_map;
-    narrators; isnad_links; hadith_mentions; hadith_subjects; hadith_translations;
+    collections; chapters; hadiths; rank_levels; hadith_translations;
+    narrators; isnad_links;
 
     node [shape=box, style="filled,dashed", penwidth=1.2, fillcolor="#1B2430", color="#79C0FF", fontcolor="#79C0FF"];
     isnad_edges [label="isnad_edges\n(VIEW — derived)"];
 
     node [shape=diamond, style="filled", fillcolor="#342612", color="#D29922", penwidth=1.2, fontsize=10, fontcolor="#C9D1D9"];
     r_coll_chap [label="has"]; r_coll_had [label="in"]; r_chap_had [label="under"];
-    r_rankmap [label="maps to"]; r_nar_ih [label="rank_IH"]; r_nar_dh [label="rank_Dh"];
+    r_nar_ih [label="rank_IH"]; r_nar_dh [label="rank_Dh"]; r_trans [label="translates"];
     r_link_had [label="of"]; r_link_nar [label="cites"];
-    r_ment_had [label="mentions"]; r_ment_nar [label="refers"];
-    r_subj [label="tagged"]; r_trans [label="translates"];
 
     collections -- r_coll_chap [taillabel="1"]; r_coll_chap -- chapters [headlabel="N"];
+    hadith_translations -- r_trans [taillabel="N"]; r_trans -- hadiths [headlabel="1"];
     collections -- r_coll_had  [taillabel="1"]; r_coll_had  -- hadiths  [headlabel="N"];
     chapters    -- r_chap_had  [taillabel="1"]; r_chap_had  -- hadiths  [headlabel="N"];
-    rank_map    -- r_rankmap   [taillabel="N"]; r_rankmap   -- rank_levels [headlabel="1"];
     narrators   -- r_nar_ih    [taillabel="N"]; r_nar_ih    -- rank_levels [headlabel="1"];
     narrators   -- r_nar_dh    [taillabel="N"]; r_nar_dh    -- rank_levels [headlabel="1"];
     isnad_links -- r_link_had  [taillabel="N"]; r_link_had  -- hadiths   [headlabel="1"];
     isnad_links -- r_link_nar  [taillabel="N"]; r_link_nar  -- narrators [headlabel="1"];
-    hadith_mentions -- r_ment_had [taillabel="N"]; r_ment_had -- hadiths   [headlabel="1"];
-    hadith_mentions -- r_ment_nar [taillabel="N"]; r_ment_nar -- narrators [headlabel="1"];
-    hadith_subjects -- r_subj  [taillabel="N"]; r_subj  -- hadiths [headlabel="1"];
-    hadith_translations -- r_trans [taillabel="N"]; r_trans -- hadiths [headlabel="1"];
 
     isnad_links -- isnad_edges [style=dashed, color="#79C0FF", fontcolor="#79C0FF", label="self-join\npos ↔ pos+1"];
   }
@@ -59,7 +53,7 @@ graph ilham_full_chen {
 
     node [shape=box, style="filled,bold", penwidth=1.5, fillcolor="#1C2A22", color="#3FB950", fontcolor="#C9D1D9"];
     circles; enrollments; study_sets; set_items; assignments;
-    assignment_targets; progress; review_sessions; review_items;
+    progress; review_sessions; review_items;
     student_stats; notes; audit_log;
 
     // ISA triangle
@@ -70,8 +64,7 @@ graph ilham_full_chen {
     r_teaches [label="teaches"]; r_enr_circ [label="into"]; r_enr_stu [label="enrolls"];
     r_set_owner [label="owns"]; r_setitem_set [label="in_set"];
     r_asg_circ [label="for_circle"]; r_asg_set [label="assigns"];
-    r_tgt_asg [label="targets"]; r_tgt_stu [label="to_student"];
-    r_prog_stu [label="tracks"];
+    r_prog_stu [label="tracks"]; r_prog_asg [label="under"];
     r_rs_stu [label="by"]; r_rs_rev [label="reviewed_by"]; r_rs_circ [label="in_circle"];
     r_ri_sess [label="in_session"];
     r_stats [label="summarizes"]; r_note_usr [label="wrote"]; r_audit_usr [label="changed_by"];
@@ -89,9 +82,8 @@ graph ilham_full_chen {
     set_items -- r_setitem_set [taillabel="N"]; r_setitem_set -- study_sets [headlabel="1"];
     assignments -- r_asg_circ [taillabel="N"]; r_asg_circ -- circles [headlabel="1"];
     assignments -- r_asg_set  [taillabel="N"]; r_asg_set  -- study_sets [headlabel="1"];
-    assignment_targets -- r_tgt_asg [taillabel="N"]; r_tgt_asg -- assignments [headlabel="1"];
-    assignment_targets -- r_tgt_stu [taillabel="N"]; r_tgt_stu -- students [headlabel="1"];
     progress -- r_prog_stu [taillabel="N"]; r_prog_stu -- students [headlabel="1"];
+    progress -- r_prog_asg [taillabel="N"]; r_prog_asg -- assignments [headlabel="0..1"];
     review_sessions -- r_rs_stu  [taillabel="N"]; r_rs_stu  -- students [headlabel="1"];
     review_sessions -- r_rs_rev  [taillabel="N"]; r_rs_rev  -- teachers [headlabel="0..1"];
     review_sessions -- r_rs_circ [taillabel="N"]; r_rs_circ -- circles  [headlabel="1"];

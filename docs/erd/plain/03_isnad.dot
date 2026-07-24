@@ -12,7 +12,7 @@ graph isnad_plain {
   hadiths; narrators;
 
   node [shape=box, peripheries=2, style="filled,bold", penwidth=1.8, fillcolor="#1F2937", color="#79C0FF"];
-  isnad_links; hadith_mentions;
+  isnad_links;
 
   node [shape=box, peripheries=1, style="filled,dashed", penwidth=1.6, fillcolor="#1B2430", color="#79C0FF", fontcolor="#79C0FF"];
   isnad_edges;
@@ -20,16 +20,12 @@ graph isnad_plain {
   node [shape=diamond, style="filled", fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=11, fontcolor="#E6EDF3"];
   r_link_had [label="of"];
   r_link_nar [label="cites"];
-  r_ment_had [label="mentions"];
-  r_ment_nar [label="refers"];
 
   node [shape=diamond, peripheries=2, style="filled", fillcolor="#3D2C08", color="#E3B341", penwidth=1.5, fontsize=11, fontcolor="#E6EDF3"];
   r_derive [label="transmits"];
 
   isnad_links -- r_link_had [taillabel="N"]; r_link_had -- hadiths [headlabel="1"];
   isnad_links -- r_link_nar [taillabel="N"]; r_link_nar -- narrators [headlabel="0..1"];
-  hadith_mentions -- r_ment_had [taillabel="N"]; r_ment_had -- hadiths [headlabel="1"];
-  hadith_mentions -- r_ment_nar [taillabel="N"]; r_ment_nar -- narrators [headlabel="0..1"];
 
   edge [color="#E3B341", fontcolor="#E3B341", style=dashed, penwidth=1.6];
   isnad_links -- r_derive [taillabel="N"];

@@ -26,10 +26,10 @@ dot -Tsvg full/01_overview.dot -o full/01_overview.svg
 | # | File | Covers |
 |---|------|--------|
 | 1 | `01_overview` | Whole schema, both clusters + cross-layer relationships |
-| 2 | `02_corpus_biblio` | collections → chapters → hadiths, subjects, translations |
+| 2 | `02_corpus_biblio` | collections → chapters → hadiths, translations |
 | 3 | `03_isnad` | isnad_links (weak entity) + isnad_edges (derived view) |
-| 4 | `04_grading` | rank_map → rank_levels, dual scholar grades, chain_strength() |
-| 5 | `05_isa` | users ISA students / teachers / admins |
+| 4 | `04_grading` | narrators → rank_levels, dual scholar grades, chain_strength() |
+| 5 | `05_isa` | users ISA students / teachers / admins — and what inheritance costs |
 | 6 | `06_app_study` | Circles, enrollments, assignments, progress, reviews |
 | 7 | `07_triggers` (`07_derived` in `plain/`) | Derived stats + audit shadow table |
 
@@ -59,9 +59,13 @@ Cardinality sits on the edges as 1, N, or 0..1 for optional participation.
 ## Suggested order
 
 1. **Overview** — two schemas, one rule: corpus takes no runtime writes.
-2. **Bibliographic** — natural keys, nullable chapter, weak child entities.
+2. **Bibliographic** — natural keys, nullable chapter, and `hadith_translations`
+   as a weak entity keyed `(hadith_id, lang)`.
 3. **Isnad** — the centrepiece. Paths stored, edges derived, no self-FK.
-4. **Grading** — raw strings for display, ordinals for maths.
-5. **ISA** — the FK target *is* the business rule.
-6. **App workflow** — circle → assignment → per-student progress fan-out.
+4. **Grading** — raw strings for display, ordinals for maths; the raw→code map
+   is load-time only and lives in `staging`.
+5. **ISA** — the FK target *is* the business rule; plus the four guarantees
+   Postgres inheritance does not give you, and how each is restored.
+6. **App workflow** — circle → assignment → per-student progress fan-out, keyed
+   per (student, hadith, assignment).
 7. **Triggers** — derived data as the legitimate trigger use case.

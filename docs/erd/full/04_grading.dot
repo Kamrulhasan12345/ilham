@@ -10,11 +10,10 @@ graph ilham_grading {
 
   // ---- ENTITIES ----
   node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3", fontsize=13];
-  narrators; rank_levels; rank_map; isnad_links; hadiths;
+  narrators; rank_levels; isnad_links; hadiths;
 
   // ---- RELATIONSHIPS ----
   node [shape=diamond, style="filled", fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=11, fontcolor="#E6EDF3"];
-  r_rankmap [label="maps to"];
   r_nar_ih  [label="graded by\nIbn Hajar"];
   r_nar_dh  [label="graded by\nal-Dhahabi"];
   r_link_nar [label="cites"];
@@ -24,7 +23,6 @@ graph ilham_grading {
   node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
   a_rl1 [label="rank_code"]; a_rl2 [label="label_ar"];
   a_rl3 [label="ordinal\nhigher = stronger"]; a_rl4 [label="weight\n0.00–1.00"];
-  a_rm1 [label="raw_string"];
   a_n1 [label="rank_ibn_hajar_raw\n(display)"]; a_n2 [label="rank_dhahabi_raw\n(display)"];
   a_n3 [label="tabaqa_raw"]; a_n4 [label="school"]; a_n5 [label="date_of_death"];
   a_n6 [label="is_placeholder"];
@@ -32,13 +30,11 @@ graph ilham_grading {
   edge [color="#484F58", style=dotted];
   rank_levels -- a_rl1 [color="#E3B341", style=solid, penwidth=1.4];
   rank_levels -- a_rl2; rank_levels -- a_rl3; rank_levels -- a_rl4;
-  rank_map -- a_rm1 [color="#E3B341", style=solid, penwidth=1.4];
   narrators -- a_n1; narrators -- a_n2; narrators -- a_n3;
   narrators -- a_n4; narrators -- a_n5; narrators -- a_n6;
 
   // ---- CARDINALITY ----
   edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-  rank_map  -- r_rankmap [taillabel="N"]; r_rankmap -- rank_levels [headlabel="1"];
   narrators -- r_nar_ih  [taillabel="N"]; r_nar_ih  -- rank_levels [headlabel="0..1"];
   narrators -- r_nar_dh  [taillabel="N"]; r_nar_dh  -- rank_levels [headlabel="0..1"];
   isnad_links -- r_link_nar [taillabel="N"]; r_link_nar -- narrators [headlabel="0..1"];
@@ -62,6 +58,6 @@ graph ilham_grading {
     label="rank_levels SEED"; fontname="DejaVu Sans Mono Bold"; fontsize=12; fontcolor="#D29922";
     style="rounded,filled"; fillcolor="#241B08"; color="#D29922"; penwidth=1.5;
     node [shape=plaintext, fillcolor="none", fontcolor="#D8C08A", fontsize=10];
-    seed [label="thiqa   6  0.95\lsaduq   5  0.80\lmaqbul  4  0.60\llayyin  3  0.40\ldaif    2  0.25\lmatruk  1  0.10\l"];
+    seed [label="thiqa   6  0.95\lsaduq   5  0.80\lmaqbul  4  0.60\llayyin  3  0.40\ldaif    2  0.25\lmatruk  1  0.10\l\lThe raw-string → rank_code lookup is LOAD-TIME:\lit lives in staging.rank_map, is applied once to\lnarrators.rank_ibn_hajar / rank_dhahabi, and drops\lwith staging. Narrators reference rank_levels\lDIRECTLY — the map is never on a read path.\l"];
   }
 }

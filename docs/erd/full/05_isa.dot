@@ -49,7 +49,7 @@ graph ilham_isa {
     fontname="DejaVu Sans Mono Bold"; fontsize=13; fontcolor="#3FB950";
     style="rounded,filled"; fillcolor="#122117"; color="#3FB950"; penwidth=2;
     node [shape=plaintext, fillcolor="none", fontcolor="#7EE787", fontsize=10];
-    fk [label="→ app.students  : enrollments, progress, student_stats,\l                  assignment_targets, review_sessions.student_id\l→ app.teachers  : circles.teacher_id, review_sessions.reviewer_id\l→ app.users     : study_sets.owner_id, notes.user_id,\l                  audit_log.changed_by   (polymorphic — any role)\l\lThe FK target IS the business rule:\l  a teacher cannot be enrolled; a student cannot own a circle.\l"];
+    fk [label="REAL FOREIGN KEYS → a subtype (possible only because each\lchild declares its own PRIMARY KEY — see the box below):\l  → app.students : enrollments, progress, student_stats,\l                   review_sessions.student_id\l  → app.teachers : circles.teacher_id, review_sessions.reviewer_id\l\lThe FK target IS the business rule, enforced by the RDBMS:\l  a teacher cannot be enrolled; an admin cannot own a circle.\l  INSERT INTO circles (teacher_id) VALUES (<an admin>)\l    → ERROR: not present in table \"teachers\"\l\lNO FK possible → app.users (polymorphic: any role):\l  study_sets.owner_id, notes.user_id  → assert_user_exists() trigger\l  audit_log.changed_by                → unchecked, best-effort\l"];
   }
 
   // ---- CONSTRAINT NOTES ----
@@ -57,7 +57,17 @@ graph ilham_isa {
     label="DISJOINT + TOTAL"; fontname="DejaVu Sans Mono Bold"; fontsize=13; fontcolor="#E3B341";
     style="rounded,filled"; fillcolor="#241B08"; color="#E3B341"; penwidth=2;
     node [shape=plaintext, fillcolor="none", fontcolor="#D8C08A", fontsize=10];
-    n1 [label="d = DISJOINT: a user is exactly one subtype.\lEnforced by:\l  CHECK (role IN ('student','teacher','admin'))  on users\l  CHECK (role = 'student')  on students\l  CHECK (role = 'teacher')  on teachers\l  CHECK (role = 'admin')    on admins\l\lCaveat (Postgres INHERITS):\l  PK/UNIQUE are NOT inherited across child tables, and\l  a FK to app.users will NOT see rows in child tables.\l  Hence subtype FKs target the child table directly.\l"];
+    n1 [label="d = DISJOINT: a user is exactly one subtype.\lEnforced by:\l  CHECK (role IN ('student','teacher','admin'))  on users\l  CHECK (role = 'student')  on students\l  CHECK (role = 'teacher')  on teachers\l  CHECK (role = 'admin')    on admins\l\lRows live in exactly ONE child. The parent is a read\lsurface: FROM app.users scans the whole hierarchy,\lFROM ONLY app.users returns nothing. tableoid::regclass\lnames any row's subtype.\l"];
+  }
+
+
+  // ---- WHAT INHERITANCE COSTS ----
+  subgraph cluster_cost {
+    label="NOT INHERITED — restored explicitly";
+    fontname="DejaVu Sans Mono Bold"; fontsize=13; fontcolor="#F85149";
+    style="rounded,filled"; fillcolor="#2D1617"; color="#F85149"; penwidth=2;
+    node [shape=plaintext, fillcolor="none", fontcolor="#FFA198", fontsize=10];
+    n2 [label="Postgres inherits columns, DEFAULTs, NOT NULL and CHECK.\lIt does NOT inherit these four — each is restored by hand:\l\lIDENTITY   → CREATE SEQUENCE app.user_id_seq, then a plain\l             DEFAULT nextval(...) which IS inherited.\l             (GENERATED AS IDENTITY yields NULL in children,\l             failing NOT NULL — no user could be created.)\l             One sequence keeps user_id unique across subtypes.\l\lPRIMARY KEY → ALTER TABLE <child> ADD PRIMARY KEY (user_id).\l             Without it NO FK may reference a subtype at all.\l\lUNIQUE      → ADD UNIQUE (email) per child + assert_email_unique()\l             trigger; per-table UNIQUE cannot stop one address\l             existing as both a student and a teacher.\l\lFK to parent → assert_user_exists() trigger. An FK to app.users\l             is checked with ONLY semantics: it sees no child\l             rows and would reject every real user.\l"];
   }
 
   {rank=same; students; teachers; admins;}

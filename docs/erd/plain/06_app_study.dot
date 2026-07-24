@@ -15,7 +15,7 @@ graph app_study_plain {
   circles; study_sets; assignments; review_sessions;
 
   node [shape=box, peripheries=2, style="filled,bold", penwidth=1.5, fillcolor="#18261E", color="#3FB950"];
-  enrollments; set_items; assignment_targets; progress; review_items;
+  enrollments; set_items; progress; review_items;
 
   node [shape=box, peripheries=1, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
   hadiths;
@@ -25,8 +25,7 @@ graph app_study_plain {
   r_enr_circ [label="into"]; r_enr_stu [label="enrolls"];
   r_setitem_set [label="in_set"];
   r_asg_circ [label="for_circle"]; r_asg_set [label="assigns"];
-  r_tgt_asg [label="targets"]; r_tgt_stu [label="to_student"];
-  r_prog_stu [label="tracks"];
+  r_prog_stu [label="tracks"]; r_prog_asg [label="under"];
   r_rs_stu [label="by"]; r_rs_rev [label="reviewed_by"]; r_rs_circ [label="in_circle"];
   r_ri_sess [label="in_session"];
 
@@ -36,9 +35,8 @@ graph app_study_plain {
   set_items -- r_setitem_set [taillabel="N"]; r_setitem_set -- study_sets [headlabel="1"];
   assignments -- r_asg_circ [taillabel="N"]; r_asg_circ -- circles [headlabel="1"];
   assignments -- r_asg_set  [taillabel="N"]; r_asg_set  -- study_sets [headlabel="1"];
-  assignment_targets -- r_tgt_asg [taillabel="N"]; r_tgt_asg -- assignments [headlabel="1"];
-  assignment_targets -- r_tgt_stu [taillabel="N"]; r_tgt_stu -- students [headlabel="1"];
   progress -- r_prog_stu [taillabel="N"]; r_prog_stu -- students [headlabel="1"];
+  progress -- r_prog_asg [taillabel="N"]; r_prog_asg -- assignments [headlabel="0..1"];
   review_sessions -- r_rs_stu  [taillabel="N"]; r_rs_stu  -- students [headlabel="1"];
   review_sessions -- r_rs_rev  [taillabel="N"]; r_rs_rev  -- teachers [headlabel="0..1"];
   review_sessions -- r_rs_circ [taillabel="N"]; r_rs_circ -- circles  [headlabel="0..1"];

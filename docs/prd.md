@@ -57,7 +57,7 @@ instance — not by separate systems.
 |---|---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle; from sunnah.alifta.gov.sa — King Abdullah bin Abdul Aziz Program for the Prophetic Sunnah; Univ. of Malta 2025 curation) | 276,347 hadiths, 33 books, ~863 MB JSON + manifest + 20,957 narrator profiles. Coverage: text/chapter/num 100%, chains 98.9%, narrator names 98.6%, mention→ID links 94.1%, matn split 87.8–94.1%. Profiles: rank_by_ibn_hajar 41.5%, rank_by_al_dhahabi 25.7%, tabaqa 41.6%. Fully Arabic. | **PRIMARY corpus** — text + chains + narrator IDs + rijal ranks, internally linked in one authoritative source |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0; Data in Brief 54:110439) | Sahih Muslim: 7,748 hadiths, 14,155 sanads, 2,092 narrators, ~77.8K edge rows. Chains from IHSAN Network; narrator IDs from muslimscholars.info (fuzzy+manual matched, expert-validated). Ordered chains reconstructable via intractionLabel; propagation direction; Arabic + English name columns. | **VALIDATION set** (ordered-chain agreement on the Muslim subset; disagreements framed as cross-check between two extractions) + **English narrator names** for exactly the Muslim-chain narrators. Cuttable. |
-| **LK-Hadith-Corpus** (Leeds/King Saud, LREC 2020) | ~34K hadiths, six books, English+Arabic with segmented isnad/matn; grade fields messy (42/296 distinct values); only Bukhari manually verified | **ENGLISH enrichment** where numbering aligns; optional |
+| **LK-Hadith-Corpus** (Leeds/King Saud, LREC 2020) | ~34K hadiths, six books, English+Arabic with segmented isnad/matn; grade fields messy (42/296 distinct values); only Bukhari manually verified | **ENGLISH enrichment** where numbering aligns; optional bulk feeder for `hadith_translations` |
 
 ### 2.2 Verified structure (from sample inspection — spike #1 ANSWERED)
 
@@ -88,9 +88,11 @@ instance — not by separate systems.
 ### 2.4 ELT pipeline (the report's lake→warehouse story)
 
 Raw JSON files on disk (mini **data lake**, schema-on-read) → Node streams book
-arrays into `staging.raw_*` JSONB tables → **all shaping in SQL**
-(`jsonb_array_elements WITH ORDINALITY` explodes chains; front-matter filter is
-a WHERE clause) → typed corpus tables (**warehouse-like**, loaded once) →
+arrays and structurally flattens them into **flat typed** `staging` tables
+(front-matter filter, prefix strip and word alignment happen in the loader) →
+**all semantic shaping in SQL** (dimension extraction, resolution,
+normalization, typed loads) → typed corpus tables (**warehouse-like**, loaded
+once) →
 `REVOKE` writes from app role + `DROP SCHEMA staging` → app layer is the
 **OLTP** side. If asked "why not a real warehouse": single-source, small-scale,
 dual-workload on one instance — separation by schema design, not by systems.
@@ -117,9 +119,10 @@ dual-workload on one instance — separation by schema design, not by systems.
 
 Visibility enforced in the query layer: students see only their own study data;
 teachers see their circles; students never see each other; corpus readable by
-all authenticated users. Language: Arabic canonical throughout; English via LK
-(hadith text, where aligned) and MIS (`name_en` for Muslim-chain narrators);
-graceful Arabic fallback.
+all authenticated users. Language: Arabic canonical throughout, with English
+where available: **hadith text** (`corpus.hadith_translations`, source-tagged),
+**narrator names** (`narrators.name_en`, MIS) and **collection titles**. All are
+optional per row — graceful Arabic fallback everywhere.
 
 ---
 
@@ -139,14 +142,16 @@ graceful Arabic fallback.
 6. Circles: create, enroll, oversee (teacher dashboard = circle overview query).
 7. Study sets and set items.
 8. Assignments: `assign_study_set` procedure fans out to enrolled students and
-   initializes progress rows — one atomic operation (reqs 3+6).
+   initializes progress rows — one atomic operation (reqs 3+6). A hadith already
+   studied is still owed under a new assignment: obligations are tracked per
+   (student, hadith, assignment), and prior mastery is never reset.
 9. Review sessions: session + per-hadith results + progress updates in one
    explicit transaction at the API layer (req 3); stats trigger fires (req 4a).
 10. Teacher overrides with audit trail via trigger to shadow table (req 4b).
 11. Personal notes.
 
 ### Out of scope (cut first if slipping)
-Spaced-repetition scheduling; LK English enrichment; MIS validation.
+Spaced-repetition scheduling; the **LK bulk import** (`corpus.hadith_translations` stays either way — cutting the import means fewer translated rows, not a missing feature); MIS validation.
 
 ---
 
@@ -159,7 +164,7 @@ Spaced-repetition scheduling; LK English enrichment; MIS validation.
 | 4 | `trg_progress_stats` (derived counts — recompute-and-store) + `trg_progress_audit` (mastery changes → `audit_log` shadow table; actor via `set_config('ilham.user_id',…)`) | Fire on user writes only; corpus never |
 | 5 | `chain_strength(hadith_id)` — weakest-link per sanad, best sanad wins; graded→rank weight (stricter of two scholars), ungraded→0.50, unnamed/unresolved→0.15; ʿanʿana −0.05; compiler excluded | **Aggregation, not recursion** — positions are stored explicitly, so WITH RECURSIVE would be artificial (req 8) |
 | 6 | `assign_study_set` — PL/pgSQL **PROCEDURE** because it owns COMMIT/ROLLBACK (functions can't) — the req-5-vs-6 line in Postgres terms | Fan-out + progress init |
-| 7 | Q1 Top Narrators · Q2 Contested Narrators · Q3 Shared narrators · Q4 Circle overview · Q5 Weakest chains (function + joins) | Five written in the DDL; three required |
+| 7 | Q1 Top Narrators · Q2 Contested Narrators · Q3 Shared narrators · Q4 Circle overview · Q5 Weakest chains (function + joins) · Q6 Assignment completion | Six written in the DDL; three required |
 | 8 | Each feature once, where it belongs; no corpus writes at runtime ever; no fake recursion; no redundant routines | Restraint is graded |
 | 9 | Simple explainable routines; `normalize_arabic` and weights documented; each member authors their half | |
 
@@ -170,7 +175,7 @@ Spaced-repetition scheduling; LK English enrichment; MIS validation.
 ```
 Corpus seed (one-time, not a feature):
   raw JSON → staging JSONB → SQL transforms → corpus tables
-  → resolution passes A/B → rank_map curation → REVOKE + DROP staging
+  → resolution passes A/B → apply staging.rank_map → REVOKE + DROP staging
 
 POST /assignments (teacher, owns circle):
   CALL app.assign_study_set(circle, set, due)   -- procedure owns its txn
@@ -195,7 +200,7 @@ GET /analytics/* , /narrators/:id , /hadiths/:id :
   middleware for the audit trigger.
 - **You:** ETL + resolution passes; corpus schema; `normalize_arabic`;
   `chain_strength` (5); corpus analytics queries (7); review-session
-  transaction (3); audit trigger (4b); rank_map curation.
+  transaction (3); audit trigger (4b); `staging.rank_map` curation.
 - **Seam:** the review/progress flow — his API transaction fires your triggers.
 
 ---
@@ -204,11 +209,11 @@ GET /analytics/* , /narrators/:id , /hadiths/:id :
 
 | Wk | Deliverable | Gate |
 |---|---|---|
-| 1–2 | Spikes #2–3; run `db/schema.sql`; streaming loader; transforms + resolution; rank_map v1; auth | Corpus browsable; login works |
+| 1–2 | Spikes #2–3; run `db/schema.sql`; streaming loader; transforms + resolution; `staging.rank_map` v1; auth | Corpus browsable; login works |
 | 3–4 | Procedure, API transactions, both triggers, chain_strength — tested in psql directly | All routines demonstrable without UI |
 | 5–6 | React: corpus browse, sets, circles, assignments | Study loop end-to-end |
 | 7–8 | Analytics pages; review/override flow with audit; polish | Demo-ready |
-| 9 | Stretch: MIS validation → name_en; LK English; scheduling | Cut in this order |
+| 9 | Stretch: MIS validation → name_en; LK bulk translation import; scheduling | Cut in this order |
 | 10 | Hardening; seed polish; report (ELT/architecture §2.4, methodology §5); defense prep | Final |
 
 ---

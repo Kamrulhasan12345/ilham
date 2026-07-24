@@ -20,8 +20,7 @@ graph ilham_app_study {
   node [shape=box, peripheries=2, style="filled,bold", penwidth=1.5, fillcolor="#18261E", color="#3FB950", fontcolor="#C9D1D9", fontsize=11];
   enrollments        [label="enrollments\nPK (circle_id, student_id)"];
   set_items          [label="set_items\nPK (set_id, hadith_id)"];
-  assignment_targets [label="assignment_targets\nPK (assignment_id, student_id)"];
-  progress           [label="progress\nPK (student_id, hadith_id)"];
+  progress           [label="progress\nPK (progress_id)\nUQ (student_id, hadith_id, assignment_id)"];
   review_items       [label="review_items\nPK (session_id, hadith_id)"];
 
   // ---- CORPUS ANCHOR ----
@@ -34,21 +33,18 @@ graph ilham_app_study {
   r_enr_circ [label="into"]; r_enr_stu [label="enrolls"];
   r_setitem_set [label="in_set"];
   r_asg_circ [label="for_circle"]; r_asg_set [label="assigns"];
-  r_tgt_asg [label="targets"]; r_tgt_stu [label="to_student"];
-  r_prog_stu [label="tracks"];
+  r_prog_stu [label="tracks"]; r_prog_asg [label="under"];
   r_rs_stu [label="by"]; r_rs_rev [label="reviewed_by"]; r_rs_circ [label="in_circle"];
   r_ri_sess [label="in_session"];
 
   // ---- ATTRIBUTES ----
   node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
   a_p1 [label="mastery 0..4"]; a_p2 [label="times_reviewed"]; a_p3 [label="last_reviewed"];
-  a_t1 [label="status\nassigned|in_progress|\nsubmitted|reviewed"];
   a_a1 [label="due_date"];
   a_ri [label="result\npass|partial|fail"];
 
   edge [color="#484F58", style=dotted];
   progress -- a_p1; progress -- a_p2; progress -- a_p3;
-  assignment_targets -- a_t1;
   assignments -- a_a1;
   review_items -- a_ri;
 
@@ -60,8 +56,7 @@ graph ilham_app_study {
   set_items -- r_setitem_set [taillabel="N"]; r_setitem_set -- study_sets [headlabel="1"];
   assignments -- r_asg_circ [taillabel="N"]; r_asg_circ -- circles [headlabel="1"];
   assignments -- r_asg_set  [taillabel="N"]; r_asg_set  -- study_sets [headlabel="1"];
-  assignment_targets -- r_tgt_asg [taillabel="N"]; r_tgt_asg -- assignments [headlabel="1"];
-  assignment_targets -- r_tgt_stu [taillabel="N"]; r_tgt_stu -- students [headlabel="1"];
+  progress -- r_prog_asg [taillabel="N"]; r_prog_asg -- assignments [headlabel="0..1"];
   progress -- r_prog_stu [taillabel="N"]; r_prog_stu -- students [headlabel="1"];
   review_sessions -- r_rs_stu  [taillabel="N"]; r_rs_stu  -- students [headlabel="1"];
   review_sessions -- r_rs_rev  [taillabel="N"]; r_rs_rev  -- teachers [headlabel="0..1"];
@@ -83,6 +78,6 @@ graph ilham_app_study {
     fontname="DejaVu Sans Mono Bold"; fontsize=13; fontcolor="#3FB950";
     style="rounded,filled"; fillcolor="#122117"; color="#3FB950"; penwidth=2;
     node [shape=plaintext, fillcolor="none", fontcolor="#7EE787", fontsize=10];
-    p [label="Multi-table fan-out, owns its transaction:\l  1. INSERT assignments        → assignment_id\l  2. INSERT assignment_targets ← every enrolled student\l  3. INSERT progress           ← students × set_items (CROSS JOIN)\l                                 ON CONFLICT DO NOTHING\l  COMMIT  /  EXCEPTION → ROLLBACK; RAISE\l\lPROCEDURE not FUNCTION precisely because functions\lcannot COMMIT in Postgres.\l"];
+    p [label="Multi-table fan-out, owns its transaction:\l  1. INSERT assignments  → assignment_id\l  2. INSERT progress     ← students × set_items (CROSS JOIN)\l                           ON CONFLICT (student_id, hadith_id,\l                             assignment_id) WHERE assignment_id\l                             IS NOT NULL DO NOTHING\l  COMMIT\l\lPROCEDURE not FUNCTION precisely because functions\lcannot COMMIT in Postgres.\l\lNO exception handler: BEGIN..EXCEPTION opens a\lsubtransaction, and COMMIT inside one raises\l\"cannot commit while a subtransaction is active\".\lAn unhandled error already rolls the call back.\l\lEach CALL mints a NEW assignment — calling twice\lcreates two obligations, it does not deduplicate.\l"];
   }
 }

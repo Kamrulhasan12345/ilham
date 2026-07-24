@@ -32,7 +32,7 @@ schema design, not by systems.
 
 | Schema | Role | Lifetime / writes |
 |---|---|---|
-| `staging` | Flat, typed / JSONB landing tables for the raw dataset load | Transient — `DROP`ped after the one-time load |
+| `staging` | Flat, typed landing tables for the raw dataset load (no JSONB — Node flattens before SQL sees it) | Transient — `DROP`ped after the one-time load |
 | `corpus` | Reference data: collections, chapters, hadiths, isnad links, narrators, gradings | Seeded once, then **writes revoked from the app role** |
 | `app` | Users and the study layer | All runtime writes happen here |
 
@@ -62,8 +62,8 @@ cross-layer relationships are drawn in red.
 
 ```
 Corpus seed (one-time, not a feature):
-  raw JSON → staging JSONB → SQL transforms → corpus tables
-  → resolution passes A/B → rank_map curation → REVOKE + DROP staging
+  raw JSON → staging flat typed tables → SQL transforms → corpus tables
+  → resolution passes A/B → apply staging.rank_map → REVOKE + DROP staging
 
 POST /assignments (teacher owns the circle):
   CALL app.assign_study_set(circle, set, due)   -- procedure owns its own txn
@@ -80,7 +80,8 @@ GET /analytics/*, /narrators/:id, /hadiths/:id:
 ```
 
 Two distinct transaction-ownership styles are intentional: `assign_study_set` is
-a **procedure** that owns its `COMMIT`/`ROLLBACK`, while the review-session flow
+a **procedure** that owns its `COMMIT` (with no `EXCEPTION` handler — that would
+open a subtransaction and make the `COMMIT` illegal), while the review-session flow
 owns its transaction at the **API layer** (node-postgres `BEGIN/COMMIT/ROLLBACK`)
 with triggers firing inside it. See [`database.md`](database.md) for the object
 details and the invariants these flows depend on.
@@ -92,3 +93,13 @@ IS-A specialization into `students` / `teachers` / `admins` via table
 inheritance. Visibility is enforced in the query layer: students see only their
 own study data, teachers see their circles, students never see each other, and
 the corpus is readable by all authenticated users.
+
+Inheritance is a deliberate modeling choice, and it is not free: Postgres does
+not inherit primary keys, unique constraints, foreign keys or identity, so the
+schema restores each one explicitly (a shared sequence, per-child keys, and two
+trigger functions standing in for the FKs inheritance cannot express). One
+payoff is that a foreign key to a *subtype* enforces the role rule by itself —
+`circles.teacher_id REFERENCES app.teachers(user_id)` makes an admin-owned
+circle impossible without a line of application code. See
+[`database.md`](database.md#is-a-via-table-inheritance) for the full table of
+what is lost and what restores it.

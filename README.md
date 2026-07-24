@@ -55,15 +55,15 @@ Three PostgreSQL schemas inside a single instance:
 
 ### The corpus (read-only, analytical)
 
-- `collections → chapters → hadiths` — bibliographic hierarchy with natural keys.
+- `collections → chapters → hadiths` — bibliographic hierarchy with natural keys; `hadith_translations` carries optional per-language text.
 - `isnad_links` — a **weak entity** storing each narrator's position in a hadith's chain, in propagation order (Companion first, compiler last). Positions are stored explicitly, so chain traversal is aggregation, **not** recursion. `isnad_edges` is a derived view.
-- `narrators` — profiles with classical *rijal* ranks from Ibn Hajar and al-Dhahabi. Raw strings are displayed; normalized ordinals (`rank_map → rank_levels`) drive computation. A three-way distinction is preserved: **graded / named-but-ungraded / unnamed**.
+- `narrators` — profiles with classical *rijal* ranks from Ibn Hajar and al-Dhahabi. Raw strings are displayed; normalized ordinals (`rank_ibn_hajar` / `rank_dhahabi` → `rank_levels`) drive computation. The raw-string→code map is load-time only (`staging.rank_map`). A three-way distinction is preserved: **graded / named-but-ungraded / unnamed**.
 - `chain_strength(hadith_id)` — a stored function computing a transparent chain-quality metric (weakest-link per sanad, best sanad wins; graded ranks weighted, ʿanʿana penalized, placeholders/unresolved treated as weakening).
 
 ### The study layer (read-write, transactional)
 
 - `users` with role specialization (`students` / `teachers` / `admins`) via **table inheritance** (IS-A).
-- `circles → enrollments`, `study_sets → set_items`, `assignments → assignment_targets`, `progress`, `review_sessions → review_items`, `notes`.
+- `circles → enrollments`, `study_sets → set_items`, `assignments`, `progress` (keyed per **student × hadith × assignment**), `review_sessions → review_items`, `notes`.
 - `student_stats` — trigger-maintained derived counts.
 - `audit_log` — a shadow table capturing teacher overrides via trigger.
 
@@ -73,11 +73,12 @@ Three PostgreSQL schemas inside a single instance:
 
 | Object | Type | Purpose |
 |---|---|---|
-| `app.assign_study_set(circle, set, due)` | **Procedure** | Multi-table fan-out to enrolled students + progress init; owns its own `COMMIT`/`ROLLBACK` (procedures can, functions can't) |
+| `app.assign_study_set(circle, set, due)` | **Procedure** | Multi-table fan-out to enrolled students + progress init; owns its own `COMMIT` (procedures can, functions can't). No `EXCEPTION` handler — that would make the `COMMIT` illegal |
 | `corpus.chain_strength(hadith_id)` | Function | Derived chain-strength metric (aggregation, not recursion) |
 | `trg_progress_stats` | Trigger | Recompute-and-store derived student stats on progress writes |
 | `trg_progress_audit` | Trigger | Log mastery changes to the `audit_log` shadow table |
-| Q1–Q5 | Analytics queries | Top Narrators · Contested Narrators (Ibn Hajar vs al-Dhahabi) · Shared narrators · Circle overview · Weakest chains |
+| `assert_user_exists` / `assert_email_unique` | Trigger fns | Restore the referential integrity table inheritance cannot express (see `docs/database.md`) |
+| Q1–Q6 | Analytics queries | Top Narrators · Contested Narrators (Ibn Hajar vs al-Dhahabi) · Shared narrators · Circle overview · Weakest chains · Assignment completion |
 
 Triggers fire on **user writes only** — the corpus never takes runtime writes.
 
@@ -89,18 +90,19 @@ Triggers fire on **user writes only** — the corpus never takes runtime writes.
 |---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle; sunnah.alifta.gov.sa) — 276K hadiths, 33 books, 20,957 narrator profiles | **Primary corpus** — text, chains, narrator IDs, *rijal* ranks |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0) — Sahih Muslim, ordered chains | **Validation** + English narrator names |
-| **LK-Hadith-Corpus** (Leeds/King Saud, LREC 2020) | Optional English enrichment |
+| **LK-Hadith-Corpus** (Leeds/King Saud, LREC 2020) | Optional bulk feeder for `hadith_translations` |
 
-The corpus is fully Arabic (canonical), with English available where MIS/LK align, and graceful Arabic fallback.
+The corpus is canonically Arabic, with optional English for hadith text (`hadith_translations`), narrator names (`narrators.name_en`, MIS) and collection titles — always with graceful Arabic fallback.
 
 ### ELT pipeline
 
 ```
 raw JSON on disk (mini data lake, schema-on-read)
-  → Node streams book arrays into staging.raw_* JSONB tables
-  → all shaping in SQL (jsonb_array_elements WITH ORDINALITY explodes chains)
+  → Node streams book arrays, flattening structurally into staging typed tables
+  → all SEMANTIC shaping in SQL (dimensions, normalization, typed loads)
   → typed corpus tables (warehouse-like, loaded once)
   → narrator resolution passes A/B (canonical-name match + positional zip)
+  → apply staging.rank_map to narrators
   → REVOKE writes from app role + DROP SCHEMA staging
 ```
 
@@ -135,7 +137,7 @@ Font used: DejaVu Sans Mono (covers the Arabic labels). See [`docs/erd/README.md
 
 ## Roadmap
 
-The PRD lays out a 10-week plan: schema + ELT + auth → routines (procedure, transactions, triggers, `chain_strength`) → React corpus browse / sets / circles / assignments → analytics & review/override flow → hardening. Stretch goals (cut in this order if slipping): spaced-repetition scheduling → LK English enrichment → MIS validation.
+The PRD lays out a 10-week plan: schema + ELT + auth → routines (procedure, transactions, triggers, `chain_strength`) → React corpus browse / sets / circles / assignments → analytics & review/override flow → hardening. Stretch goals (cut in this order if slipping): spaced-repetition scheduling → LK bulk translation import → MIS validation.
 
 ## Scope
 
