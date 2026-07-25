@@ -1,0 +1,140 @@
+// CORPUS LAYER — read-only reference data. Takes no runtime writes:
+// permissions are REVOKEd from the app role, and staging is dropped after load.
+graph ERD_Corpus {
+    bgcolor="#0D1117";
+    splines=spline;
+    overlap=prism;
+    sep="+10";
+    esep="+5";
+    K=1.2;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
+    node [fontname="DejaVu Sans Mono", fontsize=11];
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+
+    // Entity boxes
+    node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+    Collection; Chapter; Hadith; Narrator; RankLevel;
+
+    // Weak entity boxes (double border)
+    node [shape=box, peripheries=2, style="filled,bold", penwidth=1.8, fillcolor="#1F2937", color="#79C0FF", fontcolor="#E6EDF3"];
+    IsnadLink; Translation;
+
+    // Relationship diamonds (double = identifying)
+    node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+    Contains_CollCh  [label="Contains"];
+    CollectedIn      [label="Collected In"];
+    ClassifiedUnder  [label="Classified Under"];
+    HasChainPosition [peripheries=2, label="Has Chain\nPosition"];
+    NarratedBy       [label="Narrated By"];
+    GradedIH         [label="Graded\n(Ibn Hajar)"];
+    GradedDh         [label="Graded\n(al-Dhahabi)"];
+    TranslatedAs     [peripheries=2, label="Translated As"];
+
+    // Attribute ellipses (dashed border = derived)
+    node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+    coll_id [label=<<U>collection_id</U>>];
+    coll_slug [label="slug"];
+    coll_title_ar [label="title_ar"];
+    coll_title_en [label="title_en"];
+    chap_id [label=<<U>chapter_id</U>>];
+    chap_title_ar [label="title_ar"];
+    h_id [label=<<U>hadith_id</U>>];
+    h_num [label="hadith_num"];
+    h_text_plain [label="text_plain"];
+    h_text_diac [label="text_diac"];
+    h_matn_plain [label="matn_plain"];
+    h_matn_diac [label="matn_diac"];
+    h_sanad_count [label="sanad_count"];
+    h_chain_str [style="filled,dashed", label="chain_strength"];
+    n_id [label=<<U>narrator_id</U>>];
+    n_display [label="display_name"];
+    n_name [label="name"];
+    n_name_norm [style="filled,dashed", label="name_norm"];
+    n_name_en [label="name_en"];
+    n_kunya [label="kunya"];
+    n_lineage [label="lineage"];
+    n_relation [label="relation"];
+    n_tabaqa [label="tabaqa_raw"];
+    n_school [label="school"];
+    n_rank_ih_raw [label="rank_ibn_hajar_raw"];
+    n_rank_dh_raw [label="rank_dhahabi_raw"];
+    n_dod [label="date_of_death"];
+    n_is_ph [label="is_placeholder"];
+    rl_code [label=<<U>rank_code</U>>];
+    rl_label [label="label_ar"];
+    rl_ord [label="ordinal"];
+    rl_weight [label="weight"];
+    il_sanad [label=<<U>sanad_no</U>>];
+    il_pos [label=<<U>position</U>>];
+    il_raw [label="raw_name"];
+    il_trans [label="transmission_word"];
+    il_comp [label="is_compiler"];
+    il_res [label="resolution"];
+    tr_lang [label=<<U>lang</U>>];
+    tr_text [label="text_full"];
+    tr_source [label="source"];
+
+    // Attribute edges — gold solid = key, gold dashed = partial key of a weak
+    // entity, grey dotted = ordinary
+    edge [color="#484F58", style=dotted];
+    Collection -- coll_id [color="#E3B341", style=solid, penwidth=1.4];
+    Collection -- coll_slug;
+    Collection -- coll_title_ar;
+    Collection -- coll_title_en;
+    Chapter -- chap_id [color="#E3B341", style=solid, penwidth=1.4];
+    Chapter -- chap_title_ar;
+    Hadith -- h_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -- h_num;
+    Hadith -- h_text_plain;
+    Hadith -- h_text_diac;
+    Hadith -- h_matn_plain;
+    Hadith -- h_matn_diac;
+    Hadith -- h_sanad_count;
+    Hadith -- h_chain_str;
+    Narrator -- n_id [color="#E3B341", style=solid, penwidth=1.4];
+    Narrator -- n_display;
+    Narrator -- n_name;
+    Narrator -- n_name_norm;
+    Narrator -- n_name_en;
+    Narrator -- n_kunya;
+    Narrator -- n_lineage;
+    Narrator -- n_relation;
+    Narrator -- n_tabaqa;
+    Narrator -- n_school;
+    Narrator -- n_rank_ih_raw;
+    Narrator -- n_rank_dh_raw;
+    Narrator -- n_dod;
+    Narrator -- n_is_ph;
+    RankLevel -- rl_code [color="#E3B341", style=solid, penwidth=1.4];
+    RankLevel -- rl_label;
+    RankLevel -- rl_ord;
+    RankLevel -- rl_weight;
+    IsnadLink -- il_sanad [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+    IsnadLink -- il_pos [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
+    IsnadLink -- il_raw;
+    IsnadLink -- il_trans;
+    IsnadLink -- il_comp;
+    IsnadLink -- il_res;
+    Translation -- tr_lang [color="#E3B341", style=dashed, penwidth=1.4]; // partial key
+    Translation -- tr_text;
+    Translation -- tr_source;
+
+    // Relationships (double lines on the N-side of identifying edges)
+    edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+    Collection -- Contains_CollCh [taillabel="1"];
+    Chapter    -- Contains_CollCh [taillabel="N", color="#8B949E:#8B949E"];
+    Collection -- CollectedIn [taillabel="1"];
+    Hadith     -- CollectedIn [taillabel="N", color="#8B949E:#8B949E"];
+    Chapter -- ClassifiedUnder [taillabel="0..1"];   // hadiths.chapter_id nullable
+    Hadith  -- ClassifiedUnder [taillabel="N"];
+    Hadith    -- HasChainPosition [taillabel="1"];
+    IsnadLink -- HasChainPosition [taillabel="N", color="#8B949E:#8B949E"];
+    IsnadLink -- NarratedBy [taillabel="N"];
+    Narrator  -- NarratedBy [taillabel="0..1"];      // narrator_id NULL = unresolved
+    Narrator  -- GradedIH [taillabel="N"];
+    RankLevel -- GradedIH [taillabel="0..1"];        // named-but-ungraded / unnamed
+    Narrator  -- GradedDh [taillabel="N"];
+    RankLevel -- GradedDh [taillabel="0..1"];
+    Hadith      -- TranslatedAs [taillabel="1"];
+    Translation -- TranslatedAs [taillabel="N", color="#8B949E:#8B949E"];
+}

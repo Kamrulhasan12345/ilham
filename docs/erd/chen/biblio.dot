@@ -1,0 +1,64 @@
+graph ERD_Biblio {
+    bgcolor="#0D1117";
+    splines=spline;
+    overlap=prism;
+    sep="+8";
+    esep="+4";
+    K=1.1;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
+    node [fontname="DejaVu Sans Mono", fontsize=11];
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+
+    // Entity boxes
+    node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+    Collection; Chapter; Hadith;
+
+    // Relationship diamonds
+    node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+    Contains_CollCh [label="Contains"];
+    CollectedIn     [label="Collected In"];
+    ClassifiedUnder [label="Classified Under"];
+
+    // Attribute ellipses
+    node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+    collection_id [label=<<U>collection_id</U>>];
+    slug;
+    title_ar;
+    title_en;
+    chapter_id [label=<<U>chapter_id</U>>];
+    ch_title_ar [label="title_ar"];
+    hadith_id [label=<<U>hadith_id</U>>];
+    hadith_num;
+    text_plain;
+    text_diac;
+    matn_plain;
+    matn_diac;
+    sanad_count;
+    chain_strength [style="filled,dashed"];
+
+    // PK attributes with distinctive colour
+    edge [color="#484F58", style=dotted];
+    Collection -- collection_id [color="#E3B341", style=solid, penwidth=1.4];
+    Collection -- slug;
+    Collection -- title_ar;
+    Collection -- title_en;
+    Chapter -- chapter_id [color="#E3B341", style=solid, penwidth=1.4];
+    Chapter -- ch_title_ar;
+    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -- hadith_num;
+    Hadith -- text_plain;
+    Hadith -- text_diac;
+    Hadith -- matn_plain;
+    Hadith -- matn_diac;
+    Hadith -- sanad_count;
+    Hadith -- chain_strength;
+
+    // Relationships (double lines for weak-entity identifying edges)
+    edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+    Collection -- Contains_CollCh [taillabel="1"];
+    Chapter    -- Contains_CollCh [taillabel="N", color="#8B949E:#8B949E"];
+    Collection -- CollectedIn [taillabel="1"];
+    Hadith     -- CollectedIn [taillabel="N", color="#8B949E:#8B949E"];
+    Chapter -- ClassifiedUnder [taillabel="0..1"];   // hadiths.chapter_id nullable
+    Hadith  -- ClassifiedUnder [taillabel="N"];
+}

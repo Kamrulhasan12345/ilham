@@ -1,0 +1,231 @@
+// ILHAM — RELATIONAL ERD, APP LAYER
+//
+// The transactional study layer — the only writable schema. corpus.hadiths
+// appears as a stub because four tables here reference it; its own columns are
+// in corpus.dot.
+//
+//   dot -Tsvg app.dot -o app.svg
+//
+digraph ilham_app {
+    rankdir=LR;
+    bgcolor="#0D1117";
+    newrank=true;
+    splines=spline;
+    nodesep=0.45;
+    ranksep=1.4;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9", fontsize=12];
+    node  [fontname="DejaVu Sans Mono", shape=plaintext, fontsize=10];
+    edge  [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#8B949E",
+           dir=both, arrowtail=crow, arrowhead=tee, penwidth=1.3];
+
+    subgraph cluster_app {
+        label="app  —  user and study layer (OLTP; the only writable schema)";
+        fontcolor="#3FB950";
+        style="rounded,filled";
+        fillcolor="#0E1A12";
+        color="#3FB950";
+        penwidth=2;
+
+        users [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.users</B>  (supertype)</FONT></TD></TR>
+<TR><TD PORT="user_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">user_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  seq default</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">email</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">password_hash</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text  bcrypt</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">full_name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#F85149">role</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text  discriminator</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        students [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#2EA043" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.students</B></FONT></TD></TR>
+<TR><TD PORT="user_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">user_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  re-added</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">email</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">+ inherited cols</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">student_level</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+</TABLE>>];
+
+        teachers [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#2EA043" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.teachers</B></FONT></TD></TR>
+<TR><TD PORT="user_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">user_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  re-added</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">email</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">+ inherited cols</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">institution</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">specialization</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+</TABLE>>];
+
+        admins [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#2EA043" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.admins</B></FONT></TD></TR>
+<TR><TD PORT="user_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">user_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  re-added</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">email</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">+ inherited cols</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">admin_level</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+</TABLE>>];
+
+        circles [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.circles</B></FONT></TD></TR>
+<TR><TD PORT="circle_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">circle_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="teacher_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">teacher_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  -&gt; teachers</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        enrollments [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.enrollments</B></FONT></TD></TR>
+<TR><TD PORT="circle_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">circle_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD PORT="student_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">student_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">enrolled_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        study_sets [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.study_sets</B></FONT></TD></TR>
+<TR><TD PORT="set_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">set_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="owner_id" ALIGN="LEFT"><FONT COLOR="#D29922">TRG</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">owner_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#D29922">integer  no FK possible</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        set_items [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.set_items</B></FONT></TD></TR>
+<TR><TD PORT="set_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">set_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#F85149">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#F85149">integer  -&gt; corpus</FONT></TD></TR>
+</TABLE>>];
+
+        assignments [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.assignments</B></FONT></TD></TR>
+<TR><TD PORT="assignment_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">assignment_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="circle_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">circle_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD PORT="set_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">set_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">due_date</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">date</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        progress [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.progress</B></FONT></TD></TR>
+<TR><TD PORT="progress_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">progress_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bigint identity</FONT></TD></TR>
+<TR><TD PORT="student_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT> <FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">student_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#F85149">FK</FONT> <FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#F85149">integer  -&gt; corpus</FONT></TD></TR>
+<TR><TD PORT="assignment_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT> <FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">assignment_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL  self-study</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">mastery</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint  0..4</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">times_reviewed</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">last_reviewed</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">timestamptz NULL</FONT></TD></TR>
+<TR><TD COLSPAN="3" ALIGN="LEFT"><FONT COLOR="#D29922" POINT-SIZE="8">UQ = two partial indexes, one per assignment_id NULL-ness</FONT></TD></TR>
+</TABLE>>];
+
+        review_sessions [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.review_sessions</B></FONT></TD></TR>
+<TR><TD PORT="session_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">session_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="student_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">student_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD PORT="reviewer_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">reviewer_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL  -&gt; teachers</FONT></TD></TR>
+<TR><TD PORT="circle_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">circle_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        review_items [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.review_items</B></FONT></TD></TR>
+<TR><TD PORT="session_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">session_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#F85149">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#F85149">integer  -&gt; corpus</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">result</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text  pass|partial|fail</FONT></TD></TR>
+</TABLE>>];
+
+        student_stats [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22" COLOR="#56D364">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.student_stats</B>  (derived)</FONT></TD></TR>
+<TR><TD PORT="student_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">student_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#D29922">mastered_count</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  trigger</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#D29922">review_count</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  trigger</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">updated_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        notes [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.notes</B></FONT></TD></TR>
+<TR><TD PORT="note_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">note_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="user_id" ALIGN="LEFT"><FONT COLOR="#D29922">TRG</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">user_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#D29922">integer  no FK possible</FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#F85149">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#F85149">integer  -&gt; corpus</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">body</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+
+        audit_log [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22" COLOR="#56D364">
+<TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.audit_log</B>  (shadow)</FONT></TD></TR>
+<TR><TD PORT="audit_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">audit_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bigint identity</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">table_name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">row_key</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD PORT="changed_by" ALIGN="LEFT"><FONT COLOR="#6E7681">--</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">changed_by</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL  unchecked</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">old_value</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">jsonb NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">new_value</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">jsonb NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">changed_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
+</TABLE>>];
+    }
+
+    // ---- corpus stub: the read-only target of every crossing below ----
+    corpus_hadiths [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.hadiths</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">read-only  —  columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+
+    // ---- referential constraints within app ----
+    circles:teacher_id          -> teachers:user_id;
+    enrollments:circle_id       -> circles:circle_id;
+    enrollments:student_id      -> students:user_id;
+    set_items:set_id            -> study_sets:set_id;
+    assignments:circle_id       -> circles:circle_id;
+    assignments:set_id          -> study_sets:set_id;
+    progress:student_id         -> students:user_id;
+    progress:assignment_id      -> assignments:assignment_id [arrowtail=crowodot];
+    review_sessions:student_id  -> students:user_id;
+    review_sessions:reviewer_id -> teachers:user_id          [arrowtail=crowodot];
+    review_sessions:circle_id   -> circles:circle_id         [arrowtail=crowodot];
+    review_items:session_id     -> review_sessions:session_id;
+    student_stats:student_id    -> students:user_id          [arrowtail=tee];
+
+    // ---- app -> corpus: the only four crossings, all read-only ----
+    edge [color="#F85149", fontcolor="#FF7B72", penwidth=1.6];
+    set_items:hadith_id    -> corpus_hadiths;
+    progress:hadith_id     -> corpus_hadiths;
+    review_items:hadith_id -> corpus_hadiths;
+    notes:hadith_id        -> corpus_hadiths;
+
+    // ---- table inheritance (IS-A) — not a foreign key ----
+    edge [color="#E3B341", fontcolor="#E3B341", penwidth=2, style=solid,
+          arrowtail=none, arrowhead=onormal, label="INHERITS"];
+    students:user_id -> users:user_id;
+    teachers:user_id -> users:user_id;
+    admins:user_id   -> users:user_id;
+
+    // ---- polymorphic refs: any role, so no FK is possible (ONLY semantics) ----
+    edge [color="#D29922", fontcolor="#D29922", penwidth=1.3, style=dashed,
+          arrowtail=crow, arrowhead=tee, label="assert_user_exists()"];
+    study_sets:owner_id -> users:user_id;
+    notes:user_id       -> users:user_id;
+
+    edge [label="unchecked", arrowtail=crowodot];
+    audit_log:changed_by -> users:user_id;
+
+    subgraph cluster_legend {
+        label="legend"; fontcolor="#C9D1D9"; style="rounded,filled";
+        fillcolor="#0D1117"; color="#8B949E"; penwidth=1;
+        legend [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#0D1117">
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">primary key column</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">foreign key column</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#F85149">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">foreign key crossing app -&gt; corpus</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">unique constraint / index</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">TRG</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">polymorphic ref, trigger-enforced (no FK possible)</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">NULL</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">nullable; unmarked columns are NOT NULL</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">-&lt;</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">crow foot = many        tee = exactly one</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">-o&lt;</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">circle + crow = zero or one on the parent side</FONT></TD></TR>
+</TABLE>>];
+    }
+}

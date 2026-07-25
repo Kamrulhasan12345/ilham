@@ -1,0 +1,323 @@
+graph ERD_Overall {
+    bgcolor="#0D1117";
+    compound=true;
+    splines=spline;
+    overlap=prism;
+    sep="+8";
+    esep="+4";
+    K=1.1;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
+    node [fontname="DejaVu Sans Mono", fontsize=10];
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#8B949E"];
+
+    // =====================================================================
+    // CORPUS CLUSTER
+    // =====================================================================
+    subgraph cluster_corpus {
+        label="Corpus Layer (Read-Only)";
+        fontname="DejaVu Sans Mono Bold";
+        fontsize=13;
+        fontcolor="#58A6FF";
+        style="rounded,filled";
+        fillcolor="#161B22";
+        color="#58A6FF";
+        penwidth=2;
+
+        node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+        Collection; Chapter; Hadith; Narrator; RankLevel;
+
+        node [shape=box, peripheries=2, style="filled,bold", penwidth=1.8, fillcolor="#1F2937", color="#79C0FF", fontcolor="#E6EDF3"];
+        IsnadLink; Translation;
+
+        node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+        Contains_CollCh [label="Contains"];
+        CollectedIn     [label="Collected In"];
+        ClassifiedUnder [label="Classified Under"];
+        HasChainPos [peripheries=2, label="Has Chain\nPosition"];
+        NarratedBy [label="Narrated By"];
+        GradedIH [label="Graded\n(Ibn Hajar)"];
+        GradedDh [label="Graded\n(al-Dhahabi)"];
+        TranslatedAs [peripheries=2, label="Translated As"];
+
+        // Attributes (ellipses)
+        node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+        coll_id [label=<<U>collection_id</U>>];
+        coll_slug [label="slug"];
+        coll_title_ar [label="title_ar"];
+        coll_title_en [label="title_en"];
+        chap_id [label=<<U>chapter_id</U>>];
+        chap_title_ar [label="title_ar"];
+        h_id [label=<<U>hadith_id</U>>];
+        h_num [label="hadith_num"];
+        h_text_plain [label="text_plain"];
+        h_text_diac [label="text_diac"];
+        h_matn_plain [label="matn_plain"];
+        h_matn_diac [label="matn_diac"];
+        h_sanad_count [label="sanad_count"];
+        h_chain_str [style="filled,dashed", label="chain_strength"];
+        n_id [label=<<U>narrator_id</U>>];
+        n_display [label="display_name"];
+        n_name [label="name"];
+        n_name_norm [style="filled,dashed", label="name_norm"];
+        n_name_en [label="name_en"];
+        n_kunya [label="kunya"];
+        n_lineage [label="lineage"];
+        n_relation [label="relation"];
+        n_tabaqa [label="tabaqa_raw"];
+        n_school [label="school"];
+        n_rank_ih_raw [label="rank_ibn_hajar_raw"];
+        n_rank_dh_raw [label="rank_dhahabi_raw"];
+        n_dod [label="date_of_death"];
+        n_is_ph [label="is_placeholder"];
+        rl_code [label=<<U>rank_code</U>>];
+        rl_label [label="label_ar"];
+        rl_ord [label="ordinal"];
+        rl_weight [label="weight"];
+        il_sanad [label=<<U>sanad_no</U>>];
+        il_pos [label=<<U>position</U>>];
+        il_raw [label="raw_name"];
+        il_trans [label="transmission_word"];
+        il_comp [label="is_compiler"];
+        il_res [label="resolution"];
+        tr_lang [label=<<U>lang</U>>];
+        tr_text [label="text_full"];
+        tr_source [label="source"];
+
+        edge [color="#484F58", style=dotted];
+        Collection -- coll_id [color="#E3B341", style=solid, penwidth=1.4];
+        Collection -- coll_slug;
+        Collection -- coll_title_ar;
+        Collection -- coll_title_en;
+        Chapter -- chap_id [color="#E3B341", style=solid, penwidth=1.4];
+        Chapter -- chap_title_ar;
+        Hadith -- h_id [color="#E3B341", style=solid, penwidth=1.4];
+        Hadith -- h_num;
+        Hadith -- h_text_plain;
+        Hadith -- h_text_diac;
+        Hadith -- h_matn_plain;
+        Hadith -- h_matn_diac;
+        Hadith -- h_sanad_count;
+        Hadith -- h_chain_str;
+        Narrator -- n_id [color="#E3B341", style=solid, penwidth=1.4];
+        Narrator -- n_display;
+        Narrator -- n_name;
+        Narrator -- n_name_norm;
+        Narrator -- n_name_en;
+        Narrator -- n_kunya;
+        Narrator -- n_lineage;
+        Narrator -- n_relation;
+        Narrator -- n_tabaqa;
+        Narrator -- n_school;
+        Narrator -- n_rank_ih_raw;
+        Narrator -- n_rank_dh_raw;
+        Narrator -- n_dod;
+        Narrator -- n_is_ph;
+        RankLevel -- rl_code [color="#E3B341", style=solid, penwidth=1.4];
+        RankLevel -- rl_label;
+        RankLevel -- rl_ord;
+        RankLevel -- rl_weight;
+        IsnadLink -- il_sanad [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+        IsnadLink -- il_pos [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
+        IsnadLink -- il_raw;
+        IsnadLink -- il_trans;
+        IsnadLink -- il_comp;
+        IsnadLink -- il_res;
+        Translation -- tr_lang [color="#E3B341", style=dashed, penwidth=1.4]; // partial key
+        Translation -- tr_text;
+        Translation -- tr_source;
+
+        // Relationships (double lines as in original)
+        edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+        Collection -- Contains_CollCh [taillabel="1"];
+        Chapter    -- Contains_CollCh [taillabel="N", color="#8B949E:#8B949E"];
+        Collection -- CollectedIn [taillabel="1"];
+        Hadith     -- CollectedIn [taillabel="N", color="#8B949E:#8B949E"];
+        Chapter -- ClassifiedUnder [taillabel="0..1"];
+        Hadith  -- ClassifiedUnder [taillabel="N"];
+        Hadith    -- HasChainPos [taillabel="1"];
+        IsnadLink -- HasChainPos [taillabel="N", color="#8B949E:#8B949E"];
+        IsnadLink -- NarratedBy [taillabel="N"];
+        Narrator  -- NarratedBy [taillabel="0..1"];
+        Narrator  -- GradedIH [taillabel="N"];
+        RankLevel -- GradedIH [taillabel="0..1"];
+        Narrator  -- GradedDh [taillabel="N"];
+        RankLevel -- GradedDh [taillabel="0..1"];
+        Hadith      -- TranslatedAs [taillabel="1"];
+        Translation -- TranslatedAs [taillabel="N", color="#8B949E:#8B949E"];
+    }
+
+    // =====================================================================
+    // APP CLUSTER
+    // =====================================================================
+    subgraph cluster_app {
+        label="App Layer (OLTP)";
+        fontname="DejaVu Sans Mono Bold";
+        fontsize=13;
+        fontcolor="#3FB950";
+        style="rounded,filled";
+        fillcolor="#122117";
+        color="#3FB950";
+        penwidth=2;
+
+        node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#1C2A22", color="#56D364", fontcolor="#E6EDF3"];
+        User;
+        isa_app [shape=circle, fixedsize=true, width=0.75, style=filled, fillcolor="#3D2C08", color="#E3B341", fontcolor="#E6EDF3", label="ISA"];
+        Student; Teacher; Admin;
+        Circle; StudySet; Assignment; Progress; ReviewSession; Note; StudentStats; AuditLog;
+
+        node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+        Teaches [label="Teaches"];
+        EnrolledIn [label="Enrolled In"];
+        Owns [label="Owns"];
+        AssignedTo [label="Assigned To"];
+        Uses [label="Uses"];
+        ProgStudent [label="Belongs To\n(Student)"];
+        ProgAssign [label="Belongs To\n(Assignment)"];
+        Reviews [label="Reviews"];
+        ReviewedBy [label="Reviewed By"];
+        InContextOf [label="In Context Of"];
+        HasStats [label="Has Stats"];
+        Writes [label="Writes"];
+        PerformedBy [label="Performed By"];
+
+        // Attributes
+        node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+        u_id [label=<<U>user_id</U>>];
+        u_email [label="email"];
+        u_pwhash [label="password_hash"];
+        u_name [label="full_name"];
+        u_role [label="role"];
+        u_created [label="created_at"];
+        stu_level [label="student_level"];
+        tea_inst [label="institution"];
+        tea_spec [label="specialization"];
+        adm_level [label="admin_level"];
+        cir_id [label=<<U>circle_id</U>>];
+        cir_name [label="name"];
+        cir_created [label="created_at"];
+        ss_id [label=<<U>set_id</U>>];
+        ss_name [label="name"];
+        ss_created [label="created_at"];
+        asgn_id [label=<<U>assignment_id</U>>];
+        asgn_due [label="due_date"];
+        asgn_created [label="created_at"];
+        prog_id [label=<<U>progress_id</U>>];
+        prog_mast [label="mastery"];
+        prog_times [label="times_reviewed"];
+        prog_last [label="last_reviewed"];
+        rs_id [label=<<U>session_id</U>>];
+        rs_created [label="created_at"];
+        note_id [label=<<U>note_id</U>>];
+        note_body [label="body"];
+        note_created [label="created_at"];
+        sstat_id [label=<<U>student_id</U>>];
+        sstat_mast [style="filled,dashed", label="mastered_count"];
+        sstat_rev [style="filled,dashed", label="review_count"];
+        sstat_upd [label="updated_at"];
+        al_id [label=<<U>audit_id</U>>];
+        al_table [label="table_name"];
+        al_row [label="row_key"];
+        al_old [label="old_value"];
+        al_new [label="new_value"];
+        al_changed [label="changed_at"];
+        enroll_at [label="enrolled_at"];
+
+        edge [color="#484F58", style=dotted];
+        User -- u_id [color="#E3B341", style=solid, penwidth=1.4];
+        User -- u_email;
+        User -- u_pwhash;
+        User -- u_name;
+        User -- u_role [color="#F85149", style=solid, penwidth=1.4];   // ISA discriminator
+        User -- u_created;
+        Student -- stu_level;
+        Teacher -- tea_inst;
+        Teacher -- tea_spec;
+        Admin -- adm_level;
+        Circle -- cir_id [color="#E3B341", style=solid, penwidth=1.4];
+        Circle -- cir_name;
+        Circle -- cir_created;
+        StudySet -- ss_id [color="#E3B341", style=solid, penwidth=1.4];
+        StudySet -- ss_name;
+        StudySet -- ss_created;
+        Assignment -- asgn_id [color="#E3B341", style=solid, penwidth=1.4];
+        Assignment -- asgn_due;
+        Assignment -- asgn_created;
+        Progress -- prog_id [color="#E3B341", style=solid, penwidth=1.4];
+        Progress -- prog_mast;
+        Progress -- prog_times;
+        Progress -- prog_last;
+        ReviewSession -- rs_id [color="#E3B341", style=solid, penwidth=1.4];
+        ReviewSession -- rs_created;
+        Note -- note_id [color="#E3B341", style=solid, penwidth=1.4];
+        Note -- note_body;
+        Note -- note_created;
+        StudentStats -- sstat_id [color="#E3B341", style=solid, penwidth=1.4];
+        StudentStats -- sstat_mast;
+        StudentStats -- sstat_rev;
+        StudentStats -- sstat_upd;
+        AuditLog -- al_id [color="#E3B341", style=solid, penwidth=1.4];
+        AuditLog -- al_table;
+        AuditLog -- al_row;
+        AuditLog -- al_old;
+        AuditLog -- al_new;
+        AuditLog -- al_changed;
+        EnrolledIn -- enroll_at;
+
+        // ISA edges
+        edge [color="#E3B341", style=solid, penwidth=2, fontcolor="#E3B341"];
+        User -- isa_app [label="d"];
+        isa_app -- Student;
+        isa_app -- Teacher;
+        isa_app -- Admin;
+
+        // App relationships (double lines for identifying/weak edges)
+        edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+        Teacher -- Teaches [taillabel="1"];
+        Circle  -- Teaches [taillabel="N"];
+        Student -- EnrolledIn [taillabel="M"];
+        Circle  -- EnrolledIn [taillabel="N"];
+        User     -- Owns [taillabel="1"];
+        StudySet -- Owns [taillabel="N"];
+        Circle     -- AssignedTo [taillabel="1"];
+        Assignment -- AssignedTo [taillabel="N", color="#8B949E:#8B949E"];
+        StudySet   -- Uses [taillabel="1"];
+        Assignment -- Uses [taillabel="N"];
+        Student  -- ProgStudent [taillabel="1"];
+        Progress -- ProgStudent [taillabel="N", color="#8B949E:#8B949E"];
+        Assignment -- ProgAssign [taillabel="0..1"];   // NULL = self-study
+        Progress   -- ProgAssign [taillabel="N"];
+        ReviewSession -- Reviews [taillabel="N"];
+        Student       -- Reviews [taillabel="1"];
+        ReviewSession -- ReviewedBy [taillabel="N"];
+        Teacher       -- ReviewedBy [taillabel="0..1"];
+        ReviewSession -- InContextOf [taillabel="N"];
+        Circle        -- InContextOf [taillabel="0..1"];
+        Student      -- HasStats [taillabel="1"];
+        StudentStats -- HasStats [taillabel="0..1"];
+        User -- Writes [taillabel="1"];
+        Note -- Writes [taillabel="N"];
+        AuditLog -- PerformedBy [taillabel="N"];
+        User     -- PerformedBy [taillabel="0..1"];
+    }
+
+    // =====================================================================
+    // CROSS-CLUSTER BRIDGES (double lines on weak / identifying edges)
+    // =====================================================================
+    node [shape=diamond, style=filled, fillcolor="#2D1617", color="#F85149", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+    ContainsApp [label="Contains"];
+    ProgHadith  [label="Belongs To\n(Hadith)"];
+    Tested      [label="Tested"];
+    About       [label="About"];
+
+    edge [color="#F85149", fontcolor="#FF7B72", penwidth=1.5];
+    StudySet -- ContainsApp [taillabel="M"];
+    Hadith   -- ContainsApp [taillabel="N"];
+    Progress -- ProgHadith [taillabel="N", color="#F85149:#F85149"];
+    Hadith   -- ProgHadith [taillabel="1"];
+    ReviewSession -- Tested [taillabel="M"];
+    Hadith        -- Tested [taillabel="N"];
+    tested_result [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E", label="result"];
+    Tested -- tested_result [color="#8B949E"];
+    Note   -- About [taillabel="N"];
+    Hadith -- About [taillabel="1"];
+}

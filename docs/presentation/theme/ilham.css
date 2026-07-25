@@ -1,0 +1,323 @@
+/* @theme ilham
+ *
+ * Dark theme for the Ilham database design deck.
+ *
+ * TYPE — two roles, deliberately split:
+ *   Hack (mono)  headings, labels, code, captions. Hack descends from the same
+ *                Bitstream Vera lineage as DejaVu Sans Mono, which is the font
+ *                inside every ERD diagram — so the slide chrome and the diagram
+ *                labels are visibly the same voice. Technical artifacts speak
+ *                in mono.
+ *   Inter (sans) body prose. The argument speaks in sans. Shipped as
+ *                theme/InterVariable.woff2 so the deck builds identically
+ *                anywhere, without Inter being installed on the machine.
+ *
+ * COLOUR — lifted verbatim from the Graphviz sources in docs/erd/ so slides and
+ * diagrams read as one artifact. Do not "tidy" these hex values.
+ *
+ * The rule under each slide title is coloured by which layer the slide is
+ * about: blue = corpus, green = app, red = the crossing between them. It
+ * encodes the deck's actual structure rather than decorating it.
+ */
+
+@import 'default';
+
+:root {
+  --bg:        #0D1117;
+  --surface:   #161B22;
+  --raised:    #1C222B;
+  --border:    #2A313C;
+  --text:      #E6EDF3;
+  --muted:     #9BA6B2;
+  --dim:       #6E7681;
+
+  --corpus:    #58A6FF;
+  --app:       #3FB950;
+  --rel:       #D29922;
+  --key:       #E3B341;
+  --crossing:  #F85149;
+
+  --mono: Hack, "DejaVu Sans Mono", ui-monospace, monospace;
+  --sans: Inter, "Noto Sans", "Liberation Sans", system-ui, sans-serif;
+  --arabic: "Noto Naskh Arabic", "Noto Sans Arabic", "DejaVu Sans";
+}
+
+section {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans), var(--arabic);
+  font-size: 20px;
+  padding: 24px 40px 28px;
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  font-feature-settings: "cv05" 1, "ss01" 1;
+  display: flex;
+  flex-direction: column;
+  /* content starts at the top edge; centring made the reduced padding look
+     generous again. The title slide overrides this back to centred. */
+  justify-content: flex-start;
+}
+
+section img { display: block; margin: 0 auto; }
+
+/* ── type scale ─────────────────────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--mono), var(--arabic);
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 2.4em; margin: 0 0 0.2em; line-height: 1.1; }
+
+h2 {
+  font-size: 1.5em;
+  margin: 0 0 0.75em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid var(--border);
+  line-height: 1.15;
+}
+
+h3 { font-size: 0.95em; color: var(--muted); margin: 0 0 0.35em; }
+
+p { margin: 0 0 0.7em; }
+p:last-child { margin-bottom: 0; }
+
+strong { color: #FFFFFF; font-weight: 650; }
+em     { color: var(--muted); font-style: italic; }
+
+code {
+  font-family: var(--mono);
+  background: var(--raised);
+  color: var(--key);
+  padding: 0.08em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+a { color: var(--corpus); }
+
+ul, ol { margin: 0.2em 0 0.7em; padding-left: 1.1em; }
+li { margin: 0.25em 0; }
+li::marker { color: var(--dim); }
+
+/* which layer is this slide about — the rule says so */
+section.corpus h2 { border-bottom-color: var(--corpus); }
+section.app    h2 { border-bottom-color: var(--app); }
+section.cross  h2 { border-bottom-color: var(--crossing); }
+
+section::after {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 0.5em;
+}
+
+/* ── title slide ────────────────────────────────────────────────────────── */
+section.lead { padding: 40px 56px; justify-content: center; }
+
+section.lead h1 { font-size: 3em; margin-bottom: 0.08em; }
+section.lead h1 .ar {
+  font-family: var(--arabic);
+  color: var(--key);
+  font-weight: 400;
+}
+section.lead h2 {
+  border: none;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 1.05em;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-bottom: 1.2em;
+  padding: 0;
+}
+.thesis {
+  font-family: var(--mono);
+  font-size: 1em;
+  line-height: 1.45;
+  color: var(--corpus);
+  border-left: 3px solid var(--corpus);
+  padding: 0.35em 0 0.35em 0.85em;
+  margin: 0 0 1.5em;
+  max-width: 26em;
+}
+.byline {
+  font-family: var(--mono);
+  font-size: 0.7em;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+/* ── callout: the one point being made on a diagram slide ───────────────── */
+.callout {
+  background: var(--surface);
+  border-left: 3px solid var(--rel);
+  border-radius: 4px;
+  padding: 0.75em 0.95em;
+  margin: 0 0 0.7em;
+  font-size: 0.85em;
+  line-height: 1.45;
+}
+.callout:last-child { margin-bottom: 0; }
+.callout b {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
+  display: block;
+  margin-bottom: 0.25em;
+}
+.callout.corpus   { border-left-color: var(--corpus); }
+.callout.corpus b { color: var(--corpus); }
+.callout.app      { border-left-color: var(--app); }
+.callout.app b    { color: var(--app); }
+.callout.cross    { border-left-color: var(--crossing); }
+.callout.cross b  { color: var(--crossing); }
+
+/* ── diagram slides ─────────────────────────────────────────────────────────
+   Text column left, diagram right. The diagram is an inline SVG sized to sit
+   inside its column rather than stretched to fill it — vector, so it stays
+   sharp wherever it lands. Tune the split per slide with --dw. */
+.diagram {
+  display: grid;
+  grid-template-columns: 1fr var(--dw, 60%);
+  gap: 1.5em;
+  align-items: center;
+  flex: 1;
+  min-height: 0;
+}
+.diagram > .fig {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+.diagram > .fig img {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ── the isnad chain drawn on slide 2 ───────────────────────────────────── */
+.chain {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 0.75em;
+  margin: 0.5em 0 0.8em;
+}
+.chain span {
+  background: var(--raised);
+  border: 1px solid var(--corpus);
+  border-radius: 3px;
+  padding: 0.28em 0.6em;
+  color: var(--text);
+  white-space: nowrap;
+}
+.chain span.end { border-color: var(--key); color: var(--key); }
+.chain i { color: var(--dim); font-style: normal; }
+
+/* ── slide 6: schema thumbnails + closing claims ────────────────────────── */
+.thumbs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.3em;
+  margin: 0 0 0.8em;
+  min-height: 0;
+}
+.thumbs figure { margin: 0; min-height: 0; }
+.thumbs img {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.thumbs figcaption {
+  font-family: var(--mono);
+  font-size: 0.6em;
+  color: var(--dim);
+  margin-top: 0.35em;
+  text-align: center;
+}
+.claims {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1em;
+  font-size: 0.8em;
+  line-height: 1.4;
+}
+.claims div {
+  border-top: 2px solid var(--border);
+  padding-top: 0.5em;
+}
+.claims div:nth-child(1) { border-top-color: var(--corpus); }
+.claims div:nth-child(2) { border-top-color: var(--rel); }
+.claims div:nth-child(3) { border-top-color: var(--crossing); }
+.claims b {
+  font-family: var(--mono);
+  font-size: 0.95em;
+  display: block;
+  margin-bottom: 0.2em;
+  color: var(--text);
+}
+
+/* ── the REVOKE line on slide 5 ─────────────────────────────────────────── */
+.revoke {
+  font-family: var(--mono);
+  font-size: 0.75em;
+  line-height: 1.5;
+  background: var(--surface);
+  border: 1px solid var(--crossing);
+  border-radius: 4px;
+  color: var(--crossing);
+  padding: 0.55em 0.75em;
+  margin-top: 0.2em;
+}
+
+/* ── tables ─────────────────────────────────────────────────────────────────
+   The inherited default theme stripes rows with a light fill, unreadable on a
+   dark deck, with a selector more specific than a bare `tr`. Out-specify it. */
+section table tr,
+section table tbody tr:nth-child(odd),
+section table tbody tr:nth-child(even),
+section table thead tr { background-color: transparent; }
+
+table { border-collapse: collapse; font-size: 0.85em; width: 100%; }
+th {
+  font-family: var(--mono);
+  color: var(--muted);
+  text-align: left;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  padding: 0.35em 0.55em;
+}
+td {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 0.35em 0.55em;
+  vertical-align: top;
+  color: var(--text);
+}
+tr:last-child td { border-bottom: none; }
+
+
+/* ── body face ──────────────────────────────────────────────────────────────
+   Inter Variable (SIL OFL 1.1, https://rsms.me/inter/), shipped alongside this
+   file so the deck renders identically without Inter being installed. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  /* Path is relative to the MARKDOWN file, not to this stylesheet: Marp
+     inlines the theme into the generated HTML, so URLs resolve against the
+     document. 'theme/InterVariable.woff2' is correct; './InterVariable.woff2'
+     would 404 and silently fall back to Noto Sans. */
+  src: url('theme/InterVariable.woff2') format('woff2');
+}

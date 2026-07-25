@@ -1,0 +1,103 @@
+graph ERD_Narrators {
+    bgcolor="#0D1117";
+    splines=spline;
+    overlap=prism;
+    sep="+8";
+    esep="+4";
+    K=1.1;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
+    node [fontname="DejaVu Sans Mono", fontsize=11];
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+
+    // Entity boxes
+    node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+    Hadith; RankLevel; Narrator;
+
+    // Weak entity boxes (double border)
+    node [shape=box, peripheries=2, style="filled,bold", penwidth=1.8, fillcolor="#1F2937", color="#79C0FF", fontcolor="#E6EDF3"];
+    IsnadLink; Translation;
+
+    // Relationship diamonds
+    node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+    HasChainPosition [peripheries=2, label="Has Chain\nPosition"];
+    NarratedBy       [label="Narrated By"];
+    GradedIH         [label="Graded\n(Ibn Hajar)"];
+    GradedDh         [label="Graded\n(al-Dhahabi)"];
+    TranslatedAs     [peripheries=2, label="Translated As"];
+
+    // Attribute ellipses
+    node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+    hadith_id [label=<<U>hadith_id</U>>];
+    narrator_id [label=<<U>narrator_id</U>>];
+    display_name;
+    n_name [label="name"];
+    name_norm [style="filled,dashed"];
+    name_en;
+    kunya;
+    lineage;
+    relation;
+    tabaqa_raw;
+    school;
+    rank_ibn_hajar_raw;
+    rank_dhahabi_raw;
+    date_of_death;
+    is_placeholder;
+    rank_code [label=<<U>rank_code</U>>];
+    label_ar;
+    ordinal;
+    weight;
+    sanad_no [label=<<U>sanad_no</U>>];
+    position [label=<<U>position</U>>];
+    raw_name;
+    transmission_word;
+    is_compiler;
+    resolution;
+    lang [label=<<U>lang</U>>];
+    text_full;
+    source_attr [label="source"];
+
+    // Attribute edges — gold solid = key, gold dashed = partial key of a weak
+    // entity, grey dotted = ordinary
+    edge [color="#484F58", style=dotted];
+    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    Narrator -- narrator_id [color="#E3B341", style=solid, penwidth=1.4];
+    Narrator -- display_name;
+    Narrator -- n_name;
+    Narrator -- name_norm;
+    Narrator -- name_en;
+    Narrator -- kunya;
+    Narrator -- lineage;
+    Narrator -- relation;
+    Narrator -- tabaqa_raw;
+    Narrator -- school;
+    Narrator -- rank_ibn_hajar_raw;
+    Narrator -- rank_dhahabi_raw;
+    Narrator -- date_of_death;
+    Narrator -- is_placeholder;
+    RankLevel -- rank_code [color="#E3B341", style=solid, penwidth=1.4];
+    RankLevel -- label_ar;
+    RankLevel -- ordinal;
+    RankLevel -- weight;
+    IsnadLink -- sanad_no [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+    IsnadLink -- position [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+    IsnadLink -- raw_name;
+    IsnadLink -- transmission_word;
+    IsnadLink -- is_compiler;
+    IsnadLink -- resolution;
+    Translation -- lang [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
+    Translation -- text_full;
+    Translation -- source_attr;
+
+    // Relationships (double lines for weak-entity identifying edges)
+    edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+    Hadith    -- HasChainPosition [taillabel="1"];
+    IsnadLink -- HasChainPosition [taillabel="N", color="#8B949E:#8B949E"];
+    IsnadLink -- NarratedBy [taillabel="N"];
+    Narrator  -- NarratedBy [taillabel="0..1"];   // narrator_id NULL = unresolved
+    Narrator  -- GradedIH [taillabel="N"];
+    RankLevel -- GradedIH [taillabel="0..1"];     // named-but-ungraded / unnamed
+    Narrator  -- GradedDh [taillabel="N"];
+    RankLevel -- GradedDh [taillabel="0..1"];
+    Hadith      -- TranslatedAs [taillabel="1"];
+    Translation -- TranslatedAs [taillabel="N", color="#8B949E:#8B949E"];
+}

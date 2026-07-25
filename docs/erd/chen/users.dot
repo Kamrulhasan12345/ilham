@@ -1,0 +1,87 @@
+graph ERD_Users {
+    bgcolor="#0D1117";
+    splines=spline;
+    overlap=prism;
+    sep="+8";
+    esep="+4";
+    K=1.1;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
+    node [fontname="DejaVu Sans Mono", fontsize=11];
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+
+    // Entity boxes
+    node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+    User; Student; Teacher; Admin; Circle; StudySet; Hadith;
+
+    // ISA circle — declared inline. Never set `label` in a `node [...]` default:
+    // it leaks to every bare-declared node that follows.
+    isa_user [shape=circle, fixedsize=true, width=0.75, style=filled,
+              fillcolor="#3D2C08", color="#E3B341", fontcolor="#E6EDF3", label="ISA"];
+
+    // Relationship diamonds
+    node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+    Teaches         [label="Teaches"];
+    EnrolledIn      [label="Enrolled In"];
+    Owns            [label="Owns"];
+    Contains_SetHad [label="Contains"];
+
+    // Attribute ellipses
+    node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+    user_id [label=<<U>user_id</U>>];
+    email;
+    password_hash;
+    full_name;
+    role;
+    created_at;
+    student_level;
+    institution;
+    specialization;
+    admin_level;
+    enrolled_at;
+    circle_id [label=<<U>circle_id</U>>];
+    circle_name [label="name"];
+    circ_created [label="created_at"];
+    set_id [label=<<U>set_id</U>>];
+    set_name [label="name"];
+    set_created [label="created_at"];
+    hadith_id [label=<<U>hadith_id</U>>];
+
+    // Attribute edges — gold solid = key, grey dotted = ordinary
+    edge [color="#484F58", style=dotted];
+    User -- user_id [color="#E3B341", style=solid, penwidth=1.4];
+    User -- email;
+    User -- password_hash;
+    User -- full_name;
+    User -- role [color="#F85149", style=solid, penwidth=1.4];   // ISA discriminator
+    User -- created_at;
+    Student -- student_level;
+    Teacher -- institution;
+    Teacher -- specialization;
+    Admin -- admin_level;
+    EnrolledIn -- enrolled_at;
+    Circle -- circle_id [color="#E3B341", style=solid, penwidth=1.4];
+    Circle -- circle_name;
+    Circle -- circ_created;
+    StudySet -- set_id [color="#E3B341", style=solid, penwidth=1.4];
+    StudySet -- set_name;
+    StudySet -- set_created;
+    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+
+    // ISA edges — d = disjoint, carried on the supertype edge
+    edge [color="#E3B341", style=solid, penwidth=2, fontcolor="#E3B341"];
+    User -- isa_user [label="d"];
+    isa_user -- Student;
+    isa_user -- Teacher;
+    isa_user -- Admin;
+
+    // Relationships
+    edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+    Teacher -- Teaches [taillabel="1"];
+    Circle  -- Teaches [taillabel="N"];
+    Student -- EnrolledIn [taillabel="M"];
+    Circle  -- EnrolledIn [taillabel="N"];
+    User     -- Owns [taillabel="1"];
+    StudySet -- Owns [taillabel="N"];
+    StudySet -- Contains_SetHad [taillabel="M"];
+    Hadith   -- Contains_SetHad [taillabel="N"];
+}

@@ -11,6 +11,8 @@ No titles are baked into the images — add headings in your slide tool.
 |---|---|
 | `full/` | The detailed diagram set (`.dot` / `.png` / `.svg`) — every attribute shown |
 | `plain/` | Simplified variants of the same seven diagrams (note: #7 is `07_derived`) |
+| `chen/` | Newer ten-diagram set, force-directed — see [below](#the-chen-set) |
+| `relational/` | **Crow's-foot** ERDs — columns + PK/FK; whole schema plus one per layer ([README](relational/README.md)) |
 | `overview.png` | Single rendered overview image |
 | `clustered_chen.dot` / `.png` | Cluster-grouped Chen diagram of the whole schema |
 | `exports/*.zip` | Zipped bundles of the full and plain sets |
@@ -44,10 +46,17 @@ dot -Tsvg full/01_overview.dot -o full/01_overview.svg
 | Double diamond | Identifying / derived relationship |
 | Triangle | ISA specialization (d = disjoint) |
 | Ellipse | Attribute (gold edge = key, dashed = generated) |
+| Ellipse on a gold **dashed** edge | Partial key of a weak entity (`chen/` only) |
 | Octagon | Trigger |
 | Component | Stored function / procedure |
 
 Cardinality sits on the edges as 1, N, or 0..1 for optional participation.
+
+A weak entity's partial key is conventionally written with a dashed underline,
+which Graphviz cannot render. `chen/` marks it on the *edge* instead — a dashed
+underline would otherwise collide with the dashed ellipse *border* that already
+means "derived". Affects `isnad_links.sanad_no` / `.position` and
+`hadith_translations.lang`.
 
 ## Colour coding
 
@@ -55,6 +64,45 @@ Cardinality sits on the edges as 1, N, or 0..1 for optional participation.
 - Green `#3FB950` — app (OLTP)
 - Gold `#D29922` — relationships and ISA
 - Red `#F85149` — cross-layer app → corpus relationships
+
+## The `chen` set
+
+Ten diagrams covering the same schema, laid out force-directed rather than
+layered. Each `.dot` renders under both engines, as PNG and SVG:
+`<name>.png` / `<name>.svg` (neato) and `<name>-sfdp.png` / `<name>-sfdp.svg`
+(sfdp). **Prefer the SVGs** — these graphs carry a lot of small text and the
+rasters blur it as soon as anything scales them.
+
+| File | Covers |
+|------|--------|
+| `corpus` | The whole read-only layer — biblio spine, isnad, rijal grading, translations |
+| `app` | The whole OLTP layer — ISA, circles, sets, assignments, progress, reviews, stats, audit |
+| `inter_layer` | Only the four app → corpus crossings |
+| `overview` | Both layers plus the crossings, in one clustered graph |
+| `biblio` · `narrator` · `users` · `assignments` · `reviews` · `stats_audit_log` | Per-concern detail views |
+
+Rebuild the whole set:
+
+```bash
+cd docs/erd/chen
+for f in *.dot; do
+  b="${f%.dot}"
+  neato -Tpng "$f" -o "$b.png"   ; neato -Tsvg "$f" -o "$b.svg"
+  sfdp  -Tpng "$f" -o "$b-sfdp.png" ; sfdp -Tsvg "$f" -o "$b-sfdp.svg"
+done
+```
+
+These sources deliberately carry **no** `rankdir`, `ranksep` or `nodesep` —
+those are `dot`-only and are silently ignored by neato and sfdp. Layout is tuned
+with `overlap`, `sep`, `esep` and `K` instead.
+
+Two differences from `full/`:
+
+- ISA is a **circle labelled `ISA`** with `d` on the supertype edge, where
+  `full/` uses a triangle. Same meaning.
+- `inter_layer` uses no cluster boxes. sfdp does not draw them at all, so the
+  layer split is carried by node colour (green = app, blue = corpus), which both
+  engines honour.
 
 ## Suggested order
 

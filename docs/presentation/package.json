@@ -1,0 +1,14 @@
+{
+  "name": "ilham-presentation",
+  "private": true,
+  "description": "Marp source for the Ilham database design deck",
+  "devDependencies": {
+    "@marp-team/marp-cli": "4.5.0"
+  },
+  "scripts": {
+    "build": "marp compact.md --theme theme/ilham.css --allow-local-files --no-stdin -o compact.pdf",
+    "html": "marp compact.md --theme theme/ilham.css --allow-local-files --no-stdin -o compact.html",
+    "images": "marp compact.md --theme theme/ilham.css --allow-local-files --no-stdin --images png -o build/slide.png",
+    "watch": "marp -w -s ."
+  }
+}

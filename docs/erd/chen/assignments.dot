@@ -1,0 +1,64 @@
+graph ERD_Assignments {
+    bgcolor="#0D1117";
+    splines=spline;
+    overlap=prism;
+    sep="+8";
+    esep="+4";
+    K=1.1;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
+    node [fontname="DejaVu Sans Mono", fontsize=11];
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+
+    // Entity boxes
+    node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+    Circle; StudySet; Assignment; Student; Hadith; Progress;
+
+    // Relationship diamonds
+    node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
+    AssignedTo        [label="Assigned To"];
+    Uses              [label="Uses"];
+    ProgressOfStudent [label="Belongs To\n(Student)"];
+    ProgressOfHadith  [label="Belongs To\n(Hadith)"];
+    ProgressForAssign [label="Belongs To\n(Assignment)"];
+
+    // Attribute ellipses
+    node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+    circle_id [label=<<U>circle_id</U>>];
+    set_id [label=<<U>set_id</U>>];
+    assignment_id [label=<<U>assignment_id</U>>];
+    due_date;
+    assign_created [label="created_at"];
+    student_id [label=<<U>student_id</U>>];
+    hadith_id [label=<<U>hadith_id</U>>];
+    progress_id [label=<<U>progress_id</U>>];
+    mastery;
+    times_reviewed;
+    last_reviewed;
+
+    // PK edges
+    edge [color="#484F58", style=dotted];
+    Circle -- circle_id [color="#E3B341", style=solid, penwidth=1.4];
+    StudySet -- set_id [color="#E3B341", style=solid, penwidth=1.4];
+    Assignment -- assignment_id [color="#E3B341", style=solid, penwidth=1.4];
+    Assignment -- due_date;
+    Assignment -- assign_created;
+    Student -- student_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    Progress -- progress_id [color="#E3B341", style=solid, penwidth=1.4];
+    Progress -- mastery;
+    Progress -- times_reviewed;
+    Progress -- last_reviewed;
+
+    // Relationships (double lines for identifying/weak edges)
+    edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
+    Circle     -- AssignedTo [taillabel="1"];
+    Assignment -- AssignedTo [taillabel="N", color="#8B949E:#8B949E"];
+    StudySet   -- Uses [taillabel="1"];
+    Assignment -- Uses [taillabel="N"];
+    Student  -- ProgressOfStudent [taillabel="1"];
+    Progress -- ProgressOfStudent [taillabel="N", color="#8B949E:#8B949E"];
+    Hadith   -- ProgressOfHadith [taillabel="1"];
+    Progress -- ProgressOfHadith [taillabel="N", color="#8B949E:#8B949E"];
+    Assignment -- ProgressForAssign [taillabel="0..1"];  // NULL = self-study
+    Progress   -- ProgressForAssign [taillabel="N"];
+}

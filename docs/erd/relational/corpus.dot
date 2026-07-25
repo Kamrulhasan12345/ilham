@@ -1,0 +1,149 @@
+// ILHAM — RELATIONAL ERD, CORPUS LAYER
+//
+// The read-only reference data, on its own. Written once at seed, after which
+// INSERT/UPDATE/DELETE are REVOKEd from the app role. No trigger ever fires
+// here and no runtime write path exists.
+//
+// Four app tables reference corpus.hadiths from outside this diagram
+// (set_items, progress, review_items, notes) — see ../relational/schema.dot
+// for those, or ../chen/inter_layer.dot for the Chen view of them.
+//
+//   dot -Tsvg corpus.dot -o corpus.svg
+//
+digraph ilham_corpus {
+    rankdir=LR;
+    bgcolor="#0D1117";
+    newrank=true;
+    splines=spline;
+    nodesep=0.45;
+    ranksep=1.4;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9", fontsize=12];
+    node  [fontname="DejaVu Sans Mono", shape=plaintext, fontsize=10];
+    edge  [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#8B949E",
+           dir=both, arrowtail=crow, arrowhead=tee, penwidth=1.3];
+
+    subgraph cluster_corpus {
+        label="corpus  —  read-only reference data (no runtime writes, ever)";
+        fontcolor="#58A6FF";
+        style="rounded,filled";
+        fillcolor="#0F1620";
+        color="#58A6FF";
+        penwidth=2;
+
+        collections [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.collections</B></FONT></TD></TR>
+<TR><TD PORT="collection_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">collection_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint identity</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">slug</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+</TABLE>>];
+
+        chapters [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.chapters</B></FONT></TD></TR>
+<TR><TD PORT="chapter_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">chapter_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="collection_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT> <FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">collection_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        hadiths [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.hadiths</B></FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  (natural)</FONT></TD></TR>
+<TR><TD PORT="collection_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">collection_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD PORT="chapter_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">chapter_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_plain</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_diac</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">matn_plain</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">matn_diac</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">sanad_count</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+</TABLE>>];
+
+        rank_levels [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.rank_levels</B></FONT></TD></TR>
+<TR><TD PORT="rank_code" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">rank_code</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">label_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">ordinal</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">weight</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">numeric(3,2)</FONT></TD></TR>
+</TABLE>>];
+
+        narrators [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.narrators</B></FONT></TD></TR>
+<TR><TD PORT="narrator_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">narrator_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">display_name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">name_norm</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#D29922">generated stored</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">name_en, kunya, lineage</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">relation, tabaqa_raw, school</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">rank_ibn_hajar_raw</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL  (display)</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">rank_dhahabi_raw</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL  (display)</FONT></TD></TR>
+<TR><TD PORT="rank_ibn_hajar" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">rank_ibn_hajar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL  (math)</FONT></TD></TR>
+<TR><TD PORT="rank_dhahabi" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">rank_dhahabi</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL  (math)</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">date_of_death</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">is_placeholder</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">boolean</FONT></TD></TR>
+</TABLE>>];
+
+        isnad_links [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.isnad_links</B></FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">sanad_no</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">position</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint  (Companion = 1)</FONT></TD></TR>
+<TR><TD PORT="narrator_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">narrator_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL  (unresolved)</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">raw_name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">transmission_word</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">is_compiler</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">boolean</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">resolution</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">char(1) NULL  A|B|X</FONT></TD></TR>
+</TABLE>>];
+
+        hadith_translations [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.hadith_translations</B></FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">lang</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">char(2)  ISO 639-1</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_full</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">source</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text  provenance</FONT></TD></TR>
+</TABLE>>];
+
+        isnad_edges [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#79C0FF">
+<TR><TD COLSPAN="2" ALIGN="CENTER"><FONT COLOR="#79C0FF"><B>corpus.isnad_edges</B>  (VIEW)</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">self-join of isnad_links on</FONT></TD><TD></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">position = position + 1</FONT></TD><TD></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">from_narrator -&gt; to_narrator</FONT></TD><TD></TD></TR>
+</TABLE>>];
+    }
+
+    // ---- referential constraints: child -> parent ----
+    chapters:collection_id        -> collections:collection_id;
+    hadiths:collection_id         -> collections:collection_id;
+    hadiths:chapter_id            -> chapters:chapter_id       [arrowtail=crowodot];
+    isnad_links:hadith_id         -> hadiths:hadith_id;
+    isnad_links:narrator_id       -> narrators:narrator_id     [arrowtail=crowodot];
+    narrators:rank_ibn_hajar      -> rank_levels:rank_code     [arrowtail=crowodot];
+    narrators:rank_dhahabi        -> rank_levels:rank_code     [arrowtail=crowodot];
+    hadith_translations:hadith_id -> hadiths:hadith_id;
+
+    // ---- derived view ----
+    edge [color="#79C0FF", fontcolor="#79C0FF", style=dashed, penwidth=1.3,
+          arrowtail=none, arrowhead=onormal, label="self-join"];
+    isnad_links -> isnad_edges;
+
+    subgraph cluster_legend {
+        label="legend"; fontcolor="#C9D1D9"; style="rounded,filled";
+        fillcolor="#0D1117"; color="#8B949E"; penwidth=1;
+        legend [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#0D1117">
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">primary key column</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">foreign key column</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">unique constraint / index</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">NULL</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">nullable; unmarked columns are NOT NULL</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">-&lt;</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">crow foot = many        tee = exactly one</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">-o&lt;</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">circle + crow = zero or one on the parent side</FONT></TD></TR>
+</TABLE>>];
+    }
+}

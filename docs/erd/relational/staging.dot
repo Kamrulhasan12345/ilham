@@ -1,0 +1,136 @@
+// ILHAM — RELATIONAL ERD, STAGING LAYER
+//
+// Transient ELT scratch space. Node streams raw JSON into these flat typed
+// tables, SQL does all the semantic shaping, then DROP SCHEMA staging CASCADE.
+//
+// There are deliberately NO foreign keys between staging tables: the load must
+// never fail on row ordering. The dotted edges are data flow, not constraints —
+// their corpus targets are stubs here, with full columns in corpus.dot.
+//
+//   dot -Tsvg staging.dot -o staging.svg
+//
+digraph ilham_staging {
+    rankdir=LR;
+    bgcolor="#0D1117";
+    newrank=true;
+    splines=spline;
+    nodesep=0.45;
+    ranksep=1.4;
+    graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9", fontsize=12];
+    node  [fontname="DejaVu Sans Mono", shape=plaintext, fontsize=10];
+    edge  [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#8B949E",
+           dir=both, arrowtail=crow, arrowhead=tee, penwidth=1.3];
+
+    subgraph cluster_staging {
+        label="staging  —  transient ELT scratch space, DROPped after load";
+        fontcolor="#8B949E";
+        style="rounded,dashed,filled";
+        fillcolor="#12161C";
+        color="#6E7681";
+        penwidth=1.6;
+
+        st_hadiths [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.hadiths</B></FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">book_slug</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">chapter_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_plain</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_diac</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">matn_plain</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">matn_diac</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">sanad_count</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">raw_doc</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+</TABLE>>];
+
+        st_chain_rows [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.chain_rows</B></FONT></TD></TR>
+<TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">sanad_no</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">position</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">raw_name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">transmission_word</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">is_compiler</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">boolean</FONT></TD></TR>
+</TABLE>>];
+
+        st_mentions [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.mentions</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">mention_order</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">surface_plain</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">surface_diac</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD PORT="narrator_id"></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">narrator_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+</TABLE>>];
+
+        st_narrators [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.narrators</B></FONT></TD></TR>
+<TR><TD PORT="narrator_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">narrator_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">display_name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">kunya, nickname, lineage</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">relation, tabaqa_raw, school</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">rank_ibn_hajar_raw</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">rank_dhahabi_raw</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">date_of_death</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+</TABLE>>];
+
+        st_rank_map [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.rank_map</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">raw_string</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD PORT="rank_code" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">rank_code</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+    }
+
+    // ---- corpus targets (stubs; full columns in corpus.dot) ----
+    corpus_hadiths [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.hadiths</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+    corpus_isnad_links [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.isnad_links</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+    corpus_narrators [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.narrators</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+    corpus_rank_levels [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.rank_levels</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+
+    // ---- ETL flow. No constraint exists; staging is dropped after load. ----
+    edge [color="#6E7681", fontcolor="#6E7681", style=dotted, penwidth=1.2,
+          arrowtail=none, arrowhead=vee, label="ETL"];
+    st_hadiths    -> corpus_hadiths;
+    st_chain_rows -> corpus_isnad_links;
+    st_narrators  -> corpus_narrators;
+    st_mentions   -> corpus_isnad_links [label="ETL pass B"];
+    st_rank_map   -> corpus_narrators   [label="applied once, then dropped"];
+
+    // ---- deferred FK: ALTER TABLE once rank_levels is seeded (schema.sql §9) ----
+    edge [color="#D29922", fontcolor="#D29922", penwidth=1.3, style=dashed,
+          arrowtail=crow, arrowhead=tee, label="FK added post-seed", constraint=false];
+    st_rank_map:rank_code -> corpus_rank_levels;
+
+    subgraph cluster_legend {
+        label="legend"; fontcolor="#C9D1D9"; style="rounded,filled";
+        fillcolor="#0D1117"; color="#8B949E"; penwidth=1;
+        legend [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#0D1117">
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">primary key column</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">foreign key column</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">NULL</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">nullable; unmarked columns are NOT NULL</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#8B949E">-&lt;</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">crow foot = many        tee = exactly one</FONT></TD></TR>
+</TABLE>>];
+    }
+}
