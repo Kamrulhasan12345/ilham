@@ -8,6 +8,33 @@ The DDL is checked against PostgreSQL 16. The minimum version is 14.
 
 ## Run order
 
+The fastest path — one command, no Kaggle account needed:
+
+```bash
+./run_container.sh bootstrap   # container up, real corpus + seeded app layer
+                                #   restored from db/ilham.dump in seconds
+```
+
+`bootstrap` is idempotent and never touches data that's already there. It
+checks, in order: is the corpus already loaded (skip everything)? Is there a
+committed dump at `db/ilham.dump` (or the `db/ilham.sql.gz` fallback) to
+restore (seconds, no Kaggle data needed)? Otherwise, is `etl/raw/` populated,
+so the real ETL can run (minutes, needs the Kaggle files — see
+`../etl/README.md`)? If none of those apply, it still brings up an empty,
+schema-only container.
+
+Rebuild the dump after a schema or corpus change with `./run_container.sh
+dump` (run against an already-bootstrapped, sealed instance) and commit the
+result — `db/ilham.dump` is tracked in git on purpose (see `.gitignore`), not
+published externally, so a plain clone is enough to get the real corpus.
+`dump` picks the smallest format that clears a 50MB safety margin under
+GitHub's per-file limit: a compressed custom-format dump first, falling back
+automatically to a gzipped plain-SQL dump (`db/ilham.sql.gz`) if the corpus
+grows past that.
+
+The manual, step-by-step path (useful when iterating on the schema or the ETL
+itself):
+
 ```bash
 ./run_container.sh test              # PostgreSQL 16 in podman or docker, then
                                      #   00 → 04 and the smoke test. It publishes
@@ -135,6 +162,56 @@ in CALL argument*. Node must select the identifiers first and pass them as `$1`,
 **A generated column breaks a positional `INSERT`.** Both
 `corpus.isnad_links` and `corpus.narrators` carry generated columns. Every insert
 against them needs an explicit column list.
+
+### Using the app layer
+
+`./run_container.sh bootstrap` is the fastest way to get a real, fully-seeded
+local instance to test against: it starts the container, loads the DDL only if
+missing, and loads the real corpus plus the seeded app layer only if they are
+empty. It never touches data that is already there.
+
+`98_smoke_test.sql` proves these same mechanisms with synthetic fixtures that
+it inserts and rolls back inside one transaction. The three checks below are
+the "against real data" counterpart, run by hand once against the corpus that
+`bootstrap` loads. They are a known-good baseline: a future run that departs
+from these numbers is worth a look.
+
+**`assign_study_set` fan-out.** A circle with 16 enrolled students and a
+25-hadith set:
+
+```sql
+CALL app.assign_study_set(:circle_id, :set_id, CURRENT_DATE + 7);
+-- observed: app.progress grew by exactly 400 rows (16 students x 25 hadiths)
+CALL app.assign_study_set(:circle_id, :set_id, CURRENT_DATE + 14);
+-- observed: another +400 -- a second CALL is a second obligation, not a dedupe
+```
+
+**Gap 1 and Gap 2, against the real seeded rows, not just 6 synthetic ones:**
+
+```sql
+-- Gap 1: reuse a real student's email on an INSERT into app.teachers
+-- observed: ERROR: email student1@ilham.test is already registered to another user
+INSERT INTO app.teachers (email, password_hash, full_name, role, institution, specialization)
+VALUES ('student1@ilham.test', 'x', 'Dupe', 'teacher', 'Test', 'Test');
+
+-- Gap 2: app.notes.user_id pointing at a user_id that does not exist
+-- observed: ERROR: notes.user_id = 999999999 references no row in app.users
+INSERT INTO app.notes (user_id, hadith_id, body) VALUES (999999999, 1, 'x');
+```
+
+**`chain_strength` over the full real corpus** (14,901 hadiths):
+
+```sql
+SELECT count(*), avg(corpus.chain_strength(hadith_id)),
+       min(corpus.chain_strength(hadith_id)), max(corpus.chain_strength(hadith_id)),
+       count(*) FILTER (WHERE corpus.chain_strength(hadith_id) IS NULL)
+FROM corpus.hadiths;
+-- observed: 14901 rows, avg 0.836, min 0.10, max 0.95, 49 NULL
+```
+
+The 49 NULLs match the "49 hadiths have no non-compiler chain" `NOTICE` that
+`05_post_load.sql` prints during sealing — the same 49 hadiths, counted two
+different ways.
 
 ## Smoke test coverage
 
