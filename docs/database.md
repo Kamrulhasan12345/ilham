@@ -1,201 +1,267 @@
 # Database reference
 
-Summarizes [`../db/schema.sql`](../db/schema.sql). The DDL's inline comments are
-authoritative; this page is a map plus the reasoning that spans multiple objects.
-For the layer split and read-only enforcement see
+This page gives a summary of the DDL in [`../db/`](../db/README.md). The files
+run in numeric order, from `00_init` to `05_post_load`. The comments inside those
+files are correct. This page is a map, and it explains the reasoning that covers
+more than one object.
+
+For the layer split and the read-only rule, see
 [`architecture.md`](architecture.md).
 
-## Tables by layer
+## Tables in each layer
 
-### `staging` (transient — dropped after load)
+### `staging` — temporary, deleted after the load
 
-`staging.hadiths`, `staging.chain_rows` (flattened `chain_of_narrators`),
-`staging.mentions` (flattened `names` triples, text order),
-`staging.narrators`, `staging.rank_map`. Node does structural flattening into
-these; **all semantic shaping is done in SQL** on the way to `corpus`. See
+Eleven tables. Node flattens the structure into them. **SQL then does all the
+semantic work** on the way to `corpus`. See
 [`data-and-etl.md`](data-and-etl.md).
 
-Two of these are load-time only and deliberately never reach `corpus`:
-
-- `staging.mentions` — sole consumer is resolution Pass B, which runs while
-  staging still exists. Nothing queries mentions at runtime.
-- `staging.rank_map` — `normalized raw rank string → rank_code`, curated during
-  ETL and applied once to populate `narrators.rank_ibn_hajar` /
-  `rank_dhahabi`. Narrators reference `rank_levels` **directly**, so the map is
-  never on a read path. It stays in the DDL as the record of the mapping
-  decisions (req 9), then drops with the rest of `staging`.
-
-### `corpus` (read-only after seed)
-
-| Table / view | Notes |
+| Table | Contents |
 |---|---|
-| `collections` | Books; `slug` maps to the manifest filename; `title_ar` required, `title_en` optional |
-| `chapters` | Belongs to a collection; a hadith's chapter is **nullable** |
-| `hadiths` | PK is the Ifta `mainId` (**natural key**). `hadith_num` is `text` (compound numbers exist). `matn_*` nullable (~88% split coverage). A normalized-matn index aids the LK/MIS alignment join |
-| `rank_levels` | The ordinal scale for rijal grades: `rank_code → (ordinal, weight 0..1)`. Higher ordinal = stronger. The raw→code lookup is load-time and lives in `staging.rank_map` |
-| `narrators` | PK Ifta `narrator_id`. `name_norm` is a **generated** column (`normalize_arabic(name)`). Grades stored **twice**: `rank_*_raw` (display) and `rank_ibn_hajar` / `rank_dhahabi` (FKs into `rank_levels`, for math). `is_placeholder` flags mubham `[راو موضع إبهام]` rows |
-| `isnad_links` | **Weak entity**, PK `(hadith_id, sanad_no, position)`. One row per narrator position in a chain, propagation order (position 1 = Companion/source … last = compiler). `narrator_id` NULL = unresolved. `resolution` ∈ `A`/`B`/`X`. `transmission_word` and `is_compiler` per link |
-| `isnad_edges` | **VIEW**, not a table — teacher→student edges derived by self-joining `isnad_links` on `position = position+1`. Storing edges *and* paths would invite drift (see below) |
-| `hadith_translations` | Translated text, PK `(hadith_id, lang)` — one canonical translation per language. **Source-tagged, not LK-specific**: LK is one optional bulk feeder, manual entries land in the same table. Absent row → UI falls back to Arabic |
+| `book_manifest` | Slug to real titles. Loaded as data, so `collections` is correct on the first insert |
+| `hadiths` | Flattened hadith records, with `chapter_seq` from the source order |
+| `chain_rows` | Flattened chains. One row for each position |
+| `mentions` | Narrator mentions in text order |
+| `narrators` | Flattened narrator profiles |
+| `rank_map` | Curated. Normalised grade string to rank code |
+| `narrator_rank_override` | Curated. Grade claims for named persons |
+| `lk_hadiths` | English text and the Arabic that attaches it |
+| `name_index` | Normalised name to narrator, with the candidate count |
+| `rejects` | Every row that a stage did not use, with a reason |
+| `resolution_conflicts` | Positions where pass A and pass B disagree |
 
-**Removed, and why** — `hadith_mentions` (only Pass B consumed it; kept in
-staging instead), `hadith_subjects` (no feature, query or ETL referenced it),
-`rank_map` (moved to `staging`, above). An empty table kept "for future" is the
-redundancy req 8 grades against — but note `hadith_translations` is *not* in
-that category: it backs a shipped reader feature, and cutting the LK import
-costs rows, not the capability.
+Four of these never reach `corpus`, and that is deliberate:
 
-### `app` (OLTP — all runtime writes)
+- `staging.mentions` — only resolution pass B reads it, and pass B runs while
+  staging still exists. Nothing queries mentions at runtime.
+- `staging.rank_map` — it maps a normalised grade string to a rank code. The ETL
+  applies it one time to fill `narrators.rank_ibn_hajar` and
+  `narrators.rank_dhahabi`. Narrators point at `rank_levels` **directly**, so the
+  map is never on a read path. It stays in the DDL as the record of the mapping
+  decisions. It then goes away with the rest of `staging`.
 
-- Identity: `users` with IS-A specialization → `students` / `teachers` /
-  `admins` via **table inheritance**. See [IS-A](#is-a-via-table-inheritance)
-  below — inheritance costs four guarantees that are restored explicitly.
-- Study structure: `circles`, `enrollments`, `study_sets`, `set_items`,
-  `assignments`, `progress`.
-- Activity: `review_sessions`, `review_items`, `notes`.
-- Derived / audit: `student_stats` (trigger-maintained), `audit_log` (shadow
-  table for teacher overrides).
+  The column `match_kind` is `exact` or `token`. It selects which matching pass
+  uses the row. The rijal grades are compound verdicts, such as
+  <span dir="rtl">ثقة حافظ فقيه , إمام حجة …</span>. The **first word** carries
+  the judgement. Token rules therefore do most of the work, and exact rules are
+  the exceptions to them.
+- `staging.narrator_rank_override` — grade claims for one named person each, with
+  a written `note`. These are necessary because the rijal literature does not
+  grade the most eminent transmitters. It writes praise instead. Ibn Hajar on Abu
+  Hurayra writes *"the noble Companion, memoriser of the Companions"*. See the
+  four passes below.
+- `staging.name_index` — it holds the candidate count that makes pass A safe.
 
-`assignment_targets` was removed: obligation *existence* is fully derivable from
-`assignments ⋈ enrollments ⋈ set_items`, and per-student state now lives on
-`progress` (next section).
+### `corpus` — read-only after the load
 
-#### `app.progress` — grain and key
+| Table or view | Notes |
+|---|---|
+| `collections` | The books. `slug` matches the manifest filename. `title_ar` is required and `title_en` is optional |
+| `chapters` | Belongs to a collection. Identity is `(collection_id, seq)`, never the title. A hadith's chapter is **nullable** |
+| `hadiths` | The key is the Ifta `mainId`, a **natural key**. `hadith_num` is `text`, because compound numbers exist. The `matn_*` columns are nullable, and about 89% of rows have them. An index on the normalised matn helps the alignment join |
+| `rank_levels` | The ordinal scale for rijal grades: `rank_code → (ordinal, weight 0..1)`. A higher ordinal is stronger. The map from raw string to code runs at load time and lives in `staging.rank_map` |
+| `narrators` | The key is the Ifta `narrator_id`. The columns `name_norm` and `display_norm` are **generated** from `normalize_arabic(...)`. The schema stores each grade **twice**: `rank_*_raw` for display, and `rank_ibn_hajar` and `rank_dhahabi` for arithmetic. Those two point at `rank_levels`. The columns `rank_*_via` hold `E`, `T`, `S`, or `O`, and record **which pass** set the code. The flag `is_placeholder` marks a mubham row such as <span dir="rtl">[راو موضع إبهام]</span> |
+| `isnad_links` | A **weak entity**. The key is `(hadith_id, sanad_no, position)`. One row holds one narrator position in one chain, in transmission order. Position 1 is the Companion and the last position is the compiler. A NULL `narrator_id` means unresolved. `resolution` holds `A`, `B`, `C`, or `X`. Each link has a `transmission_word`, and `transmission_norm` is generated from it so that the anʿana penalty matches the vocalised <span dir="rtl">عَنْ</span>. Each link also has `is_compiler` |
+| `isnad_edges` | A **VIEW**, not a table. It gives teacher-to-student edges. It joins `isnad_links` to itself on `position = position + 1`. To store the edges and the paths together would invite drift |
+| `hadith_translations` | Translated text. The key is `(hadith_id, lang)`, so there is one canonical translation for each language. The table is **source-tagged and not LK-specific**: LK is one optional feeder, and manual entries land in the same table. `match_via` records how the row was attached, with `E`, `P`, `6`, `4`, or `M`, strongest first. This column exists because LK and Ifta share no identifier, so every row is a text match. If the row is absent, the interface shows Arabic |
+| `etl_metrics` | Every number that the report quotes. It survives the deletion of `staging` on purpose |
 
-One row per **(student, hadith, assignment)**. A hadith assigned twice — two
-circles, or the same set re-assigned next term — is two obligations the student
-must discharge separately, so it is two rows; prior self-study is a third with
-`assignment_id IS NULL`, and its mastery is never reset by a later assignment.
+**Three tables were removed, and here is why.** `hadith_mentions` had only one
+consumer, pass B, so it stays in staging. `hadith_subjects` had no feature, query,
+or ETL step that referenced it. `rank_map` moved to `staging`.
 
-Because `assignment_id` is nullable and NULLs cannot sit in a PRIMARY KEY,
-identity is the surrogate `progress_id` and uniqueness is split:
+An empty table kept "for the future" is exactly the redundancy that requirement 8
+grades against. Note that `hadith_translations` is **not** in that group. It
+supports a real reader feature. To cut the English import costs rows, not the
+capability.
+
+### `app` — OLTP, every runtime write
+
+- **Identity.** `users` with IS-A specialization into `students`, `teachers`, and
+  `admins`, through **table inheritance**. See
+  [IS-A](#is-a-via-table-inheritance) below. Inheritance costs four guarantees,
+  and the schema restores each one.
+- **Study structure.** `circles`, `enrollments`, `study_sets`, `set_items`,
+  `assignments`, and `progress`.
+- **Activity.** `review_sessions`, `review_items`, and `notes`.
+- **Derived and audit.** `student_stats`, which a trigger maintains, and
+  `audit_log`, the shadow table for teacher overrides.
+
+The table `assignment_targets` was removed. You can derive the *existence* of an
+obligation from `assignments ⋈ enrollments ⋈ set_items`. The state for each
+student now lives on `progress`. The next section explains it.
+
+#### `app.progress` — the grain and the key
+
+One row is one obligation. The grain is **(student, hadith, assignment)**.
+
+A hadith assigned two times is two obligations. This happens with two circles, or
+with the same set assigned again next term. The student discharges each one
+separately, so there are two rows. Private study is a third row, with
+`assignment_id IS NULL`. A later assignment never resets its mastery.
+
+A NULL cannot sit in a primary key, and `assignment_id` is nullable. Identity is
+therefore the surrogate `progress_id`, and uniqueness splits in two:
 
 ```sql
 UNIQUE (student_id, hadith_id, assignment_id) WHERE assignment_id IS NOT NULL
 UNIQUE (student_id, hadith_id)                WHERE assignment_id IS NULL
 ```
 
-These cap nothing — a student may hold rows for any number of distinct hadiths.
-They reject only a duplicate of an existing triple. **Consequence:** anything
-counting mastered hadiths must use `count(DISTINCT hadith_id)`, or a hadith
-assigned twice is counted twice. This applies to `trg_progress_stats` and Q4.
+These two indexes set no limit. A student can hold rows for any number of
+different hadiths. The indexes reject only a second copy of a triple that already
+exists.
 
-#### IS-A via table inheritance
+**Remember this consequence.** Anything that counts mastered hadiths must use
+`count(DISTINCT hadith_id)`. If it does not, a hadith assigned two times counts
+two times. This applies to `trg_progress_stats` and to query Q4.
 
-Rows live in exactly one child; the parent is a read surface that scans the
-hierarchy (`FROM app.users` returns every user, `FROM ONLY app.users` returns
-none), and `tableoid::regclass` names any row's subtype.
+A third index on `student_id` alone is **not optional**. The stats trigger reads
+every row for one student on each insert. Both unique indexes above start with
+`student_id`, but both are partial, so neither one serves an unfiltered scan.
 
-Postgres inherits columns, defaults, `NOT NULL` and `CHECK` — but **not**
-primary keys, unique constraints, indexes, foreign keys, or identity. Each is
-restored deliberately:
+#### IS-A through table inheritance
+
+Each row lives in exactly one child table. The parent is a read surface that
+scans the hierarchy. `FROM app.users` returns every user. `FROM ONLY app.users`
+returns none. The expression `tableoid::regclass` names the subtype of any row.
+
+PostgreSQL inherits columns, defaults, `NOT NULL`, and `CHECK`. It does **not**
+inherit primary keys, unique constraints, indexes, foreign keys, or identity. The
+schema restores each one on purpose:
 
 | Not inherited | Restored by | Why it matters |
 |---|---|---|
-| Identity | `app.user_id_seq` + inherited `DEFAULT nextval(...)` | Identity columns yield NULL in children, failing `NOT NULL` — without this you cannot insert a user at all. One sequence keeps `user_id` unique across subtypes |
-| Primary key | `ALTER TABLE <child> ADD PRIMARY KEY (user_id)` | No unique constraint on a child means **no FK may reference it** — this is what unblocks `circles`, `enrollments`, `progress`, `review_sessions`, `student_stats` |
-| Unique | `ALTER TABLE <child> ADD UNIQUE (email)` + `assert_email_unique()` trigger | Per-table UNIQUE cannot stop one address existing as both a student and a teacher; login would be ambiguous |
-| Foreign key to the parent | `assert_user_exists()` trigger | An FK to `app.users` is checked with `ONLY` semantics, so it sees no child rows and rejects every real user |
+| Identity | `app.user_id_seq` and an inherited `DEFAULT nextval(...)` | An identity column gives NULL in a child and then fails `NOT NULL`. Without this you cannot insert a user at all. One sequence keeps `user_id` unique across the subtypes |
+| Primary key | `ALTER TABLE <child> ADD PRIMARY KEY (user_id)` | Without a unique constraint on a child, **no foreign key can reference it**. This is what makes `circles`, `enrollments`, `progress`, `review_sessions`, and `student_stats` possible |
+| Unique | `ALTER TABLE <child> ADD UNIQUE (email)` and the `assert_email_unique()` trigger | A per-table UNIQUE cannot stop one address from existing as a student and as a teacher. Login would then be ambiguous |
+| Foreign key to the parent | The `assert_user_exists()` trigger | A foreign key to `app.users` is checked with `ONLY` semantics. It sees no child rows and rejects every real user |
 
-FKs pointing at a **subtype** need no compensation and carry the role rule for
-free: `circles.teacher_id REFERENCES app.teachers(user_id)` makes it impossible
-for an admin to own a circle. Only genuinely polymorphic references
-(`study_sets.owner_id`, `notes.user_id`) use the trigger.
+A foreign key that points at a **subtype** needs no help. It carries the role rule
+by itself. The constraint `circles.teacher_id REFERENCES app.teachers(user_id)`
+makes a circle owned by an admin impossible. Only two references are truly
+polymorphic — `study_sets.owner_id` and `notes.user_id` — and they use the
+trigger.
 
-`audit_log.changed_by` is deliberately left unchecked — audit rows are written
-from inside `trg_progress_audit`, so a failed actor check would roll back the
-legitimate user write being recorded. It is nullable and best-effort by design.
+The column `audit_log.changed_by` has no check, and that is deliberate. A trigger
+writes the audit rows. A failed actor check there would roll back the legitimate
+user write that the row records. The column is nullable and best-effort by
+design.
 
 ## Routines
 
-### `corpus.chain_strength(hadith_id) → numeric` (function, `STABLE`)
+### `corpus.chain_strength(hadith_id) → numeric` — function, `STABLE`
 
-Transparent chain-quality metric. Per sanad, take the **weakest link**; the
-**best sanad wins**. Per-link weight:
+A clear chain-quality value. In each sanad, take the **weakest link**. Across the
+sanads, the **best one wins**.
 
-- graded narrator → the rank weight, using the **stricter** of the two scholars
-  (`least(ibn_hajar.weight, dhahabi.weight)`);
-- named but ungraded → neutral `0.50` (ungraded ≠ criticized);
-- placeholder / unresolved → `0.15` (mubham weakens the chain);
-- ʿanʿana (`عن`) transmission → `−0.05` penalty;
-- compiler position excluded. Returns `0..1`, or NULL if no chains.
+The weight of one link:
 
-### `app.assign_study_set(circle, set, due)` (procedure)
+- A graded narrator gives the rank weight. Use the **stricter** of the two
+  scholars: `least(ibn_hajar.weight, dhahabi.weight)`.
+- A named but ungraded narrator gives the neutral value `0.50`. Ungraded is not
+  the same as criticised.
+- A placeholder or an unresolved name gives `0.15`. A mubham weakens the chain.
+- An anʿana link, <span dir="rtl">عن</span>, takes a penalty of `0.05`.
+- The compiler position is excluded.
 
-Fans an assignment out to every enrolled student and initializes `progress`
-rows, then `COMMIT`s. It is a **procedure, not a function, precisely because it
-owns its transaction** (Postgres functions cannot `COMMIT`).
+The function returns a value from 0 to 1. It returns NULL if the hadith has no
+chain.
 
-It carries **no `EXCEPTION` handler**, deliberately. A `BEGIN … EXCEPTION` block
-is a subtransaction, and `COMMIT` inside one raises *"cannot commit while a
-subtransaction is active"* — the handler made the procedure impossible to call.
-An unhandled error already aborts and rolls back the whole call, which is the
-all-or-nothing behaviour req 3 wants.
+### `app.assign_study_set(circle, set, due)` — procedure
 
-`ON CONFLICT` names the partial index (`… WHERE assignment_id IS NOT NULL`) and
-is defensive: the `CROSS JOIN` of two PK'd tables cannot collide on its own.
-Each `CALL` mints a **new** assignment, so calling twice deliberately creates two
-obligations — it does not deduplicate.
+The procedure sends one assignment to every enrolled student. It creates the
+`progress` rows. It then runs `COMMIT`.
 
-### `app.assert_user_exists()` / `app.assert_email_unique()` (trigger functions)
+It is a **procedure and not a function, exactly because it owns its
+transaction**. A PostgreSQL function cannot run `COMMIT`.
 
-Referential integrity that table inheritance cannot express — see the
-[IS-A table](#is-a-via-table-inheritance). `assert_user_exists` takes the column
-name as a trigger argument so one function serves every polymorphic reference
-(req 8). Both enforce existence only: there is no `ON DELETE` cascade, so
-deleting a user is an application-level concern.
+It has **no `EXCEPTION` handler**, and that is deliberate. A `BEGIN … EXCEPTION`
+block is a subtransaction. A `COMMIT` inside a subtransaction raises *"cannot
+commit while a subtransaction is active"*. The handler made the procedure
+impossible to call. An unhandled error already stops the call and rolls back
+everything, which is the all-or-nothing behaviour that requirement 3 needs.
+
+The `ON CONFLICT` clause names the partial index,
+`… WHERE assignment_id IS NOT NULL`. It is defensive only. The `CROSS JOIN` of
+two tables with primary keys cannot collide with itself.
+
+Each `CALL` makes a **new** assignment. Two calls therefore make two obligations.
+The procedure does not remove duplicates.
+
+### `app.assert_user_exists()` and `app.assert_email_unique()` — trigger functions
+
+These give the referential integrity that table inheritance cannot express. See
+the [IS-A table](#is-a-via-table-inheritance).
+
+`assert_user_exists` takes the column name as a trigger argument. One function
+therefore serves every polymorphic reference, which requirement 8 asks for.
+
+Both check existence only. There is no `ON DELETE` cascade, so the deletion of a
+user is a concern for the application layer.
 
 ### `corpus.normalize_arabic(text)`
 
-Strips harakat/tatweel and unifies alef / ta-marbuta / ya variants. Used by the
-generated `name_norm` column, the matn index, and ETL resolution.
+The function removes the diacritic marks and the tatweel. It unifies the alif
+forms, the ta marbuta, and the ya. It trims the ends and removes punctuation at
+the ends only.
 
-## Triggers (on `app` writes only)
+The generated `name_norm` column, the matn index, and the ETL resolution all use
+it.
+
+## Triggers — on `app` writes only
 
 | Trigger | Fires on | Effect |
 |---|---|---|
-| `trg_progress_stats` | `app.progress` writes | Recompute-and-store derived counts into `student_stats`. Uses `count(DISTINCT hadith_id)` — see the progress grain above |
-| `trg_progress_audit` | mastery changes | Append to `audit_log` shadow table; actor read from `current_setting('ilham.user_id')`. `row_key` is `progress_id`, since student+hadith is no longer unique |
-| `trg_{students,teachers,admins}_email` | subtype insert / email update | Hierarchy-wide email uniqueness (`assert_email_unique`) |
-| `trg_study_sets_owner`, `trg_notes_user` | polymorphic user refs | Stand in for the FK to `app.users` (`assert_user_exists`) |
+| `trg_progress_stats` | Writes to `app.progress` | Recomputes the derived counts and stores them in `student_stats`. It uses `count(DISTINCT hadith_id)`. See the progress grain above |
+| `trg_progress_audit` | A change of mastery | Adds a row to the `audit_log` shadow table. It reads the actor from `current_setting('ilham.user_id')`. The `row_key` is `progress_id`, because student and hadith together are no longer unique |
+| `trg_{students,teachers,admins}_email` | A subtype insert, or an email update | Email uniqueness across the whole hierarchy, through `assert_email_unique` |
+| `trg_study_sets_owner` and `trg_notes_user` | Polymorphic user references | They stand in for the foreign key to `app.users`, through `assert_user_exists` |
 
-The corpus never fires a trigger. The first two are the graded req-4 pair; the
-rest exist solely to restore integrity that inheritance removes.
+The corpus fires no trigger. The first two triggers are the graded pair for
+requirement 4. The others exist only to restore the integrity that inheritance
+removes.
 
-## Analytics queries (in the DDL as Q1–Q6)
+## Analytical queries — Q1 to Q6 in the DDL
 
-1. **Top Narrators** — hadith count per narrator (placeholder + compiler excluded).
-2. **Contested Narrators** — where Ibn Hajar and al-Dhahabi ordinals disagree,
-   ordered by disagreement magnitude.
-3. **Shared narrators** between two hadiths' chains.
-4. **Circle overview** — teacher dashboard; spans `app` + student rows, mastered
-   vs assigned with a percentage. `count(DISTINCT hadith_id)` throughout.
-5. **Weakest chains** among studied hadiths — `chain_strength()` over
-   `app.set_items` joined to `corpus`.
-6. **Assignment completion** — owed vs done for one assignment. Counts
-   obligations, not knowledge: a hadith already mastered under a different
-   assignment is still outstanding here until worked.
+1. **Top narrators.** The hadith count for each narrator. Placeholders and
+   compilers are excluded.
+2. **Contested narrators.** Where the ordinals of Ibn Hajar and al-Dhahabi
+   disagree, ordered by the size of the disagreement.
+3. **Shared narrators** between the chains of two hadiths.
+4. **Circle overview.** The teacher dashboard. It spans `app` and the student
+   rows. It shows mastered against assigned, with a percentage. It uses
+   `count(DISTINCT hadith_id)` throughout.
+5. **Weakest chains** among the studied hadiths. It runs `chain_strength()` over
+   `app.set_items` joined to the corpus.
+6. **Assignment completion.** Owed against done, for one assignment. It counts
+   obligations and not knowledge. A hadith already mastered under a different
+   assignment is still outstanding here until the student works it.
 
-## Design invariants (intentional and graded — do not "fix")
+## Design rules — deliberate and graded. Do not "fix" them
 
-- **Isnad paths are stored explicitly; edges are derived.** Positions are
-  first-class rows, so chain traversal is **aggregation, not recursion** — a
-  `WITH RECURSIVE` rewrite would be artificial (PRD req 8). `isnad_edges` is a
-  view, not a stored table; a `teacher_narrator_id` self-FK could not model the
-  M:N-per-chain reality.
-- **`assign_study_set` stays a procedure** (it owns its `COMMIT`). This is the
-  deliberate req-5-vs-req-6 distinction. Do not add an `EXCEPTION` handler back
-  — it makes the `COMMIT` illegal.
-- **Rijal grades: raw strings for display, ordinals for math.** Keep both
-  columns and the three-way distinction: graded / named-but-ungraded / unnamed.
-  Computation goes `narrators.rank_* → rank_levels` directly; `staging.rank_map`
-  is load-time only and is not on that path.
-- **IS-A stays table inheritance**, with the compensating keys and triggers kept
-  intact. Removing any of them silently breaks integrity rather than erroring —
-  that is precisely why each is documented at its definition.
+- **Isnad paths are explicit rows. Edges are derived.** Positions are
+  first-class, so a chain walk is **aggregation and not recursion**. A
+  `WITH RECURSIVE` rewrite would be artificial. `isnad_edges` is a view, not a
+  stored table. A `teacher_narrator_id` self-reference could not model the
+  many-to-many reality of several chains.
+- **`assign_study_set` stays a procedure.** It owns its `COMMIT`. This is the
+  deliberate difference between requirement 5 and requirement 6. Do not add an
+  `EXCEPTION` handler. It makes the `COMMIT` illegal.
+- **Rijal grades: raw strings for display, ordinals for arithmetic.** Keep both
+  columns. Keep the three states apart: graded, named but ungraded, and unnamed.
+  Computation goes from `narrators.rank_*` to `rank_levels` directly.
+  `staging.rank_map` runs at load time only and is not on that path.
+- **IS-A stays table inheritance**, with the compensating keys and triggers in
+  place. If you remove one of them, integrity breaks in silence and raises no
+  error. That is why each one is documented where it is defined.
 - **`progress` is keyed by (student, hadith, assignment).** Count mastered
   hadiths with `DISTINCT`.
+- **Translations attach by Arabic text, never by `hadith_num`.** The two sources
+  number differently. Of the pairs that match on text, 99.94% of Muslim and
+  31.96% of Bukhari carry a different number. A number join attaches the English
+  of one hadith to a different hadith, and nothing detects it.
 - **Triggers fire on `app` writes only.**
-- **Each feature appears once, where it belongs** — no redundant routines, no
-  runtime corpus writes, no fake recursion. Restraint is graded (req 8); read
-  PRD §5 before adding any routine.
+- **Each feature appears one time, where it belongs.** There are no duplicate
+  routines, no runtime corpus writes, and no artificial recursion. Restraint is
+  graded by requirement 8. Read PRD §5 before you add a routine.

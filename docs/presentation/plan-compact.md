@@ -1,42 +1,49 @@
-# Ilham — Database Design, Compact Presentation Plan
+# Ilham — the compact presentation plan
 
-**6 slides / 5–6 minutes.** A 5-slide, ~3.5-minute cut is at the end.
+**6 slides, 5 to 6 minutes.** A cut of 5 slides, about 3.5 minutes, is at the
+end.
 
-Companion to [`plan.md`](plan.md), the full 30-slide version. This is **not its
-first six slides** — a short talk needs a different shape. The long deck walks
-the design; this one argues a single thesis and uses the diagrams as evidence.
+This plan is the companion to [`plan.md`](plan.md), the full 30-slide version.
+This is **not the first six slides of that deck**. A short talk needs a different
+shape. The long deck walks through the design. This one argues one thesis and
+uses the diagrams as evidence.
 
-> **Thesis:** *Ilham stores a classical text corpus and a live study workload in
-> one database, and keeps them safely apart by design rather than by discipline.*
+> **Thesis:** *Ilham holds a classical text corpus and a live study workload in
+> one database. It keeps them safely apart by design, not by discipline.*
 
-Everything on every slide serves that sentence. Anything that doesn't is cut.
+Everything on every slide must serve that sentence. Cut anything that does not.
 
 ---
 
 ## Scope note
 
-Same exclusion as the full deck: **no ETL** — no data sources, no load pipeline,
-no `staging` schema. The design is presented as it exists at runtime: **two
-schemas, `corpus` and `app`.** Never say "three schemas"; that count in
-`docs/architecture.md` and `CLAUDE.md` includes `staging`. Do not use
-`docs/erd/relational/schema.dot`, which renders staging and its flow edges.
+This deck uses the same exclusion as the full deck: **no ETL**. It shows no data
+sources, no load pipeline, and no `staging` schema. It presents the design as it
+exists at runtime: **two schemas, `corpus` and `app`.**
+
+Never say "three schemas". That count in `docs/architecture.md` and `CLAUDE.md`
+includes `staging`.
+
+Do not use `docs/erd/relational/schema.dot`. It renders staging and its flow
+edges.
 
 ---
 
-## The hard constraint, stated honestly
+## The hard constraint
 
-At roughly 40 seconds a slide **you cannot show five dense diagrams and also
-make an argument.** So this plan deliberately splits the diagrams into two jobs:
+At about 40 seconds for each slide, **you cannot show five dense diagrams and
+also make an argument**. This plan therefore gives the diagrams two different
+jobs:
 
-- **Read closely** (slides 3, 4, 5) — the three Chen diagrams, one per slide,
-  each with exactly one point called out. These get the time.
-- **Seen, not parsed** (slide 6) — the two crow's-foot diagrams, shown small and
-  side by side as *evidence that the conceptual model became real DDL*. Nobody
-  can read a 3800 px column listing in eight seconds, and pretending otherwise
-  wastes the slide. Say what they prove; don't ask the audience to decode them.
+- **Read closely** — slides 3, 4, and 5. Three Chen diagrams, one for each slide,
+  and one point called out on each. These get the time.
+- **Seen, not read** — slide 6. Two crow's-foot diagrams, small and side by side.
+  They are *evidence that the conceptual model became real DDL*. Nobody can read a
+  3,800-pixel column list in eight seconds. Say what they prove. Do not ask the
+  audience to decode them.
 
-If your slot is nearer 3 minutes, use the 5-slide cut — do not speed-read this
-one.
+If your slot is nearer to 3 minutes, use the 5-slide cut. Do not read this one at
+speed.
 
 ---
 
@@ -47,96 +54,101 @@ one.
 | 3 | `docs/erd/chen/corpus-sfdp.svg` |
 | 4 | `docs/erd/chen/app-sfdp.svg` |
 | 5 | `docs/erd/chen/inter_layer-sfdp.svg` |
-| 6 | `docs/erd/relational/corpus.svg` + `docs/erd/relational/app.svg`, both small |
+| 6 | `docs/erd/relational/corpus.svg` and `docs/erd/relational/app.svg`, both small |
 
-All exist and are current. Use the **sfdp** renders for slides 3–5; they read
-better projected than the neato ones.
+All of them exist and are current. Use the **sfdp** renders for slides 3 to 5.
+They read better on a projector than the neato ones.
 
-**SVG, not PNG, and sized rather than stretched.** These graphs carry a lot of
-small text: a raster blurs as soon as a projector scales it, and stretching a
-diagram to fill its panel helps nothing. Each diagram is placed inline at a
-controlled width and the PDF keeps it vector, so it stays sharp and can be
-zoomed into during questions.
+**Use SVG, not PNG. Size the diagram; do not stretch it.** These graphs carry
+much small text. A raster image blurs as soon as a projector scales it. To
+stretch a diagram to fill its panel helps nothing. Place each diagram inline at a
+fixed width. The PDF keeps it vector, so it stays sharp and you can zoom into it
+during questions.
 
 ---
 
 # Slide 1 — Title and thesis
 
-**Time: 20 seconds.** Do not linger; the clock is the enemy here.
+**Time: 20 seconds.** Do not stop here. The clock is the enemy.
 
 **Content**
-- **Ilham (إلهام)** — a teacher-led hadith study platform
+
+- **Ilham (إلهام)** — a hadith study platform that a teacher leads
 - Subtitle: **Database Design**
-- One line, on the slide, in large type:
-  *One database, two opposite workloads, kept apart by privilege — not by
-  convention.*
-- Both names, course code, date — small
+- One line on the slide, in large type: *One database, two opposite workloads,
+  kept apart by privilege — not by convention.*
+- Both names, the course code, and the date, in small type
 
-*Say (verbatim-ish):* "Ilham is a platform where teachers assign classical hadith
-texts to students and track their memorisation. The design problem is that it
-has to hold two completely different kinds of data at once, and this is how we
-kept them apart."
+*Say this, or something close to it:* "Ilham is a platform. Teachers assign
+classical hadith texts to students, and the system tracks what the students
+learn. The design problem is that it must hold two very different kinds of data
+at the same time. This talk shows how we kept them apart."
 
-Then move. Resist introducing yourselves at length.
+Then move on. Do not introduce yourselves at length.
 
 ---
 
-# Slide 2 — The domain, and why it's a modelling problem
+# Slide 2 — The domain, and why it is a modelling problem
 
-**Time: 60 seconds.** The most compressed slide in the deck, and the one that
-makes the next three intelligible.
+**Time: 60 seconds.** This is the most compressed slide in the deck. It makes the
+next three understandable.
 
 **Content** — one column, full width.
 
-*The domain, three terms over one drawn chain:*
-- A **hadith** is a recorded narration: the **matn** is the text
-- The **isnad** is the chain of people who transmitted it, person to person
-- Scholars grade those narrators for reliability — **and they disagree**
+*The domain, in three terms, over one drawn chain:*
 
-Draw the chain once, left to right: `Companion → … → … → Compiler`
+- A **hadith** is a recorded narration. The **matn** is its text.
+- The **isnad** is the chain of persons who transmitted it, one to the next.
+- Scholars grade those narrators for reliability — **and they disagree**.
 
-*Then the two workloads, in one line of prose:* the corpus is large, shared and
-never edited; student activity is small, per-user and written constantly — two
-opposite profiles, one database.
+Draw the chain one time, from left to right:
+`Companion → … → … → Compiler`
 
-*Say:* "Every hadith carries its own provenance — the chain isn't metadata about
-the text, for this domain it's half the text. That's the reference side: large,
-shared, and it never changes. Against it sits student activity: small,
-per-user, written constantly. Two opposite profiles, one database."
+*Then the two workloads, in one line:* the corpus is large, shared, and never
+edited. Student activity is small, belongs to one user, and is written
+constantly. Two opposite profiles, one database.
 
-*Why this slide survives the cut:* without *isnad*, slide 3 is unreadable to a
-non-specialist and the strongest part of the design lands on nobody.
+*Say:* "Every hadith carries its own provenance. The chain is not metadata about
+the text. In this domain it is half of the text. That is the reference side:
+large, shared, and it never changes. Against it sits student activity: small, one
+user at a time, and written constantly. Two opposite profiles, one database."
+
+*Why this slide survives the cut:* without the *isnad*, a non-specialist cannot
+read slide 3, and the strongest part of the design reaches nobody.
 
 ---
 
 # Slide 3 — The corpus, conceptually ★
 
-**Time: 80 seconds.** The longest slide. This is where the marks are.
+**Time: 80 seconds.** The longest slide. The marks are here.
 
-**Visual:** `docs/erd/chen/corpus-sfdp.svg`, inline in the right ~72% of the
-slide, callout in the left column. Not full bleed — overlaying the callout on
-this diagram covers `Narrator`.
+**Visual:** `docs/erd/chen/corpus-sfdp.svg`. Show the heading and the diagram
+only. The figure takes the whole body of the slide.
 
-**Content** — the diagram, plus **one** callout box, on `IsnadLink`:
+**Content** — the diagram. Print nothing else. **Speak** the one point, and point
+at `IsnadLink` while you make it:
 
 > **A chain position is a weak entity.**
-> Identified by *(hadith, which chain, position in it)*.
-> Positions are stored explicitly — Companion first, compiler last.
+> Three things identify it: *(the hadith, which chain, the position in it)*.
+> The positions are explicit. The Companion is first and the compiler is last.
 
-*Say:* "Collections hold chapters hold hadiths — that part is ordinary. The
-interesting entity is the double-bordered one: a chain position. It can't exist
-on its own; it's identified by which hadith, which chain, and where in that
-chain. The alternative was a 'this narrator taught that narrator' link, and it
-fails — teacher-and-student isn't a fact about a narrator, it's a fact about a
-narrator *within one specific chain*. Storing position explicitly makes chains
-first-class, and it means walking a chain is plain aggregation rather than
+*Say:* "Collections hold chapters, and chapters hold hadiths. That part is
+ordinary. The interesting entity is the one with the double border: a chain
+position. It cannot exist on its own. Three things identify it: which hadith,
+which chain, and where in that chain.
+
+The alternative was a link that says 'this narrator taught that narrator', and it
+fails. Teacher and student is not a fact about a narrator. It is a fact about a
+narrator *inside one specific chain*. To store the position explicitly makes
+chains first-class. It also makes a chain walk plain aggregation instead of
 recursion."
 
-*If you have five spare seconds, add:* "And note the two separate grading
-relationships — we kept both scholars rather than collapsing them, because the
+*If you have five spare seconds, add:* "Note the two separate grading
+relationships. We kept both scholars instead of one combined value, because the
 disagreement is the interesting part."
 
-*Cut discipline:* do not enumerate attributes. Do not explain `0..1`. One point.
+*Cut discipline:* do not list the attributes. Do not explain the arrowheads. Make
+one point.
 
 ---
 
@@ -144,112 +156,128 @@ disagreement is the interesting part."
 
 **Time: 70 seconds.**
 
-**Visual:** `docs/erd/chen/app-sfdp.svg`, inline in the right ~62%, the two
-callouts stacked in the left column.
+**Visual:** `docs/erd/chen/app-sfdp.svg`. Show the heading and the diagram only.
 
-**Content** — the diagram, plus **two** short callouts:
+**Content** — the diagram. **Speak** both points. Point at each one on the figure:
+the ISA triangle under `User`, and the grain of `Progress`.
 
-> **Users specialise.** Student / Teacher / Admin, disjoint. A foreign key to a
-> *subtype* makes the rule structural — an admin cannot own a circle.
+> **Users specialise.** Student, Teacher, and Admin, and they are disjoint. A
+> foreign key to a *subtype* makes the rule structural. An admin cannot own a
+> circle.
 
-> **Progress is grained per (student, hadith, assignment).** A hadith assigned
-> twice is two obligations; prior self-study is never reset.
+> **Progress is grained by (student, hadith, assignment).** A hadith assigned two
+> times is two obligations. A new assignment never resets earlier private study.
 
-*Say:* "A teacher owns a circle, students enrol, the teacher assigns a study set,
-and that produces progress rows — one per student per hadith. Two decisions
-worth pointing at. Users specialise into three subtypes, so a foreign key
-pointing at *teachers* means an admin simply cannot own a circle — the database
-enforces the rule with no application code. And progress is grained per
-assignment, not per hadith, because the same hadith assigned twice is two
-separate obligations."
+*Say:* "A teacher owns a circle. Students enrol. The teacher assigns a study set,
+and that makes the progress rows: one row for each student and each hadith.
 
-*Cut discipline:* the inheritance trade-offs, the trigger-maintained tables, and
-the partial indexes are all interesting and all cut. They live in the long deck.
+Two decisions are worth a look. First, users specialise into three subtypes. A
+foreign key that points at *teachers* therefore makes it impossible for an admin
+to own a circle. The database enforces the rule, and it needs no application
+code.
+
+Second, progress is grained for each assignment, not for each hadith. The same
+hadith assigned two times is two separate obligations."
+
+*Cut discipline:* the trade-offs of inheritance, the trigger-maintained tables,
+and the partial indexes are all interesting, and all of them are cut. They belong
+to the long deck.
 
 ---
 
 # Slide 5 — The boundary ★
 
-**Time: 60 seconds.** This slide *is* the thesis. Everything before it was setup.
+**Time: 60 seconds.** This slide *is* the thesis. Everything before it was
+preparation.
 
-**Visual:** `docs/erd/chen/inter_layer-sfdp.svg`, inline in the right ~56%. It
-is the sparsest diagram in the set and the only one that reads instantly — which
-is exactly why it earns a slide at this length.
+**Visual:** `docs/erd/chen/inter_layer-sfdp.svg`. Show the heading and the diagram
+only. It is the sparsest diagram in the set, and the only one that reads
+instantly. That is exactly why it earns a slide of this length.
 
-**Content** — the diagram, plus one line beneath it:
+**Content** — the diagram. **Speak** the `REVOKE` slowly. Do not print it:
 
 > `REVOKE INSERT, UPDATE, DELETE ON corpus.* FROM <app role>`
 
-*Say:* "This is everything the study layer knows about the corpus. Four
-relationships, all pointing at hadith — a set contains them, progress tracks
-them, a review tests them, a note is about one. That's the whole interface. And
-because it's that narrow, we could revoke write privileges on the corpus
-entirely. The distinction I want to leave you with is between a convention and a
-guarantee: a comment saying 'don't write here' is a convention; a revoked
-privilege is a guarantee. Nothing in the corpus even knows the application
+*Say:* "This is everything that the study layer knows about the corpus. Four
+relationships, and all four point at the hadith. A set contains them, progress
+tracks them, a review tests them, and a note is about one. That is the whole
+interface.
+
+Because the interface is that narrow, we could remove write privileges on the
+corpus completely. I want to leave you with one distinction: a convention against
+a guarantee. A comment that says 'do not write here' is a convention. A revoked
+privilege is a guarantee. Nothing in the corpus even knows that the application
 exists."
 
 ---
 
-# Slide 6 — It's a real schema, and what it guarantees
+# Slide 6 — It is a real schema, and here is what it guarantees
 
-**Time: 50 seconds.** Evidence plus close, in one slide.
+**Time: 50 seconds.** Evidence and the close, in one slide.
 
 **Visual:** `relational/corpus.svg` and `relational/app.svg`, **side by side and
-small** — roughly a third of the slide. They are wallpaper here, deliberately.
+small**, about one third of the slide. They are wallpaper here, and that is
+deliberate.
 
-**Content** — the two thumbnails, captioned *"the same two layers as implemented
-tables, with every key and constraint"*, and beside them three claims:
+**Content** — the two thumbnails, with the caption *"the same two layers as
+implemented tables, with every key and constraint"*. Beside them, three claims:
 
-1. **Chains are first-class** — stored positions, so traversal is aggregation
-2. **Scholarly disagreement is preserved**, not resolved into one number
-3. **The corpus cannot be written at runtime** — enforced by privilege
+1. **Chains are first-class.** The positions are stored, so a chain walk is
+   aggregation.
+2. **Scholarly disagreement stays.** We do not reduce it to one number.
+3. **Nothing can write to the corpus at runtime.** A privilege enforces this.
 
-*Say:* "Those conceptual models are implemented — every entity is a table, every
-relationship a foreign key, and I'm showing these only to make the point that the
-design exists as DDL rather than as a drawing. To close: chains are stored
-positionally so they're queryable without recursion, we kept both scholars'
-grades because the disagreement is the finding, and the corpus is read-only in a
-way no application bug can undo. Happy to go deeper on any of it."
+*Say:* "Those conceptual models are implemented. Every entity is a table and every
+relationship is a foreign key. I show these only to make one point: the design
+exists as DDL, not as a drawing.
 
-*Do not* invite the audience to read the thumbnails. If someone asks, that's a
-good question to get — open the full SVG.
+To close. The chains are stored by position, so you can query them without
+recursion. We kept the grades of both scholars, because the disagreement is the
+finding. And the corpus is read-only in a way that no application bug can undo. I
+am happy to go deeper on any part of it."
+
+*Do not* ask the audience to read the thumbnails. If somebody asks about one,
+that is a good question. Open the full SVG.
 
 ---
 
-# The 5-slide cut (~3.5 minutes)
+# The 5-slide cut, about 3.5 minutes
 
-For a genuinely short slot, **merge slides 1 and 2**: put the thesis line and the
-three domain terms on one opening slide, drop the two-workloads table, and let
+For a very short slot, **merge slides 1 and 2**. Put the thesis line and the
+three domain terms on one opening slide. Drop the table of two workloads. Let
 slide 5 carry the contrast on its own.
 
 | # | Slide | Time |
 |---|---|---|
-| 1 | Title + thesis + domain in three terms | 45s |
-| 2 | Corpus, conceptually ★ | 65s |
-| 3 | Study layer, conceptually ★ | 55s |
+| 1 | Title, thesis, and the domain in three terms | 45s |
+| 2 | The corpus, conceptually ★ | 65s |
+| 3 | The study layer, conceptually ★ | 55s |
 | 4 | The boundary ★ | 50s |
-| 5 | Implemented schema + three claims | 40s |
+| 5 | The implemented schema and three claims | 40s |
 
-≈ 4 minutes with breathing room. **Do not** cut a diagram to save time — cut
-words. The diagrams are the evidence; the sentences are compressible.
+That is about 4 minutes, with room to breathe.
+
+**Do not cut a diagram to save time. Cut words.** The diagrams are the evidence.
+The sentences compress.
 
 ---
 
 # Build order
 
-1. Slides 3, 4, 5 first — drop the three Chen renders in and let them set the
-   layout. They are the deck.
-2. Slide 6 — shrink the two crow's-foot SVGs; check they still look like
-   *schemas* at thumbnail size (they should read as structured boxes, not mush).
-3. Slides 1 and 2 last, written to fit the time left over.
-4. **Rehearse with a timer, out loud, twice.** At this length overrunning by 40
-   seconds is a 15% overshoot. The most common failure is slide 3 — the isnad
-   argument is genuinely interesting and very easy to talk past.
+1. Build slides 3, 4, and 5 first. Drop the three Chen renders in and let them set
+   the layout. They are the deck.
+2. Build slide 6. Make the two crow's-foot SVGs small. Check that they still look
+   like *schemas* at that size. They must read as structured boxes, not as a
+   blur.
+3. Build slides 1 and 2 last. Write them to fit the time that is left.
+4. **Rehearse out loud, with a timer, two times.** At this length, 40 seconds
+   over is an overshoot of 15%. The most common failure is slide 3. The isnad
+   argument is genuinely interesting, and it is very easy to talk past the time.
 
-**One thing to confirm before building:** this assumes the compact talk stands
-alone. If instead it's a *teaser* for the full presentation, drop slide 6's
-thumbnails, end on slide 5's boundary claim, and let the schema detail arrive in
-the long deck — that trades the "it's really implemented" evidence for a cleaner
-finish, which is the right trade only if the long version is guaranteed to
-follow.
+**Confirm one thing before you build.** This plan assumes that the compact talk
+stands alone.
+
+If it is instead a *teaser* for the full presentation, drop the thumbnails on
+slide 6 and end on the boundary claim of slide 5. That trades the "it is really
+implemented" evidence for a cleaner finish. Make that trade only if the long
+version is certain to follow.

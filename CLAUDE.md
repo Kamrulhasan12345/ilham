@@ -1,67 +1,193 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file gives instructions to Claude Code (claude.ai/code) for work in this
+repository.
+
+Every document in this repository uses ASD-STE100 Simplified Technical English.
+Keep new documentation in that style: short sentences, active voice, simple
+present tense, and one instruction in each sentence.
 
 ## What this is
 
-Ilham (إلهام) is a **DBMS course term project** (2-person team): a teacher-led hadith study platform. The current deliverable is a **database design** — the DDL, the ERD set, and the product spec. `backend/` and `frontend/` are empty placeholders; the app code has not been written yet.
+Ilham (إلهام) is a term project for a database course. Two persons build it. It
+is a hadith study platform, and a teacher leads the study.
 
-**Stack (planned):** PERN — PostgreSQL, Express, React, Node.
+The current deliverable is a **database design**: the DDL, the ERD set, and the
+product specification. The directories `backend/` and `frontend/` are empty. No
+application code exists yet.
 
-Start from these files — they are the source of truth and the "big picture" lives across them:
-- `docs/prd.md` — final product requirements: datasets, personas, features, the graded requirement mapping (§5), ownership split (§7), milestones, risks.
-- `db/schema.sql` — the complete annotated DDL. Comments justify each design decision and tag it to a course requirement.
-- `docs/architecture.md` · `docs/database.md` · `docs/data-and-etl.md` — prose docs derived from the two above; `docs/README.md` is the index.
-- `docs/erd/README.md` — ERD diagram index and Chen-notation legend.
+**Planned stack:** PERN — PostgreSQL, Express, React, Node.
 
-## The core architectural idea
+Start from these files. They are correct, and the whole picture lives across
+them:
 
-One PostgreSQL instance, **three schemas**, deliberately mixing an analytical read-only corpus with a transactional study layer — separated by schema design, not separate systems:
+- `docs/prd.md` — the product requirements: datasets, personas, features, the
+  graded requirement map (§5), the ownership split (§7), milestones, and risks.
+- `db/00_init.sql` … `db/05_post_load.sql` — the complete DDL with comments. Run
+  the files in numeric order. `db/run_ddl.sh` runs `00` to `04` and the smoke
+  test. `05` is destructive and runs one time, after the ETL. The comments give a
+  reason for each decision and name the course requirement.
+- `etl/` — the pipeline. `etl/src/` holds the Node code, which does structural
+  work only. `etl/sql/` holds stages 10 to 19, which do all semantic work.
+  `etl/rank_map.sql` and `etl/narrator_overrides.sql` are curated and committed.
+- `docs/architecture.md`, `docs/database.md`, `docs/data-and-etl.md` — prose
+  derived from the two groups above. `docs/README.md` is the index.
+- `docs/erd/README.md` — the diagram index and the notation legend.
+
+## The central idea
+
+One PostgreSQL instance holds **three schemas**. The design mixes an analytical
+read-only corpus with a transactional study layer. Schema design separates them,
+not different systems.
 
 | Schema | Role | Runtime writes |
 |---|---|---|
-| `staging` | Transient typed/JSONB tables for the ELT load | Dropped after load |
-| `corpus` | Read-only reference data (hadiths, isnad chains, narrators, gradings) | **None** — revoked from the app role |
-| `app` | User & study layer (circles, sets, assignments, progress, reviews) | Yes (OLTP) |
+| `staging` | Flat typed tables for the load. There is no JSONB | Deleted after the load |
+| `corpus` | Read-only reference data: hadiths, chains, narrators, grades | **None.** The app role loses permission |
+| `app` | Users and study data: circles, sets, assignments, progress, reviews | Yes |
 
-"Read-only" is enforced by permissions (`REVOKE` on `corpus.*` + `DROP SCHEMA staging`), not by convention. This is a graded requirement, not a nicety — preserve it. **Never introduce a runtime write path into `corpus.*`.**
+Permission enforces "read-only", not convention. The database runs `REVOKE` on
+`corpus.*` and then `DROP SCHEMA staging`. A course requirement grades this, so
+keep it. **Never add a runtime write path into `corpus.*`.**
 
-## Design invariants (do not "fix" these — they are intentional and graded)
+## Design rules — deliberate and graded. Do not "fix" them
 
-- **Isnad positions are stored explicitly** in `corpus.isnad_links` (a weak entity, propagation order: Companion first, compiler last). Chain traversal is therefore **aggregation, not recursion** — do not rewrite it with `WITH RECURSIVE`; that would be artificial (PRD req 8).
-- **`app.assign_study_set` is a PROCEDURE, not a function**, specifically because it owns its own `COMMIT` (Postgres functions cannot). This is the deliberate req-5-vs-req-6 distinction. It carries **no `EXCEPTION` handler**: `BEGIN … EXCEPTION` opens a subtransaction, and `COMMIT` inside one fails at runtime with *"cannot commit while a subtransaction is active"*. An unhandled error already rolls the call back.
-- **Rijal grades: raw strings are for display, ordinals are for math.** `narrators.rank_*_raw` strings render as-is; computation goes `narrators.rank_ibn_hajar` / `rank_dhahabi` → `corpus.rank_levels` **directly**. The raw-string→code lookup is `staging.rank_map`, applied once during ETL and dropped with staging — it is never on a read path. Keep the three-way distinction graded / named-but-ungraded / unnamed.
-- **`app.progress` grain is `(student, hadith, assignment)`**, with a surrogate `progress_id` PK and two partial unique indexes (a nullable `assignment_id` cannot sit in a PK). A hadith assigned twice is two obligations, and prior self-study (`assignment_id IS NULL`) is never reset by a later assignment. **Anything counting mastered hadiths must use `count(DISTINCT hadith_id)`.**
-- **Triggers fire on user (`app`) writes only** — `trg_progress_stats` (derived counts) and `trg_progress_audit` (mastery changes → `audit_log` shadow table). The corpus never fires triggers.
-- **`corpus.chain_strength(hadith_id)`** is a transparent, documented metric (weakest-link per sanad, best sanad wins; ʿanʿana penalized; placeholders/unresolved weakening). Keep it simple and explainable — every routine must be defensible line-by-line (req 9).
-- User role specialization (`students` / `teachers` / `admins`) uses **table inheritance** (IS-A) off `app.users` — an academic requirement, and made load-bearing rather than decorative. Postgres does not inherit primary keys, unique constraints, foreign keys or identity, so the schema restores each: a shared `app.user_id_seq` via an inherited `DEFAULT`, `ADD PRIMARY KEY`/`ADD UNIQUE` per child, and the `assert_email_unique` / `assert_user_exists` trigger functions. **Do not remove any of them** — each failure is silent (bad data), not an error. FKs to a *subtype* need no compensation and enforce the role rule for free; only genuinely polymorphic references (`study_sets.owner_id`, `notes.user_id`) use the trigger. See `docs/database.md#is-a-via-table-inheritance`.
+- **Isnad positions are explicit rows** in `corpus.isnad_links`, a weak entity.
+  The order is the order of transmission: the Companion is first and the compiler
+  is last. A chain walk is therefore **aggregation, not recursion**. Do not
+  rewrite it with `WITH RECURSIVE`. That would be artificial (PRD req 8).
+- **`app.assign_study_set` is a PROCEDURE, not a function.** It owns its
+  `COMMIT`, and a PostgreSQL function cannot do that. This is the deliberate
+  difference between requirement 5 and requirement 6.
 
-Each feature appears **once**, where it belongs — no redundant routines, no corpus writes at runtime, no fake recursion. Restraint is explicitly graded (req 8); read `docs/prd.md` §5 before adding any routine.
+  It has **no `EXCEPTION` handler**. A `BEGIN … EXCEPTION` block opens a
+  subtransaction, and a `COMMIT` inside one fails at run time with *"cannot commit
+  while a subtransaction is active"*. An unhandled error already rolls the call
+  back.
+- **Rijal grades: raw strings for display, ordinals for arithmetic.** The
+  `narrators.rank_*_raw` strings render as they are. Computation goes from
+  `narrators.rank_ibn_hajar` and `narrators.rank_dhahabi` to
+  `corpus.rank_levels` **directly**. The map from string to code is
+  `staging.rank_map`. The ETL applies it one time, and it goes away with staging.
+  It is never on a read path. Keep the three states apart: graded, named but
+  ungraded, and unnamed.
+- **The grain of `app.progress` is `(student, hadith, assignment)`.** The key is
+  the surrogate `progress_id`, with two partial unique indexes, because a nullable
+  `assignment_id` cannot sit in a primary key. A hadith assigned two times is two
+  obligations. A later assignment never resets private study, where
+  `assignment_id IS NULL`. **Anything that counts mastered hadiths must use
+  `count(DISTINCT hadith_id)`.**
+- **Triggers fire on user writes only**, that is on `app`. They are
+  `trg_progress_stats` for the derived counts, and `trg_progress_audit`, which
+  records mastery changes in the `audit_log` shadow table. The corpus fires no
+  trigger.
+- **English text attaches by Arabic text, never by `hadith_num`.** LK and Ifta
+  number on different systems. LK runs Muslim from 1 to 7314 straight through.
+  Ifta uses the grouped 1 to 3033.
+
+  Of the pairs that match on text, and are therefore the same hadith, **99.94% of
+  Muslim and 31.96% of Bukhari carry a different number**. A number join attaches
+  the English of one hadith to a different hadith, and nothing detects it.
+
+  `staging.lk_hadiths` therefore uses a surrogate key, because LK numbers are not
+  unique either. It keeps `hadith_num` only as a reported cross-check.
+
+  Stage 14 anchors both sides at the first narration verb, because Ifta puts the
+  <span dir="rtl">باب</span> heading in front of `text_plain`. It then matches in
+  five tiers, and `hadith_translations.match_via` records the tier (`E/P/6/4/M`).
+
+  **Do not "simplify" this back to a number join.** Coverage is 95.3%. The rest
+  keeps its Arabic, and the loader never deletes it.
+- **`corpus.chain_strength(hadith_id)` is a clear, documented metric.** It takes
+  the weakest link in each sanad, and the best sanad wins. An anʿana link takes a
+  penalty. A placeholder or an unresolved name weakens the chain. Keep the
+  function simple. Every routine must be defensible line by line (req 9).
+- **Role specialization uses table inheritance.** `students`, `teachers`, and
+  `admins` inherit from `app.users`. This is an academic requirement, and the
+  design makes it load-bearing instead of decorative.
+
+  PostgreSQL does not inherit primary keys, unique constraints, foreign keys, or
+  identity. The schema restores each one: a shared `app.user_id_seq` through an
+  inherited `DEFAULT`, `ADD PRIMARY KEY` and `ADD UNIQUE` on each child, and the
+  `assert_email_unique` and `assert_user_exists` trigger functions.
+
+  **Do not remove any of them.** Each failure is silent. It gives bad data, not
+  an error.
+
+  A foreign key to a *subtype* needs no help and enforces the role rule for free.
+  Only the truly polymorphic references, `study_sets.owner_id` and
+  `notes.user_id`, use the trigger. See
+  `docs/database.md#is-a-via-table-inheritance`.
+
+Each feature appears **one time**, where it belongs. There are no duplicate
+routines, no corpus writes at runtime, and no artificial recursion. Requirement 8
+grades restraint. Read `docs/prd.md` §5 before you add a routine.
 
 ## Commands
 
-Load the schema into a local Postgres (14+; 11+ works for `CREATE PROCEDURE`):
+Start PostgreSQL 16 in a container and load the schema. Podman and docker both
+work:
+
+```bash
+podman compose up -d db          # the first start also runs db/98_smoke_test.sql
+```
+
+Or use a PostgreSQL that you already have. Version 14 or higher is the baseline,
+and version 11 is enough for `CREATE PROCEDURE`:
 
 ```bash
 createdb ilham
-psql -d ilham -f db/schema.sql
+./db/run_ddl.sh ilham test       # 00 → 04, then the smoke test
 ```
 
-Re-render an ERD diagram from its Graphviz source (font: DejaVu Sans Mono, covers Arabic labels):
+Build the corpus. This needs the Ifta data — see `etl/README.md`:
 
 ```bash
-dot -Tsvg docs/erd/full/01_overview.dot -o docs/erd/full/01_overview.svg
+cd etl && npm install && cp .env.example .env
+npm run verify && npm run doctor
+psql -f rank_map.sql -f narrator_overrides.sql
+npm run all && npm run seed
 ```
 
-There is no build/test/lint tooling yet (no app code). When `backend/`/`frontend/` are scaffolded, add their commands here.
+Render an ERD diagram again from its Graphviz source. The font is DejaVu Sans
+Mono, which covers the Arabic labels:
 
-## Data & ETL context
+```bash
+dot -Tsvg docs/erd/relational/schema.dot -o docs/erd/relational/schema.svg
+```
 
-The corpus is loaded once via an ELT pipeline: raw JSON (mini data lake) → Node streams and structurally flattens into **flat typed** `staging` tables (`hadiths`, `chain_rows`, `mentions`, `narrators`, `rank_map` — no JSONB) → **all semantic shaping done in SQL** → typed `corpus` tables → narrator resolution passes A/B (Pass B reads `staging.mentions`) → apply `staging.rank_map` → `REVOKE` + `DROP SCHEMA staging`. The corpus is canonically Arabic, with optional English in `corpus.hadith_translations` (hadith text, source-tagged), `narrators.name_en` (MIS) and `collections.title_en`; all fall back to Arabic when absent. Primary dataset is the Ifta Sunnah Hadith & Narrators Dataset; MIS provides validation + English narrator names; LK is an optional bulk feeder for `hadith_translations`.
+There is no build, test, or lint tooling yet, because there is no application
+code. Add those commands here when somebody creates `backend/` and `frontend/`.
+
+## Data and ETL context
+
+The pipeline loads the corpus one time:
+
+1. Node streams the raw files and flattens the structure into **flat typed**
+   `staging` tables. There is no JSONB.
+2. SQL does **all semantic work**.
+3. The stages fill the typed `corpus` tables.
+4. Narrator resolution runs pass A and pass B. Pass B reads `staging.mentions`.
+5. The pipeline applies `staging.rank_map` in four passes.
+6. Stage 14 attaches the English text by Arabic text match.
+7. The database runs `REVOKE` and `DROP SCHEMA staging`.
+
+Arabic is canonical. English is optional in three places:
+`corpus.hadith_translations` for the hadith text, `narrators.name_en` from MIS,
+and `collections.title_en`. Each one falls back to Arabic when it is absent.
+
+The primary dataset is the Ifta Sunnah Hadith & Narrators Dataset. MIS gives
+validation and English narrator names. LK gives the English hadith text.
 
 ## Git conventions
 
-- **Do not add a `Co-Authored-By` trailer** to commits (or any AI-attribution trailer).
-- Keep proper git hygiene: never commit directly to `master` for feature work — branch first, then open a PR. Commit and push only when asked.
-- Write clear, conventional commit messages matching the existing history (e.g. `feat: ...`, `initial: ...`).
-- After changing the schema, keep the ERD `.dot`/rendered images (`docs/erd/`), the prose docs (`docs/`), and `docs/prd.md` consistent with the DDL — they are graded deliverables that must not drift from `db/schema.sql`.
+- **Do not add a `Co-Authored-By` trailer** to a commit. Do not add any other
+  AI-attribution trailer.
+- Keep good git hygiene. Never commit feature work directly to `master`. Make a
+  branch first, then open a pull request. Commit and push only when somebody asks
+  you to.
+- Write clear, conventional commit messages that match the existing history, for
+  example `feat: ...` and `initial: ...`.
+- After you change the schema, keep these consistent with the DDL: the ERD `.dot`
+  files and their images in `docs/erd/`, the prose in `docs/`, and `docs/prd.md`.
+  They are graded deliverables, and they must not drift from `db/*.sql`.
