@@ -21,11 +21,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="330.3,-233.52 259.35,-215.52 330.3,-197.52 401.26,-215.52 330.3,-233.52"/>
 <text xml:space="preserve" text-anchor="middle" x="330.3" y="-212.39" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Assigned To</text>
 </g>
-<!-- Circle&#45;&#45;AssignedTo -->
+<!-- Circle&#45;&gt;AssignedTo -->
 <g id="edge12" class="edge">
-<title>Circle&#45;&#45;AssignedTo</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M321.67,-110.97C323.61,-134.41 326.9,-174.28 328.81,-197.42"/>
-<text xml:space="preserve" text-anchor="middle" x="318.3" y="-114.02" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Circle&#45;&gt;AssignedTo</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M322.75,-124.01C324.67,-147.33 327.22,-178.17 328.81,-197.42"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="326.59,-123.73 321.85,-113.08 318.92,-124.36 326.59,-123.73"/>
 </g>
 <!-- circle_id -->
 <g id="node12" class="node">
@@ -33,9 +33,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="199.29" cy="-41.81" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="175.67" y="-39.89" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">circle_id</text>
 </g>
-<!-- Circle&#45;&#45;circle_id -->
+<!-- Circle&#45;&gt;circle_id -->
 <g id="edge1" class="edge">
-<title>Circle&#45;&#45;circle_id</title>
+<title>Circle&#45;&gt;circle_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M291.18,-80.17C272.05,-72.18 247.08,-61.76 228,-53.79"/>
 </g>
 <!-- StudySet -->
@@ -50,11 +50,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="247.28,-597.77 212.67,-579.77 247.28,-561.77 281.9,-579.77 247.28,-597.77"/>
 <text xml:space="preserve" text-anchor="middle" x="247.28" y="-576.64" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Uses</text>
 </g>
-<!-- StudySet&#45;&#45;Uses -->
+<!-- StudySet&#45;&gt;Uses -->
 <g id="edge14" class="edge">
-<title>StudySet&#45;&#45;Uses</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M185.03,-688.89C199.79,-663.02 225.96,-617.14 239.18,-593.98"/>
-<text xml:space="preserve" text-anchor="middle" x="181.65" y="-678.44" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>StudySet&#45;&gt;Uses</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M191.46,-677.62C206.51,-651.23 227.72,-614.06 239.18,-593.98"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="188.19,-675.59 186.08,-687.05 194.87,-679.4 188.19,-675.59"/>
 </g>
 <!-- set_id -->
 <g id="node13" class="node">
@@ -62,9 +62,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="28.11" cy="-673.08" rx="28.11" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="12.36" y="-671.16" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">set_id</text>
 </g>
-<!-- StudySet&#45;&#45;set_id -->
+<!-- StudySet&#45;&gt;set_id -->
 <g id="edge2" class="edge">
-<title>StudySet&#45;&#45;set_id</title>
+<title>StudySet&#45;&gt;set_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M138.5,-699.29C112.64,-693.15 78.26,-684.99 54.78,-679.42"/>
 </g>
 <!-- Assignment -->
@@ -73,18 +73,17 @@
 <polygon fill="#21262d" stroke="#58a6ff" stroke-width="1.8" points="284.14,-390.3 200.64,-390.3 200.64,-354.3 284.14,-354.3 284.14,-390.3"/>
 <text xml:space="preserve" text-anchor="middle" x="242.39" y="-368.6" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">Assignment</text>
 </g>
-<!-- Assignment&#45;&#45;AssignedTo -->
+<!-- Assignment&#45;&gt;AssignedTo -->
 <g id="edge13" class="edge">
-<title>Assignment&#45;&#45;AssignedTo</title>
+<title>Assignment&#45;&gt;AssignedTo</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M251.94,-353.21C269.32,-322.23 303.9,-260.56 320.34,-231.24"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M253.69,-354.19C271.06,-323.2 305.65,-261.53 322.09,-232.21"/>
-<text xml:space="preserve" text-anchor="middle" x="249.44" y="-343.25" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
-<!-- Assignment&#45;&#45;Uses -->
+<!-- Assignment&#45;&gt;Uses -->
 <g id="edge15" class="edge">
-<title>Assignment&#45;&#45;Uses</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M242.83,-391.08C243.76,-430.68 245.93,-522.31 246.85,-561.48"/>
-<text xml:space="preserve" text-anchor="middle" x="239.45" y="-394.13" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
+<title>Assignment&#45;&gt;Uses</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M243.83,-391.05C244.76,-430.65 246.93,-522.29 247.85,-561.45"/>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M241.83,-391.1C242.76,-430.7 244.93,-522.34 245.85,-561.5"/>
 </g>
 <!-- ProgressForAssign -->
 <g id="node11" class="node">
@@ -93,11 +92,11 @@
 <text xml:space="preserve" text-anchor="middle" x="460.34" y="-335.29" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Belongs To</text>
 <text xml:space="preserve" text-anchor="middle" x="460.34" y="-322.54" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">(Assignment)</text>
 </g>
-<!-- Assignment&#45;&#45;ProgressForAssign -->
+<!-- Assignment&#45;&gt;ProgressForAssign -->
 <g id="edge20" class="edge">
-<title>Assignment&#45;&#45;ProgressForAssign</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M284.93,-364.44C317.76,-358.38 363.6,-349.91 400.18,-343.15"/>
-<text xml:space="preserve" text-anchor="middle" x="298.43" y="-367.49" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>Assignment&#45;&gt;ProgressForAssign</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M297.81,-362.06C329.07,-356.29 368.17,-349.07 400.18,-343.15"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="297.13,-358.27 287.01,-364.06 298.53,-365.85 297.13,-358.27"/>
 </g>
 <!-- assignment_id -->
 <g id="node14" class="node">
@@ -105,9 +104,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="73.46" cy="-251.96" rx="49.85" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="39.33" y="-250.03" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">assignment_id</text>
 </g>
-<!-- Assignment&#45;&#45;assignment_id -->
+<!-- Assignment&#45;&gt;assignment_id -->
 <g id="edge3" class="edge">
-<title>Assignment&#45;&#45;assignment_id</title>
+<title>Assignment&#45;&gt;assignment_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M215.99,-353.5C183.14,-330.1 127.58,-290.51 96.41,-268.31"/>
 </g>
 <!-- due_date -->
@@ -116,9 +115,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="88.42" cy="-412.83" rx="34.32" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="88.42" y="-409.91" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">due_date</text>
 </g>
-<!-- Assignment&#45;&#45;due_date -->
+<!-- Assignment&#45;&gt;due_date -->
 <g id="edge4" class="edge">
-<title>Assignment&#45;&#45;due_date</title>
+<title>Assignment&#45;&gt;due_date</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M199.91,-383.48C174.45,-390.19 142.64,-398.56 119.53,-404.64"/>
 </g>
 <!-- assign_created -->
@@ -127,9 +126,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="182.85" cy="-249.56" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="182.85" y="-246.64" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">created_at</text>
 </g>
-<!-- Assignment&#45;&#45;assign_created -->
+<!-- Assignment&#45;&gt;assign_created -->
 <g id="edge5" class="edge">
-<title>Assignment&#45;&#45;assign_created</title>
+<title>Assignment&#45;&gt;assign_created</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M233.34,-353.66C222.02,-330.32 202.76,-290.62 191.59,-267.58"/>
 </g>
 <!-- Student -->
@@ -145,11 +144,11 @@
 <text xml:space="preserve" text-anchor="middle" x="912.48" y="-452.95" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Belongs To</text>
 <text xml:space="preserve" text-anchor="middle" x="912.48" y="-440.2" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">(Student)</text>
 </g>
-<!-- Student&#45;&#45;ProgressOfStudent -->
+<!-- Student&#45;&gt;ProgressOfStudent -->
 <g id="edge16" class="edge">
-<title>Student&#45;&#45;ProgressOfStudent</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M984.45,-588.13C970.21,-560.75 943.54,-509.44 926.96,-477.56"/>
-<text xml:space="preserve" text-anchor="middle" x="981.07" y="-577.68" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Student&#45;&gt;ProgressOfStudent</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M978.57,-576.83C963.7,-548.22 941.46,-505.45 926.96,-477.56"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="974.98,-578.27 983.47,-586.25 981.81,-574.72 974.98,-578.27"/>
 </g>
 <!-- student_id -->
 <g id="node17" class="node">
@@ -157,9 +156,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="973.27" cy="-754.27" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="947.02" y="-752.34" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">student_id</text>
 </g>
-<!-- Student&#45;&#45;student_id -->
+<!-- Student&#45;&gt;student_id -->
 <g id="edge6" class="edge">
-<title>Student&#45;&#45;student_id</title>
+<title>Student&#45;&gt;student_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M991.49,-625.45C987.46,-653.97 979.81,-708.04 975.83,-736.2"/>
 </g>
 <!-- Hadith -->
@@ -175,11 +174,11 @@
 <text xml:space="preserve" text-anchor="middle" x="766.1" y="-150.37" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Belongs To</text>
 <text xml:space="preserve" text-anchor="middle" x="766.1" y="-137.62" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">(Hadith)</text>
 </g>
-<!-- Hadith&#45;&#45;ProgressOfHadith -->
+<!-- Hadith&#45;&gt;ProgressOfHadith -->
 <g id="edge18" class="edge">
-<title>Hadith&#45;&#45;ProgressOfHadith</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M846.28,-36.78C830.12,-59.02 803.11,-96.2 784.95,-121.18"/>
-<text xml:space="preserve" text-anchor="middle" x="842.91" y="-39.83" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Hadith&#45;&gt;ProgressOfHadith</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M838.66,-47.27C822.5,-69.51 800.48,-99.81 784.95,-121.18"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="841.69,-49.65 845.04,-38.49 835.46,-45.13 841.69,-49.65"/>
 </g>
 <!-- hadith_id -->
 <g id="node18" class="node">
@@ -187,9 +186,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1005.54" cy="-56.22" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="981.92" y="-54.29" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">hadith_id</text>
 </g>
-<!-- Hadith&#45;&#45;hadith_id -->
+<!-- Hadith&#45;&gt;hadith_id -->
 <g id="edge7" class="edge">
-<title>Hadith&#45;&#45;hadith_id</title>
+<title>Hadith&#45;&gt;hadith_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M889.04,-25.64C913.11,-31.96 947.29,-40.93 972.4,-47.52"/>
 </g>
 <!-- Progress -->
@@ -198,25 +197,22 @@
 <polygon fill="#21262d" stroke="#58a6ff" stroke-width="1.8" points="709.8,-368.06 639.8,-368.06 639.8,-332.06 709.8,-332.06 709.8,-368.06"/>
 <text xml:space="preserve" text-anchor="middle" x="674.8" y="-346.36" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">Progress</text>
 </g>
-<!-- Progress&#45;&#45;ProgressOfStudent -->
+<!-- Progress&#45;&gt;ProgressOfStudent -->
 <g id="edge17" class="edge">
-<title>Progress&#45;&#45;ProgressOfStudent</title>
+<title>Progress&#45;&gt;ProgressOfStudent</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M710.69,-357.04C725.18,-360.32 742.05,-364.2 757.3,-367.86 768.37,-370.62 771.7,-369.93 783.25,-374.41 819.11,-388.9 857,-411.62 882.55,-428.17"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M710.25,-359C724.73,-362.27 741.6,-366.15 756.84,-369.81 768.77,-372.58 772.11,-371.89 782.5,-376.26 818.08,-390.62 855.97,-413.33 881.46,-429.85"/>
-<text xml:space="preserve" text-anchor="middle" x="713.85" y="-361.07" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
-<!-- Progress&#45;&#45;ProgressOfHadith -->
+<!-- Progress&#45;&gt;ProgressOfHadith -->
 <g id="edge19" class="edge">
-<title>Progress&#45;&#45;ProgressOfHadith</title>
+<title>Progress&#45;&gt;ProgressOfHadith</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M682.31,-330.92C698.38,-295.2 733.49,-217.17 752.45,-175.04"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M684.13,-331.74C700.2,-296.03 735.32,-217.99 754.27,-175.86"/>
-<text xml:space="preserve" text-anchor="middle" x="679.85" y="-320.88" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
-<!-- Progress&#45;&#45;ProgressForAssign -->
+<!-- Progress&#45;&gt;ProgressForAssign -->
 <g id="edge21" class="edge">
-<title>Progress&#45;&#45;ProgressForAssign</title>
+<title>Progress&#45;&gt;ProgressForAssign</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M638.9,-347.04C610.29,-344.64 569.26,-341.19 533.75,-338.21"/>
-<text xml:space="preserve" text-anchor="middle" x="635.53" y="-350.09" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- progress_id -->
 <g id="node19" class="node">
@@ -224,9 +220,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="551.83" cy="-456.6" rx="43.64" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="522.95" y="-454.68" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">progress_id</text>
 </g>
-<!-- Progress&#45;&#45;progress_id -->
+<!-- Progress&#45;&gt;progress_id -->
 <g id="edge8" class="edge">
-<title>Progress&#45;&#45;progress_id</title>
+<title>Progress&#45;&gt;progress_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M653.09,-368.86C629.79,-389.05 593.12,-420.82 570.89,-440.09"/>
 </g>
 <!-- mastery -->
@@ -235,9 +231,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="757.07" cy="-391.03" rx="31.21" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="757.07" y="-388.1" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">mastery</text>
 </g>
-<!-- Progress&#45;&#45;mastery -->
+<!-- Progress&#45;&gt;mastery -->
 <g id="edge9" class="edge">
-<title>Progress&#45;&#45;mastery</title>
+<title>Progress&#45;&gt;mastery</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M710.64,-367.91C718.26,-371.7 726.13,-375.62 733.18,-379.13"/>
 </g>
 <!-- times_reviewed -->
@@ -246,9 +242,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="633.58" cy="-575.53" rx="52.96" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="633.58" y="-572.61" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">times_reviewed</text>
 </g>
-<!-- Progress&#45;&#45;times_reviewed -->
+<!-- Progress&#45;&gt;times_reviewed -->
 <g id="edge10" class="edge">
-<title>Progress&#45;&#45;times_reviewed</title>
+<title>Progress&#45;&gt;times_reviewed</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M671.35,-368.9C663.56,-411.55 644.63,-515.08 636.93,-557.22"/>
 </g>
 <!-- last_reviewed -->
@@ -257,9 +253,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="768.69" cy="-518.2" rx="49.85" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="768.69" y="-515.28" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">last_reviewed</text>
 </g>
-<!-- Progress&#45;&#45;last_reviewed -->
+<!-- Progress&#45;&gt;last_reviewed -->
 <g id="edge11" class="edge">
-<title>Progress&#45;&#45;last_reviewed</title>
+<title>Progress&#45;&gt;last_reviewed</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M685.2,-368.7C703.39,-401.27 740.74,-468.16 758.66,-500.25"/>
 </g>
 </g>

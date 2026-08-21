@@ -1,4 +1,4 @@
-graph ERD_Narrators {
+digraph ERD_Narrators {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -7,7 +7,11 @@ graph ERD_Narrators {
     K=1.1;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
@@ -59,45 +63,45 @@ graph ERD_Narrators {
     // Attribute edges — gold solid = key, gold dashed = partial key of a weak
     // entity, grey dotted = ordinary
     edge [color="#484F58", style=dotted];
-    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
-    Narrator -- narrator_id [color="#E3B341", style=solid, penwidth=1.4];
-    Narrator -- display_name;
-    Narrator -- n_name;
-    Narrator -- name_norm;
-    Narrator -- name_en;
-    Narrator -- kunya;
-    Narrator -- lineage;
-    Narrator -- relation;
-    Narrator -- tabaqa_raw;
-    Narrator -- school;
-    Narrator -- rank_ibn_hajar_raw;
-    Narrator -- rank_dhahabi_raw;
-    Narrator -- date_of_death;
-    Narrator -- is_placeholder;
-    RankLevel -- rank_code [color="#E3B341", style=solid, penwidth=1.4];
-    RankLevel -- label_ar;
-    RankLevel -- ordinal;
-    RankLevel -- weight;
-    IsnadLink -- sanad_no [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
-    IsnadLink -- position [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
-    IsnadLink -- raw_name;
-    IsnadLink -- transmission_word;
-    IsnadLink -- is_compiler;
-    IsnadLink -- resolution;
-    Translation -- lang [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
-    Translation -- text_full;
-    Translation -- source_attr;
+    Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    Narrator -> narrator_id [color="#E3B341", style=solid, penwidth=1.4];
+    Narrator -> display_name;
+    Narrator -> n_name;
+    Narrator -> name_norm;
+    Narrator -> name_en;
+    Narrator -> kunya;
+    Narrator -> lineage;
+    Narrator -> relation;
+    Narrator -> tabaqa_raw;
+    Narrator -> school;
+    Narrator -> rank_ibn_hajar_raw;
+    Narrator -> rank_dhahabi_raw;
+    Narrator -> date_of_death;
+    Narrator -> is_placeholder;
+    RankLevel -> rank_code [color="#E3B341", style=solid, penwidth=1.4];
+    RankLevel -> label_ar;
+    RankLevel -> ordinal;
+    RankLevel -> weight;
+    IsnadLink -> sanad_no [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+    IsnadLink -> position [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+    IsnadLink -> raw_name;
+    IsnadLink -> transmission_word;
+    IsnadLink -> is_compiler;
+    IsnadLink -> resolution;
+    Translation -> lang [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
+    Translation -> text_full;
+    Translation -> source_attr;
 
     // Relationships (double lines for weak-entity identifying edges)
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    Hadith    -- HasChainPosition [taillabel="1"];
-    IsnadLink -- HasChainPosition [taillabel="N", color="#8B949E:#8B949E"];
-    IsnadLink -- NarratedBy [taillabel="N"];
-    Narrator  -- NarratedBy [taillabel="0..1"];   // narrator_id NULL = unresolved
-    Narrator  -- GradedIH [taillabel="N"];
-    RankLevel -- GradedIH [taillabel="0..1"];     // named-but-ungraded / unnamed
-    Narrator  -- GradedDh [taillabel="N"];
-    RankLevel -- GradedDh [taillabel="0..1"];
-    Hadith      -- TranslatedAs [taillabel="1"];
-    Translation -- TranslatedAs [taillabel="N", color="#8B949E:#8B949E"];
+    Hadith    -> HasChainPosition [dir=back, arrowtail=normal];
+    IsnadLink -> HasChainPosition [color="#8B949E:#8B949E"];
+    IsnadLink -> NarratedBy;
+    Narrator  -> NarratedBy [dir=back, arrowtail=onormal];   // narrator_id NULL = unresolved
+    Narrator  -> GradedIH;
+    RankLevel -> GradedIH [dir=back, arrowtail=onormal];     // named-but-ungraded / unnamed
+    Narrator  -> GradedDh;
+    RankLevel -> GradedDh [dir=back, arrowtail=onormal];
+    Hadith      -> TranslatedAs [dir=back, arrowtail=normal];
+    Translation -> TranslatedAs [color="#8B949E:#8B949E"];
 }

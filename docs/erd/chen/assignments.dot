@@ -1,4 +1,4 @@
-graph ERD_Assignments {
+digraph ERD_Assignments {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -7,7 +7,11 @@ graph ERD_Assignments {
     K=1.1;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
@@ -37,28 +41,30 @@ graph ERD_Assignments {
 
     // PK edges
     edge [color="#484F58", style=dotted];
-    Circle -- circle_id [color="#E3B341", style=solid, penwidth=1.4];
-    StudySet -- set_id [color="#E3B341", style=solid, penwidth=1.4];
-    Assignment -- assignment_id [color="#E3B341", style=solid, penwidth=1.4];
-    Assignment -- due_date;
-    Assignment -- assign_created;
-    Student -- student_id [color="#E3B341", style=solid, penwidth=1.4];
-    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
-    Progress -- progress_id [color="#E3B341", style=solid, penwidth=1.4];
-    Progress -- mastery;
-    Progress -- times_reviewed;
-    Progress -- last_reviewed;
+    Circle -> circle_id [color="#E3B341", style=solid, penwidth=1.4];
+    StudySet -> set_id [color="#E3B341", style=solid, penwidth=1.4];
+    Assignment -> assignment_id [color="#E3B341", style=solid, penwidth=1.4];
+    Assignment -> due_date;
+    Assignment -> assign_created;
+    Student -> student_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    Progress -> progress_id [color="#E3B341", style=solid, penwidth=1.4];
+    Progress -> mastery;
+    Progress -> times_reviewed;
+    Progress -> last_reviewed;
 
-    // Relationships (double lines for identifying/weak edges)
+    // Relationships. A DOUBLE LINE = total participation: every instance of the
+    // entity on that side must participate (its FK is NOT NULL). Single line =
+    // partial: the FK is nullable, or the entity may appear in no relationship.
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    Circle     -- AssignedTo [taillabel="1"];
-    Assignment -- AssignedTo [taillabel="N", color="#8B949E:#8B949E"];
-    StudySet   -- Uses [taillabel="1"];
-    Assignment -- Uses [taillabel="N"];
-    Student  -- ProgressOfStudent [taillabel="1"];
-    Progress -- ProgressOfStudent [taillabel="N", color="#8B949E:#8B949E"];
-    Hadith   -- ProgressOfHadith [taillabel="1"];
-    Progress -- ProgressOfHadith [taillabel="N", color="#8B949E:#8B949E"];
-    Assignment -- ProgressForAssign [taillabel="0..1"];  // NULL = self-study
-    Progress   -- ProgressForAssign [taillabel="N"];
+    Circle     -> AssignedTo [dir=back, arrowtail=normal];
+    Assignment -> AssignedTo [color="#8B949E:#8B949E"];
+    StudySet   -> Uses [dir=back, arrowtail=normal];
+    Assignment -> Uses [color="#8B949E:#8B949E"];
+    Student  -> ProgressOfStudent [dir=back, arrowtail=normal];
+    Progress -> ProgressOfStudent [color="#8B949E:#8B949E"];
+    Hadith   -> ProgressOfHadith [dir=back, arrowtail=normal];
+    Progress -> ProgressOfHadith [color="#8B949E:#8B949E"];
+    Assignment -> ProgressForAssign [dir=back, arrowtail=onormal];  // NULL = self-study
+    Progress   -> ProgressForAssign;
 }

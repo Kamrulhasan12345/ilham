@@ -1,4 +1,4 @@
-graph ERD_StatsNotesAudit {
+digraph ERD_StatsNotesAudit {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -7,7 +7,11 @@ graph ERD_StatsNotesAudit {
     K=1.1;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
@@ -41,31 +45,31 @@ graph ERD_StatsNotesAudit {
 
     // PK edges
     edge [color="#484F58", style=dotted];
-    Student -- student_id [color="#E3B341", style=solid, penwidth=1.4];
-    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
-    StudentStats -- stats_pk [color="#E3B341", style=solid, penwidth=1.4];
-    StudentStats -- mastered_count;
-    StudentStats -- review_count;
-    StudentStats -- stats_updated;
-    Note -- note_id [color="#E3B341", style=solid, penwidth=1.4];
-    Note -- body;
-    Note -- note_created;
-    AuditLog -- audit_id [color="#E3B341", style=solid, penwidth=1.4];
-    AuditLog -- table_name;
-    AuditLog -- row_key;
-    AuditLog -- old_value;
-    AuditLog -- new_value;
-    AuditLog -- changed_at;
-    User -- user_id [color="#E3B341", style=solid, penwidth=1.4];
+    Student -> student_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    StudentStats -> stats_pk [color="#E3B341", style=solid, penwidth=1.4];
+    StudentStats -> mastered_count;
+    StudentStats -> review_count;
+    StudentStats -> stats_updated;
+    Note -> note_id [color="#E3B341", style=solid, penwidth=1.4];
+    Note -> body;
+    Note -> note_created;
+    AuditLog -> audit_id [color="#E3B341", style=solid, penwidth=1.4];
+    AuditLog -> table_name;
+    AuditLog -> row_key;
+    AuditLog -> old_value;
+    AuditLog -> new_value;
+    AuditLog -> changed_at;
+    User -> user_id [color="#E3B341", style=solid, penwidth=1.4];
 
     // Relationships
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    Student      -- HasStats [taillabel="1"];
-    StudentStats -- HasStats [taillabel="0..1"];   // no row until first trigger fire
-    User -- Writes [taillabel="1"];
-    Note -- Writes [taillabel="N"];
-    Note   -- About [taillabel="N"];
-    Hadith -- About [taillabel="1"];
-    AuditLog -- PerformedBy [taillabel="N"];
-    User     -- PerformedBy [taillabel="0..1"];    // changed_by unchecked, best-effort
+    Student      -> HasStats [dir=back, arrowtail=normal];
+    StudentStats -> HasStats [dir=back, arrowtail=onormal, color="#8B949E:#8B949E"];   // no row until first trigger fire
+    User -> Writes [dir=back, arrowtail=normal];
+    Note -> Writes [color="#8B949E:#8B949E"];
+    Note   -> About [color="#8B949E:#8B949E"];
+    Hadith -> About [dir=back, arrowtail=normal];
+    AuditLog -> PerformedBy;
+    User     -> PerformedBy [dir=back, arrowtail=onormal];    // changed_by unchecked, best-effort
 }

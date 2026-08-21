@@ -1,4 +1,4 @@
-graph ERD_Biblio {
+digraph ERD_Biblio {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -7,7 +7,11 @@ graph ERD_Biblio {
     K=1.1;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
@@ -38,27 +42,27 @@ graph ERD_Biblio {
 
     // PK attributes with distinctive colour
     edge [color="#484F58", style=dotted];
-    Collection -- collection_id [color="#E3B341", style=solid, penwidth=1.4];
-    Collection -- slug;
-    Collection -- title_ar;
-    Collection -- title_en;
-    Chapter -- chapter_id [color="#E3B341", style=solid, penwidth=1.4];
-    Chapter -- ch_title_ar;
-    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
-    Hadith -- hadith_num;
-    Hadith -- text_plain;
-    Hadith -- text_diac;
-    Hadith -- matn_plain;
-    Hadith -- matn_diac;
-    Hadith -- sanad_count;
-    Hadith -- chain_strength;
+    Collection -> collection_id [color="#E3B341", style=solid, penwidth=1.4];
+    Collection -> slug;
+    Collection -> title_ar;
+    Collection -> title_en;
+    Chapter -> chapter_id [color="#E3B341", style=solid, penwidth=1.4];
+    Chapter -> ch_title_ar;
+    Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -> hadith_num;
+    Hadith -> text_plain;
+    Hadith -> text_diac;
+    Hadith -> matn_plain;
+    Hadith -> matn_diac;
+    Hadith -> sanad_count;
+    Hadith -> chain_strength;
 
     // Relationships (double lines for weak-entity identifying edges)
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    Collection -- Contains_CollCh [taillabel="1"];
-    Chapter    -- Contains_CollCh [taillabel="N", color="#8B949E:#8B949E"];
-    Collection -- CollectedIn [taillabel="1"];
-    Hadith     -- CollectedIn [taillabel="N", color="#8B949E:#8B949E"];
-    Chapter -- ClassifiedUnder [taillabel="0..1"];   // hadiths.chapter_id nullable
-    Hadith  -- ClassifiedUnder [taillabel="N"];
+    Collection -> Contains_CollCh [dir=back, arrowtail=normal];
+    Chapter    -> Contains_CollCh [color="#8B949E:#8B949E"];
+    Collection -> CollectedIn [dir=back, arrowtail=normal];
+    Hadith     -> CollectedIn [color="#8B949E:#8B949E"];
+    Chapter -> ClassifiedUnder [dir=back, arrowtail=onormal];   // hadiths.chapter_id nullable
+    Hadith  -> ClassifiedUnder;
 }

@@ -21,11 +21,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="1518.35,-1384.53 1457.78,-1366.53 1518.35,-1348.53 1578.92,-1366.53 1518.35,-1384.53"/>
 <text xml:space="preserve" text-anchor="middle" x="1518.35" y="-1363.41" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Has Stats</text>
 </g>
-<!-- Student&#45;&#45;HasStats -->
+<!-- Student&#45;&gt;HasStats -->
 <g id="edge17" class="edge">
-<title>Student&#45;&#45;HasStats</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1337.7,-1404.89C1376.46,-1396.66 1441.21,-1382.91 1481.76,-1374.3"/>
-<text xml:space="preserve" text-anchor="middle" x="1341.08" y="-1407.94" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Student&#45;&gt;HasStats</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1350.52,-1402.17C1389.6,-1393.87 1445.41,-1382.02 1481.76,-1374.3"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="1349.73,-1398.4 1339.77,-1404.45 1351.33,-1405.93 1349.73,-1398.4"/>
 </g>
 <!-- student_id -->
 <g id="node11" class="node">
@@ -33,9 +33,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1111.53" cy="-1496.77" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="1085.28" y="-1494.84" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">student_id</text>
 </g>
-<!-- Student&#45;&#45;student_id -->
+<!-- Student&#45;&gt;student_id -->
 <g id="edge1" class="edge">
-<title>Student&#45;&#45;student_id</title>
+<title>Student&#45;&gt;student_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M1272.91,-1425.99C1236.05,-1442.15 1176.43,-1468.3 1140.9,-1483.89"/>
 </g>
 <!-- Hadith -->
@@ -50,11 +50,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="422.37,-242.38 382.57,-224.38 422.37,-206.38 462.18,-224.38 422.37,-242.38"/>
 <text xml:space="preserve" text-anchor="middle" x="422.37" y="-221.26" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">About</text>
 </g>
-<!-- Hadith&#45;&#45;About -->
+<!-- Hadith&#45;&gt;About -->
 <g id="edge22" class="edge">
-<title>Hadith&#45;&#45;About</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M242.72,-151.21C285.05,-168.45 362.8,-200.12 400.6,-215.51"/>
-<text xml:space="preserve" text-anchor="middle" x="246.09" y="-154.26" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Hadith&#45;&gt;About</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M254.65,-156.07C298.41,-173.89 366.12,-201.47 400.6,-215.51"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="256.32,-152.59 244.68,-152.01 253.42,-159.72 256.32,-152.59"/>
 </g>
 <!-- hadith_id -->
 <g id="node12" class="node">
@@ -62,9 +62,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="37.42" cy="-18" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="13.8" y="-16.07" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">hadith_id</text>
 </g>
-<!-- Hadith&#45;&#45;hadith_id -->
+<!-- Hadith&#45;&gt;hadith_id -->
 <g id="edge2" class="edge">
-<title>Hadith&#45;&#45;hadith_id</title>
+<title>Hadith&#45;&gt;hadith_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M186.55,-120.69C151.59,-96.61 91.52,-55.25 59.32,-33.08"/>
 </g>
 <!-- Note -->
@@ -79,17 +79,17 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="720.25,-504.39 675.25,-486.39 720.25,-468.39 765.25,-486.39 720.25,-504.39"/>
 <text xml:space="preserve" text-anchor="middle" x="720.25" y="-483.26" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Writes</text>
 </g>
-<!-- Note&#45;&#45;Writes -->
+<!-- Note&#45;&gt;Writes -->
 <g id="edge20" class="edge">
-<title>Note&#45;&#45;Writes</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M672.84,-270.24C682.63,-314.89 707.14,-426.63 716.52,-469.39"/>
-<text xml:space="preserve" text-anchor="middle" x="669.46" y="-273.29" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
+<title>Note&#45;&gt;Writes</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M673.82,-270.02C683.61,-314.67 708.12,-426.42 717.5,-469.17"/>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M671.86,-270.45C681.66,-315.1 706.17,-426.85 715.54,-469.6"/>
 </g>
-<!-- Note&#45;&#45;About -->
+<!-- Note&#45;&gt;About -->
 <g id="edge21" class="edge">
-<title>Note&#45;&#45;About</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M640.93,-248.36C595.26,-243.35 504.49,-233.39 455.52,-228.02"/>
-<text xml:space="preserve" text-anchor="middle" x="637.56" y="-251.41" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
+<title>Note&#45;&gt;About</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M640.82,-249.35C595.15,-244.34 504.38,-234.38 455.41,-229.01"/>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M641.04,-247.36C595.36,-242.35 504.6,-232.4 455.63,-227.03"/>
 </g>
 <!-- note_id -->
 <g id="node17" class="node">
@@ -97,9 +97,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="609.35" cy="-43.67" rx="31.21" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="590.97" y="-41.75" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">note_id</text>
 </g>
-<!-- Note&#45;&#45;note_id -->
+<!-- Note&#45;&gt;note_id -->
 <g id="edge7" class="edge">
-<title>Note&#45;&#45;note_id</title>
+<title>Note&#45;&gt;note_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M663.34,-232.6C651.98,-192.85 625.66,-100.74 614.5,-61.69"/>
 </g>
 <!-- body -->
@@ -108,9 +108,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="891.8" cy="-182.07" rx="27" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="891.8" y="-179.14" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">body</text>
 </g>
-<!-- Note&#45;&#45;body -->
+<!-- Note&#45;&gt;body -->
 <g id="edge8" class="edge">
-<title>Note&#45;&#45;body</title>
+<title>Note&#45;&gt;body</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M696.51,-242.76C740.43,-229.11 825.17,-202.78 867.08,-189.75"/>
 </g>
 <!-- note_created -->
@@ -119,9 +119,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="796.34" cy="-40.94" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="796.34" y="-38.01" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">created_at</text>
 </g>
-<!-- Note&#45;&#45;note_created -->
+<!-- Note&#45;&gt;note_created -->
 <g id="edge9" class="edge">
-<title>Note&#45;&#45;note_created</title>
+<title>Note&#45;&gt;note_created</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M680.04,-232.73C704.44,-192.48 761.7,-98.06 785.58,-58.68"/>
 </g>
 <!-- AuditLog -->
@@ -136,11 +136,10 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="933.63,-898.44 857.48,-880.44 933.63,-862.44 1009.78,-880.44 933.63,-898.44"/>
 <text xml:space="preserve" text-anchor="middle" x="933.63" y="-877.32" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Performed By</text>
 </g>
-<!-- AuditLog&#45;&#45;PerformedBy -->
+<!-- AuditLog&#45;&gt;PerformedBy -->
 <g id="edge23" class="edge">
-<title>AuditLog&#45;&#45;PerformedBy</title>
+<title>AuditLog&#45;&gt;PerformedBy</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1078.96,-1052.65C1047.22,-1015.04 976.05,-930.71 946.69,-895.91"/>
-<text xml:space="preserve" text-anchor="middle" x="1075.59" y="-1042.2" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- audit_id -->
 <g id="node20" class="node">
@@ -148,9 +147,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="893.3" cy="-1185.86" rx="34.32" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="872.3" y="-1183.94" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">audit_id</text>
 </g>
-<!-- AuditLog&#45;&#45;audit_id -->
+<!-- AuditLog&#45;&gt;audit_id -->
 <g id="edge10" class="edge">
-<title>AuditLog&#45;&#45;audit_id</title>
+<title>AuditLog&#45;&gt;audit_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M1061.89,-1089.96C1021.21,-1113.1 952.85,-1151.99 916.95,-1172.41"/>
 </g>
 <!-- table_name -->
@@ -159,9 +158,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1304.82" cy="-1178.58" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1304.82" y="-1175.66" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">table_name</text>
 </g>
-<!-- AuditLog&#45;&#45;table_name -->
+<!-- AuditLog&#45;&gt;table_name -->
 <g id="edge11" class="edge">
-<title>AuditLog&#45;&#45;table_name</title>
+<title>AuditLog&#45;&gt;table_name</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1130.34,-1089.5C1172.03,-1110.78 1240.1,-1145.53 1277.71,-1164.74"/>
 </g>
 <!-- row_key -->
@@ -170,9 +169,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1170.57" cy="-1292.5" rx="31.21" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1170.57" y="-1289.57" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">row_key</text>
 </g>
-<!-- AuditLog&#45;&#45;row_key -->
+<!-- AuditLog&#45;&gt;row_key -->
 <g id="edge12" class="edge">
-<title>AuditLog&#45;&#45;row_key</title>
+<title>AuditLog&#45;&gt;row_key</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1101.17,-1090.16C1115.61,-1132.26 1150.31,-1233.44 1164.44,-1274.62"/>
 </g>
 <!-- old_value -->
@@ -181,9 +180,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="999.78" cy="-1297.5" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="999.78" y="-1294.57" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">old_value</text>
 </g>
-<!-- AuditLog&#45;&#45;old_value -->
+<!-- AuditLog&#45;&gt;old_value -->
 <g id="edge13" class="edge">
-<title>AuditLog&#45;&#45;old_value</title>
+<title>AuditLog&#45;&gt;old_value</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1086.77,-1090.19C1068.77,-1133.09 1025.02,-1237.36 1007.36,-1279.44"/>
 </g>
 <!-- new_value -->
@@ -192,9 +191,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1336.37" cy="-1013.34" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1336.37" y="-1010.41" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">new_value</text>
 </g>
-<!-- AuditLog&#45;&#45;new_value -->
+<!-- AuditLog&#45;&gt;new_value -->
 <g id="edge14" class="edge">
-<title>AuditLog&#45;&#45;new_value</title>
+<title>AuditLog&#45;&gt;new_value</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1130.36,-1062.74C1176.71,-1051.63 1257.07,-1032.36 1302.51,-1021.46"/>
 </g>
 <!-- changed_at -->
@@ -203,9 +202,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1236.85" cy="-896.03" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1236.85" y="-893.1" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">changed_at</text>
 </g>
-<!-- AuditLog&#45;&#45;changed_at -->
+<!-- AuditLog&#45;&gt;changed_at -->
 <g id="edge15" class="edge">
-<title>AuditLog&#45;&#45;changed_at</title>
+<title>AuditLog&#45;&gt;changed_at</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1109.91,-1052.54C1137.63,-1018.36 1195.97,-946.43 1222.8,-913.35"/>
 </g>
 <!-- User -->
@@ -214,17 +213,17 @@
 <polygon fill="#21262d" stroke="#58a6ff" stroke-width="1.8" points="785.44,-737.58 731.44,-737.58 731.44,-701.58 785.44,-701.58 785.44,-737.58"/>
 <text xml:space="preserve" text-anchor="middle" x="758.44" y="-715.88" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">User</text>
 </g>
-<!-- User&#45;&#45;Writes -->
+<!-- User&#45;&gt;Writes -->
 <g id="edge19" class="edge">
-<title>User&#45;&#45;Writes</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M755.38,-700.89C748.16,-656.8 730.14,-546.77 723.12,-503.88"/>
-<text xml:space="preserve" text-anchor="middle" x="752.01" y="-690.44" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>User&#45;&gt;Writes</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M753.29,-688.15C745.14,-638.38 729.54,-543.08 723.12,-503.88"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="749.46,-688.57 755.04,-698.8 757.06,-687.32 749.46,-688.57"/>
 </g>
-<!-- User&#45;&#45;PerformedBy -->
+<!-- User&#45;&gt;PerformedBy -->
 <g id="edge24" class="edge">
-<title>User&#45;&#45;PerformedBy</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M778.88,-738.35C814.08,-770.67 885.44,-836.2 917.45,-865.59"/>
-<text xml:space="preserve" text-anchor="middle" x="765.38" y="-741.4" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>User&#45;&gt;PerformedBy</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M788.23,-746.94C825.52,-781.18 888.07,-838.61 917.45,-865.59"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="791.15,-744.39 780.44,-739.78 785.94,-750.06 791.15,-744.39"/>
 </g>
 <!-- user_id -->
 <g id="node26" class="node">
@@ -232,9 +231,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="545.33" cy="-830.91" rx="31.21" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="526.95" y="-828.99" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">user_id</text>
 </g>
-<!-- User&#45;&#45;user_id -->
+<!-- User&#45;&gt;user_id -->
 <g id="edge16" class="edge">
-<title>User&#45;&#45;user_id</title>
+<title>User&#45;&gt;user_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M730.58,-734.14C688.27,-756.24 608.56,-797.88 568.93,-818.58"/>
 </g>
 <!-- StudentStats -->
@@ -243,11 +242,12 @@
 <polygon fill="#21262d" stroke="#58a6ff" stroke-width="1.8" points="1796.65,-1335.52 1699.65,-1335.52 1699.65,-1299.52 1796.65,-1299.52 1796.65,-1335.52"/>
 <text xml:space="preserve" text-anchor="middle" x="1748.15" y="-1313.82" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">StudentStats</text>
 </g>
-<!-- StudentStats&#45;&#45;HasStats -->
+<!-- StudentStats&#45;&gt;HasStats -->
 <g id="edge18" class="edge">
-<title>StudentStats&#45;&#45;HasStats</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1698.85,-1328.04C1655.6,-1337.26 1593.68,-1350.47 1554.77,-1358.76"/>
-<text xml:space="preserve" text-anchor="middle" x="1685.35" y="-1331.09" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>StudentStats&#45;&gt;HasStats</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1686.44,-1331.71C1644.4,-1340.67 1590.24,-1352.22 1554.98,-1359.74"/>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1686.02,-1329.75C1643.98,-1338.72 1589.83,-1350.27 1554.56,-1357.79"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="1686.83,-1334.54 1696.78,-1328.48 1685.22,-1327.01 1686.83,-1334.54"/>
 </g>
 <!-- stats_pk -->
 <g id="node13" class="node">
@@ -255,9 +255,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1967.45" cy="-1401.15" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="1941.2" y="-1399.22" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">student_id</text>
 </g>
-<!-- StudentStats&#45;&#45;stats_pk -->
+<!-- StudentStats&#45;&gt;stats_pk -->
 <g id="edge3" class="edge">
-<title>StudentStats&#45;&#45;stats_pk</title>
+<title>StudentStats&#45;&gt;stats_pk</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M1797.37,-1336.29C1839.93,-1352.52 1900.15,-1375.48 1936.34,-1389.28"/>
 </g>
 <!-- mastered_count -->
@@ -266,9 +266,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" stroke-dasharray="5,2" cx="1783.07" cy="-1552.34" rx="52.96" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1783.07" y="-1549.42" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">mastered_count</text>
 </g>
-<!-- StudentStats&#45;&#45;mastered_count -->
+<!-- StudentStats&#45;&gt;mastered_count -->
 <g id="edge4" class="edge">
-<title>StudentStats&#45;&#45;mastered_count</title>
+<title>StudentStats&#45;&gt;mastered_count</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1750.95,-1336.34C1757.52,-1380.53 1773.87,-1490.46 1780.36,-1534.08"/>
 </g>
 <!-- review_count -->
@@ -277,9 +277,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" stroke-dasharray="5,2" cx="1682.48" cy="-1089" rx="46.74" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1682.48" y="-1086.08" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">review_count</text>
 </g>
-<!-- StudentStats&#45;&#45;review_count -->
+<!-- StudentStats&#45;&gt;review_count -->
 <g id="edge5" class="edge">
-<title>StudentStats&#45;&#45;review_count</title>
+<title>StudentStats&#45;&gt;review_count</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1742.78,-1298.82C1730.4,-1255.76 1700.01,-1150.01 1687.74,-1107.32"/>
 </g>
 <!-- stats_updated -->
@@ -288,9 +288,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="1914.25" cy="-1152.44" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="1914.25" y="-1149.51" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">updated_at</text>
 </g>
-<!-- StudentStats&#45;&#45;stats_updated -->
+<!-- StudentStats&#45;&gt;stats_updated -->
 <g id="edge6" class="edge">
-<title>StudentStats&#45;&#45;stats_updated</title>
+<title>StudentStats&#45;&gt;stats_updated</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1766.88,-1298.91C1799.46,-1266.53 1866.07,-1200.33 1897.34,-1169.25"/>
 </g>
 </g>

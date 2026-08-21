@@ -23,11 +23,11 @@
 <text xml:space="preserve" text-anchor="middle" x="951.02" y="-1294.7" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Has Chain</text>
 <text xml:space="preserve" text-anchor="middle" x="951.02" y="-1281.95" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Position</text>
 </g>
-<!-- Hadith&#45;&#45;HasChainPosition -->
+<!-- Hadith&#45;&gt;HasChainPosition -->
 <g id="edge29" class="edge">
-<title>Hadith&#45;&#45;HasChainPosition</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1172.36,-1329.18C1133.11,-1322.49 1061.71,-1310.32 1010.62,-1301.61"/>
-<text xml:space="preserve" text-anchor="middle" x="1168.98" y="-1332.23" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Hadith&#45;&gt;HasChainPosition</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1159.46,-1326.98C1118.82,-1320.05 1056.52,-1309.43 1010.62,-1301.61"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="1158.78,-1330.77 1170.27,-1328.82 1160.07,-1323.18 1158.78,-1330.77"/>
 </g>
 <!-- TranslatedAs -->
 <g id="node10" class="node">
@@ -36,11 +36,11 @@
 <polygon fill="none" stroke="#d29922" stroke-width="1.4" points="1364.94,-1539.37 1265.09,-1517.27 1364.94,-1495.17 1464.79,-1517.27 1364.94,-1539.37"/>
 <text xml:space="preserve" text-anchor="middle" x="1364.94" y="-1514.15" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Translated As</text>
 </g>
-<!-- Hadith&#45;&#45;TranslatedAs -->
+<!-- Hadith&#45;&gt;TranslatedAs -->
 <g id="edge37" class="edge">
-<title>Hadith&#45;&#45;TranslatedAs</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1217.66,-1352.64C1248.99,-1387.66 1316.48,-1463.1 1348.03,-1498.37"/>
-<text xml:space="preserve" text-anchor="middle" x="1214.28" y="-1355.69" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Hadith&#45;&gt;TranslatedAs</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1226.06,-1362.03C1259.82,-1399.77 1319.07,-1466 1348.03,-1498.37"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="1229.27,-1359.85 1219.07,-1354.22 1223.54,-1364.99 1229.27,-1359.85"/>
 </g>
 <!-- hadith_id -->
 <g id="node11" class="node">
@@ -49,9 +49,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="1390.62" cy="-1165.73" rx="41.42" ry="22"/>
 <text xml:space="preserve" text-anchor="start" x="1367" y="-1163.8" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">hadith_id</text>
 </g>
-<!-- Hadith&#45;&#45;hadith_id -->
+<!-- Hadith&#45;&gt;hadith_id -->
 <g id="edge1" class="edge">
-<title>Hadith&#45;&#45;hadith_id</title>
+<title>Hadith&#45;&gt;hadith_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M1222.05,-1315.41C1258.4,-1283.13 1332.61,-1217.23 1369.22,-1184.73"/>
 </g>
 <!-- RankLevel -->
@@ -68,11 +68,11 @@
 <text xml:space="preserve" text-anchor="middle" x="509.12" y="-508.88" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Graded</text>
 <text xml:space="preserve" text-anchor="middle" x="509.12" y="-496.13" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">(Ibn Hajar)</text>
 </g>
-<!-- RankLevel&#45;&#45;GradedIH -->
+<!-- RankLevel&#45;&gt;GradedIH -->
 <g id="edge34" class="edge">
-<title>RankLevel&#45;&#45;GradedIH</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M445.5,-263.97C456.92,-307.35 485.33,-415.26 500.01,-471.03"/>
-<text xml:space="preserve" text-anchor="middle" x="459" y="-267.02" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>RankLevel&#45;&gt;GradedIH</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M448.8,-276.51C461.7,-325.51 486.59,-420.05 500.01,-471.03"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="452.57,-275.67 446.04,-266.02 445.12,-277.63 452.57,-275.67"/>
 </g>
 <!-- GradedDh -->
 <g id="node9" class="node">
@@ -82,11 +82,11 @@
 <text xml:space="preserve" text-anchor="middle" x="301.12" y="-478.04" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Graded</text>
 <text xml:space="preserve" text-anchor="middle" x="301.12" y="-465.29" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">(al&#45;Dhahabi)</text>
 </g>
-<!-- RankLevel&#45;&#45;GradedDh -->
+<!-- RankLevel&#45;&gt;GradedDh -->
 <g id="edge36" class="edge">
-<title>RankLevel&#45;&#45;GradedDh</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M429.16,-264.03C405.22,-303.43 349.55,-395.07 320.12,-443.5"/>
-<text xml:space="preserve" text-anchor="middle" x="415.66" y="-267.08" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>RankLevel&#45;&gt;GradedDh</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M422.49,-275C396.06,-318.52 347.08,-399.14 320.12,-443.5"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="425.64,-277.24 428.06,-265.84 419.06,-273.24 425.64,-277.24"/>
 </g>
 <!-- rank_code -->
 <g id="node26" class="node">
@@ -95,9 +95,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="562.7" cy="-42.95" rx="41.42" ry="22"/>
 <text xml:space="preserve" text-anchor="start" x="539.07" y="-41.03" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">rank_code</text>
 </g>
-<!-- RankLevel&#45;&#45;rank_code -->
+<!-- RankLevel&#45;&gt;rank_code -->
 <g id="edge16" class="edge">
-<title>RankLevel&#45;&#45;rank_code</title>
+<title>RankLevel&#45;&gt;rank_code</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M451.84,-226.57C474.58,-188.92 525.8,-104.07 549.81,-64.29"/>
 </g>
 <!-- label_ar -->
@@ -107,9 +107,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="698.47" cy="-144.64" rx="38.32" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="698.47" y="-141.72" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">label_ar</text>
 </g>
-<!-- RankLevel&#45;&#45;label_ar -->
+<!-- RankLevel&#45;&gt;label_ar -->
 <g id="edge17" class="edge">
-<title>RankLevel&#45;&#45;label_ar</title>
+<title>RankLevel&#45;&gt;label_ar</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M479.74,-229.96C530.75,-210.07 618.97,-175.65 666.28,-157.2"/>
 </g>
 <!-- ordinal -->
@@ -119,9 +119,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="366.58" cy="-22" rx="35.21" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="366.58" y="-19.07" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">ordinal</text>
 </g>
-<!-- RankLevel&#45;&#45;ordinal -->
+<!-- RankLevel&#45;&gt;ordinal -->
 <g id="edge18" class="edge">
-<title>RankLevel&#45;&#45;ordinal</title>
+<title>RankLevel&#45;&gt;ordinal</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M434.39,-226.59C420.81,-185.62 388.42,-87.91 373.87,-44.01"/>
 </g>
 <!-- weight -->
@@ -131,9 +131,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="203.15" cy="-92.57" rx="32.11" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="203.15" y="-89.64" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">weight</text>
 </g>
-<!-- RankLevel&#45;&#45;weight -->
+<!-- RankLevel&#45;&gt;weight -->
 <g id="edge19" class="edge">
-<title>RankLevel&#45;&#45;weight</title>
+<title>RankLevel&#45;&gt;weight</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M411.46,-226.52C363.91,-195.94 270.51,-135.88 226.78,-107.76"/>
 </g>
 <!-- Narrator -->
@@ -149,23 +149,21 @@
 <polygon fill="none" stroke="#d29922" stroke-width="1.4" points="523.81,-1057.3 436.59,-1035.18 523.81,-1013.05 611.03,-1035.18 523.81,-1057.3"/>
 <text xml:space="preserve" text-anchor="middle" x="523.81" y="-1032.05" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Narrated By</text>
 </g>
-<!-- Narrator&#45;&#45;NarratedBy -->
+<!-- Narrator&#45;&gt;NarratedBy -->
 <g id="edge32" class="edge">
-<title>Narrator&#45;&#45;NarratedBy</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M339.07,-793.48C341.06,-818.88 347.31,-864.73 367.02,-898.09 399.3,-952.72 461.01,-996.88 496.63,-1019.24"/>
-<text xml:space="preserve" text-anchor="middle" x="325.57" y="-796.53" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>Narrator&#45;&gt;NarratedBy</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M340.31,-806.4C343.28,-832.56 350.31,-869.81 367.02,-898.09 399.3,-952.72 461.01,-996.88 496.63,-1019.24"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="344.16,-806.17 339.28,-795.59 336.49,-806.91 344.16,-806.17"/>
 </g>
-<!-- Narrator&#45;&#45;GradedIH -->
+<!-- Narrator&#45;&gt;GradedIH -->
 <g id="edge33" class="edge">
-<title>Narrator&#45;&#45;GradedIH</title>
+<title>Narrator&#45;&gt;GradedIH</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M349.9,-756.13C378.87,-710.55 453.95,-592.43 489.67,-536.22"/>
-<text xml:space="preserve" text-anchor="middle" x="346.53" y="-745.68" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
-<!-- Narrator&#45;&#45;GradedDh -->
+<!-- Narrator&#45;&gt;GradedDh -->
 <g id="edge35" class="edge">
-<title>Narrator&#45;&#45;GradedDh</title>
+<title>Narrator&#45;&gt;GradedDh</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M335.84,-755.86C329.82,-707.15 313.61,-575.92 305.65,-511.49"/>
-<text xml:space="preserve" text-anchor="middle" x="332.46" y="-745.41" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- narrator_id -->
 <g id="node12" class="node">
@@ -174,9 +172,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="47.64" cy="-716.25" rx="47.64" ry="22"/>
 <text xml:space="preserve" text-anchor="start" x="18.76" y="-714.32" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">narrator_id</text>
 </g>
-<!-- Narrator&#45;&#45;narrator_id -->
+<!-- Narrator&#45;&gt;narrator_id -->
 <g id="edge2" class="edge">
-<title>Narrator&#45;&#45;narrator_id</title>
+<title>Narrator&#45;&gt;narrator_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M302.53,-767.46C249.35,-756.77 149.29,-736.67 91.62,-725.08"/>
 </g>
 <!-- display_name -->
@@ -186,9 +184,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="589.9" cy="-648.06" rx="50.74" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="589.9" y="-645.13" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">display_name</text>
 </g>
-<!-- Narrator&#45;&#45;display_name -->
+<!-- Narrator&#45;&gt;display_name -->
 <g id="edge3" class="edge">
-<title>Narrator&#45;&#45;display_name</title>
+<title>Narrator&#45;&gt;display_name</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M373.95,-756.62C422.55,-732.19 508.77,-688.84 556.24,-664.98"/>
 </g>
 <!-- n_name -->
@@ -198,9 +196,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="615.93" cy="-739.32" rx="31" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="615.93" y="-736.39" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">name</text>
 </g>
-<!-- Narrator&#45;&#45;n_name -->
+<!-- Narrator&#45;&gt;n_name -->
 <g id="edge4" class="edge">
-<title>Narrator&#45;&#45;n_name</title>
+<title>Narrator&#45;&gt;n_name</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M373.9,-770.08C428.85,-763.09 533.14,-749.84 585.02,-743.24"/>
 </g>
 <!-- name_norm -->
@@ -210,9 +208,9 @@
 <ellipse fill="none" stroke="#6e7681" stroke-dasharray="5,2" cx="312.54" cy="-974.72" rx="41.42" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="312.54" y="-971.79" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">name_norm</text>
 </g>
-<!-- Narrator&#45;&#45;name_norm -->
+<!-- Narrator&#45;&gt;name_norm -->
 <g id="edge5" class="edge">
-<title>Narrator&#45;&#45;name_norm</title>
+<title>Narrator&#45;&gt;name_norm</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M335.74,-793.44C331,-830.51 320.46,-912.79 315.38,-952.47"/>
 </g>
 <!-- name_en -->
@@ -222,9 +220,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="249.05" cy="-596.48" rx="35.21" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="249.05" y="-593.56" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">name_en</text>
 </g>
-<!-- Narrator&#45;&#45;name_en -->
+<!-- Narrator&#45;&gt;name_en -->
 <g id="edge6" class="edge">
-<title>Narrator&#45;&#45;name_en</title>
+<title>Narrator&#45;&gt;name_en</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M328.79,-755.89C312.08,-722.48 277.23,-652.82 259.67,-617.7"/>
 </g>
 <!-- kunya -->
@@ -234,9 +232,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="466.37" cy="-656.14" rx="31" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="466.37" y="-653.21" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">kunya</text>
 </g>
-<!-- Narrator&#45;&#45;kunya -->
+<!-- Narrator&#45;&gt;kunya -->
 <g id="edge7" class="edge">
-<title>Narrator&#45;&#45;kunya</title>
+<title>Narrator&#45;&gt;kunya</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M358.47,-755.84C382.9,-733.27 423.59,-695.67 447.4,-673.66"/>
 </g>
 <!-- lineage -->
@@ -246,9 +244,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="89.8" cy="-954.74" rx="35.21" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="89.8" y="-951.81" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">lineage</text>
 </g>
-<!-- Narrator&#45;&#45;lineage -->
+<!-- Narrator&#45;&gt;lineage -->
 <g id="edge8" class="edge">
-<title>Narrator&#45;&#45;lineage</title>
+<title>Narrator&#45;&gt;lineage</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M317.42,-793.2C291.09,-816.42 243.85,-856.85 200.45,-887.59 172.76,-907.2 139.24,-927.04 116.4,-940.01"/>
 </g>
 <!-- relation -->
@@ -258,9 +256,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="44.66" cy="-836.77" rx="38.32" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="44.66" y="-833.84" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">relation</text>
 </g>
-<!-- Narrator&#45;&#45;relation -->
+<!-- Narrator&#45;&gt;relation -->
 <g id="edge9" class="edge">
-<title>Narrator&#45;&#45;relation</title>
+<title>Narrator&#45;&gt;relation</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M302.46,-782.18C246.24,-794.08 137.65,-817.08 81.02,-829.07"/>
 </g>
 <!-- tabaqa_raw -->
@@ -270,9 +268,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="164.45" cy="-868.83" rx="44.53" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="164.45" y="-865.91" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">tabaqa_raw</text>
 </g>
-<!-- Narrator&#45;&#45;tabaqa_raw -->
+<!-- Narrator&#45;&gt;tabaqa_raw -->
 <g id="edge10" class="edge">
-<title>Narrator&#45;&#45;tabaqa_raw</title>
+<title>Narrator&#45;&gt;tabaqa_raw</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M303.42,-793.46C271.64,-810.7 225.08,-835.95 194.77,-852.39"/>
 </g>
 <!-- school -->
@@ -282,9 +280,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="152.06" cy="-709.24" rx="32.11" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="152.06" y="-706.31" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">school</text>
 </g>
-<!-- Narrator&#45;&#45;school -->
+<!-- Narrator&#45;&gt;school -->
 <g id="edge11" class="edge">
-<title>Narrator&#45;&#45;school</title>
+<title>Narrator&#45;&gt;school</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M302.27,-762.01C267,-749.62 213.82,-730.94 181.11,-719.44"/>
 </g>
 <!-- rank_ibn_hajar_raw -->
@@ -294,9 +292,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="128.34" cy="-597.27" rx="69.38" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="128.34" y="-594.35" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">rank_ibn_hajar_raw</text>
 </g>
-<!-- Narrator&#45;&#45;rank_ibn_hajar_raw -->
+<!-- Narrator&#45;&gt;rank_ibn_hajar_raw -->
 <g id="edge12" class="edge">
-<title>Narrator&#45;&#45;rank_ibn_hajar_raw</title>
+<title>Narrator&#45;&gt;rank_ibn_hajar_raw</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M316.1,-755.97C276.64,-722.62 194.26,-652.99 153,-618.12"/>
 </g>
 <!-- rank_dhahabi_raw -->
@@ -306,9 +304,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="438.1" cy="-898.09" rx="63.17" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="438.1" y="-895.16" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">rank_dhahabi_raw</text>
 </g>
-<!-- Narrator&#45;&#45;rank_dhahabi_raw -->
+<!-- Narrator&#45;&gt;rank_dhahabi_raw -->
 <g id="edge13" class="edge">
-<title>Narrator&#45;&#45;rank_dhahabi_raw</title>
+<title>Narrator&#45;&gt;rank_dhahabi_raw</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M353.33,-793.37C371.46,-815.77 401.72,-853.15 420.76,-876.66"/>
 </g>
 <!-- date_of_death -->
@@ -318,9 +316,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="551.11" cy="-818.51" rx="53.85" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="551.11" y="-815.58" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">date_of_death</text>
 </g>
-<!-- Narrator&#45;&#45;date_of_death -->
+<!-- Narrator&#45;&gt;date_of_death -->
 <g id="edge14" class="edge">
-<title>Narrator&#45;&#45;date_of_death</title>
+<title>Narrator&#45;&gt;date_of_death</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M373.8,-781.96C409.08,-789.24 463.36,-800.42 502.57,-808.5"/>
 </g>
 <!-- is_placeholder -->
@@ -330,9 +328,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="198.04" cy="-1007.79" rx="56.96" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="198.04" y="-1004.87" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">is_placeholder</text>
 </g>
-<!-- Narrator&#45;&#45;is_placeholder -->
+<!-- Narrator&#45;&gt;is_placeholder -->
 <g id="edge15" class="edge">
-<title>Narrator&#45;&#45;is_placeholder</title>
+<title>Narrator&#45;&gt;is_placeholder</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M326.92,-793.31C301.27,-835.99 238.49,-940.47 211.13,-986"/>
 </g>
 <!-- IsnadLink -->
@@ -342,18 +340,16 @@
 <polygon fill="none" stroke="#79c0ff" stroke-width="1.8" points="689.24,-1294.48 604.49,-1294.48 604.49,-1250.48 689.24,-1250.48 689.24,-1294.48"/>
 <text xml:space="preserve" text-anchor="middle" x="646.86" y="-1268.78" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">IsnadLink</text>
 </g>
-<!-- IsnadLink&#45;&#45;HasChainPosition -->
+<!-- IsnadLink&#45;&gt;HasChainPosition -->
 <g id="edge30" class="edge">
-<title>IsnadLink&#45;&#45;HasChainPosition</title>
+<title>IsnadLink&#45;&gt;HasChainPosition</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M690.18,-1274.18C739.46,-1277.25 820.77,-1282.32 879.53,-1285.99"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M690.05,-1276.17C739.34,-1279.25 820.64,-1284.32 879.41,-1287.98"/>
-<text xml:space="preserve" text-anchor="middle" x="693.49" y="-1278.22" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
-<!-- IsnadLink&#45;&#45;NarratedBy -->
+<!-- IsnadLink&#45;&gt;NarratedBy -->
 <g id="edge31" class="edge">
-<title>IsnadLink&#45;&#45;NarratedBy</title>
+<title>IsnadLink&#45;&gt;NarratedBy</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M635.06,-1249.72C611.06,-1203.44 556.91,-1099 534.17,-1055.15"/>
-<text xml:space="preserve" text-anchor="middle" x="631.69" y="-1239.27" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- sanad_no -->
 <g id="node30" class="node">
@@ -362,9 +358,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="838.99" cy="-1167.35" rx="38.32" ry="22"/>
 <text xml:space="preserve" text-anchor="start" x="817.99" y="-1165.42" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">sanad_no</text>
 </g>
-<!-- IsnadLink&#45;&#45;sanad_no -->
+<!-- IsnadLink&#45;&gt;sanad_no -->
 <g id="edge20" class="edge">
-<title>IsnadLink&#45;&#45;sanad_no</title>
+<title>IsnadLink&#45;&gt;sanad_no</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" stroke-dasharray="5,2" d="M688.55,-1249.66C725.63,-1229.37 778.83,-1200.26 811.03,-1182.65"/>
 </g>
 <!-- position -->
@@ -374,9 +370,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="579.64" cy="-1521.88" rx="38.32" ry="22"/>
 <text xml:space="preserve" text-anchor="start" x="558.64" y="-1519.95" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">position</text>
 </g>
-<!-- IsnadLink&#45;&#45;position -->
+<!-- IsnadLink&#45;&gt;position -->
 <g id="edge21" class="edge">
-<title>IsnadLink&#45;&#45;position</title>
+<title>IsnadLink&#45;&gt;position</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" stroke-dasharray="5,2" d="M640.78,-1295.05C627.95,-1342.65 598.26,-1452.81 585.57,-1499.89"/>
 </g>
 <!-- raw_name -->
@@ -386,9 +382,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="697.93" cy="-1501.38" rx="38.32" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="697.93" y="-1498.45" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">raw_name</text>
 </g>
-<!-- IsnadLink&#45;&#45;raw_name -->
+<!-- IsnadLink&#45;&gt;raw_name -->
 <g id="edge22" class="edge">
-<title>IsnadLink&#45;&#45;raw_name</title>
+<title>IsnadLink&#45;&gt;raw_name</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M651.94,-1295.26C661.78,-1339.36 683.31,-1435.87 693.01,-1479.36"/>
 </g>
 <!-- transmission_word -->
@@ -398,9 +394,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="448.42" cy="-1399.11" rx="66.28" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="448.42" y="-1396.18" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">transmission_word</text>
 </g>
-<!-- IsnadLink&#45;&#45;transmission_word -->
+<!-- IsnadLink&#45;&gt;transmission_word -->
 <g id="edge23" class="edge">
-<title>IsnadLink&#45;&#45;transmission_word</title>
+<title>IsnadLink&#45;&gt;transmission_word</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M611.38,-1295.12C573.82,-1319.09 515.1,-1356.56 479.36,-1379.37"/>
 </g>
 <!-- is_compiler -->
@@ -410,9 +406,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="456.87" cy="-1502.26" rx="47.64" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="456.87" y="-1499.34" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">is_compiler</text>
 </g>
-<!-- IsnadLink&#45;&#45;is_compiler -->
+<!-- IsnadLink&#45;&gt;is_compiler -->
 <g id="edge24" class="edge">
-<title>IsnadLink&#45;&#45;is_compiler</title>
+<title>IsnadLink&#45;&gt;is_compiler</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M627.95,-1295.35C590.97,-1340.08 509.59,-1438.49 474.05,-1481.48"/>
 </g>
 <!-- resolution -->
@@ -422,9 +418,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="788.08" cy="-1397.6" rx="44.53" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="788.08" y="-1394.67" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">resolution</text>
 </g>
-<!-- IsnadLink&#45;&#45;resolution -->
+<!-- IsnadLink&#45;&gt;resolution -->
 <g id="edge25" class="edge">
-<title>IsnadLink&#45;&#45;resolution</title>
+<title>IsnadLink&#45;&gt;resolution</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M672.43,-1295.14C699.3,-1318.94 741.09,-1355.97 766.4,-1378.39"/>
 </g>
 <!-- Translation -->
@@ -434,12 +430,11 @@
 <polygon fill="none" stroke="#79c0ff" stroke-width="1.8" points="1624.06,-1658.89 1525.81,-1658.89 1525.81,-1614.89 1624.06,-1614.89 1624.06,-1658.89"/>
 <text xml:space="preserve" text-anchor="middle" x="1574.93" y="-1633.19" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">Translation</text>
 </g>
-<!-- Translation&#45;&#45;TranslatedAs -->
+<!-- Translation&#45;&gt;TranslatedAs -->
 <g id="edge38" class="edge">
-<title>Translation&#45;&#45;TranslatedAs</title>
+<title>Translation&#45;&gt;TranslatedAs</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1534.44,-1614.98C1493.15,-1591.46 1429.74,-1555.34 1393.16,-1534.5"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M1535.43,-1613.24C1494.14,-1589.72 1430.73,-1553.6 1394.15,-1532.76"/>
-<text xml:space="preserve" text-anchor="middle" x="1531.56" y="-1603.66" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- lang -->
 <g id="node36" class="node">
@@ -448,9 +443,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="1801.07" cy="-1508.42" rx="31" ry="22"/>
 <text xml:space="preserve" text-anchor="start" x="1790.57" y="-1506.5" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">lang</text>
 </g>
-<!-- Translation&#45;&#45;lang -->
+<!-- Translation&#45;&gt;lang -->
 <g id="edge26" class="edge">
-<title>Translation&#45;&#45;lang</title>
+<title>Translation&#45;&gt;lang</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" stroke-dasharray="5,2" d="M1615.1,-1614.07C1661.93,-1587.47 1737.86,-1544.33 1776.62,-1522.32"/>
 </g>
 <!-- text_full -->
@@ -460,9 +455,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="1770.82" cy="-1747.8" rx="41.42" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="1770.82" y="-1744.87" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">text_full</text>
 </g>
-<!-- Translation&#45;&#45;text_full -->
+<!-- Translation&#45;&gt;text_full -->
 <g id="edge27" class="edge">
-<title>Translation&#45;&#45;text_full</title>
+<title>Translation&#45;&gt;text_full</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1615.04,-1659.6C1652.88,-1681.02 1708.65,-1712.6 1742.19,-1731.59"/>
 </g>
 <!-- source_attr -->
@@ -472,9 +467,9 @@
 <ellipse fill="none" stroke="#6e7681" cx="1566.56" cy="-1893.21" rx="32.11" ry="22"/>
 <text xml:space="preserve" text-anchor="middle" x="1566.56" y="-1890.28" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">source</text>
 </g>
-<!-- Translation&#45;&#45;source_attr -->
+<!-- Translation&#45;&gt;source_attr -->
 <g id="edge28" class="edge">
-<title>Translation&#45;&#45;source_attr</title>
+<title>Translation&#45;&gt;source_attr</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M1574.19,-1659.64C1572.6,-1708.4 1568.87,-1822.49 1567.29,-1870.88"/>
 </g>
 </g>
