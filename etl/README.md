@@ -55,8 +55,13 @@ cd etl/raw/lk-translations
 find . -name '*.csv' -type f | LC_ALL=C sort | xargs sha256sum | sha256sum
 ```
 
-**If you need a working database and not a new corpus**, restore the published
-`pg_dump` from the GitHub release instead. That needs no Kaggle account.
+**If you need a working database and not a new corpus**, you don't need any of
+the above. The repo carries a pre-built dump at `db/ilham.dump` (or the
+`db/ilham.sql.gz` fallback) — a plain checkout plus `../db/run_container.sh
+bootstrap` restores it in seconds. No Kaggle account needed unless you're
+rebuilding the corpus from scratch or refreshing the dump after a schema
+change (regenerate it with `../db/run_container.sh dump` and commit the
+result).
 
 ## Run order
 
