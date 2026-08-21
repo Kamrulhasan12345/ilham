@@ -1,22 +1,27 @@
 # Ilham documentation
 
-Documentation for Ilham (إلهام), a teacher-led hadith study platform built as a
-DBMS course term project. The current deliverable is the **database design**;
-`backend/` and `frontend/` are not yet scaffolded.
+Ilham (إلهام) is a hadith study platform. A teacher leads the study. The project
+is a term project for a database course. The current deliverable is the
+**database design**. The directories `backend/` and `frontend/` are empty.
+
+Every document in this project uses ASD-STE100 Simplified Technical English.
 
 ## Index
 
-| Document | What it covers |
+| Document | Contents |
 |---|---|
-| [`prd.md`](prd.md) | **Product requirements** — datasets, personas, features, the graded requirement mapping (§5), ownership split (§7), milestones, risks. The source of truth for *what* is being built. |
-| [`architecture.md`](architecture.md) | The **big-picture design**: three-schema Postgres layout, the corpus/study (OLAP/OLTP) split, and how read-only is enforced. |
-| [`database.md`](database.md) | **Schema reference**: tables per layer, the key routines/triggers, the analytics queries, and the design invariants that are graded (and must not be "fixed"). |
-| [`data-and-etl.md`](data-and-etl.md) | **Datasets and the ELT pipeline**: sources, narrator resolution, and how the corpus is loaded once then locked read-only. |
-| [`erd/`](erd/README.md) | **Entity–relationship diagrams** — seven Chen-notation diagrams (full + plain variants), the notation legend, and rebuild instructions. |
+| [`prd.md`](prd.md) | **Product requirements.** Datasets, personas, features, the graded requirement map (§5), the ownership split (§7), milestones, and risks. This document says *what* the team builds. |
+| [`architecture.md`](architecture.md) | **The design as a whole.** The three schemas, the split between the corpus and the study layer, and how the database makes the corpus read-only. |
+| [`database.md`](database.md) | **Schema reference.** The tables in each layer, the routines and triggers, the analytical queries, and the design rules that you must not change. |
+| [`data-and-etl.md`](data-and-etl.md) | **Datasets and the pipeline.** The sources, narrator resolution, grade mapping, translations, and how the load seals the corpus. |
+| [`erd/`](erd/README.md) | **Entity-relationship diagrams.** The Chen-notation set, the crow's-foot set, the notation legend, and the rebuild commands. |
 
 ## Related files
 
-- [`../db/schema.sql`](../db/schema.sql) — the complete annotated DDL. Its inline
-  comments are authoritative; the docs here summarize and cross-link them.
-- [`../README.md`](../README.md) — project overview and getting-started.
-- [`../CLAUDE.md`](../CLAUDE.md) — guidance for AI coding agents.
+- [`../db/README.md`](../db/README.md) — the DDL. The files run in numeric order,
+  from `00_init` to `05_post_load`. The comments in those files are correct. The
+  documents here give a summary and link to them.
+- [`../etl/README.md`](../etl/README.md) — the pipeline. How to get the data, what
+  the real source changed, and the coverage numbers.
+- [`../README.md`](../README.md) — the project overview and the first steps.
+- [`../CLAUDE.md`](../CLAUDE.md) — instructions for AI coding agents.

@@ -1,0 +1,20 @@
+{
+  "_comment": [
+    "slug -> real titles. The slug is the raw filename without .json, which is",
+    "what extract.js derives book_slug from. Loaded as DATA into",
+    "staging.book_manifest so corpus.collections carries the correct Arabic",
+    "title on FIRST insert -- 10_dimensions.sql deliberately refuses to patch",
+    "titles afterwards, because a later UPDATE nobody runs leaves the corpus",
+    "permanently wrong.",
+    "",
+    "Titles are taken verbatim from the `book` field inside the records."
+  ],
+  "sahih-al-bukhari": {
+    "title_ar": "صحيح البخاري",
+    "title_en": "Sahih al-Bukhari"
+  },
+  "sahih-muslim": {
+    "title_ar": "صحيح مسلم",
+    "title_en": "Sahih Muslim"
+  }
+}

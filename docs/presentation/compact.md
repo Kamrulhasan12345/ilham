@@ -3,8 +3,8 @@ marp: true
 theme: ilham
 paginate: true
 lang: en
-title: 'Ilham — Database Design'
-description: 'Compact 6-slide presentation of the Ilham database design'
+title: "Ilham — Database Design"
+description: "Compact 6-slide presentation of the Ilham database design"
 ---
 
 <!-- _class: lead -->
@@ -24,22 +24,23 @@ kept apart by <b>privilege</b> — not by convention.
 </p>
 
 <!--
-20 seconds. Do not linger.
+20 seconds. Do not stop here.
 
-"Ilham is a platform where teachers assign classical hadith texts to students
-and track their memorisation. The design problem is that it has to hold two
-completely different kinds of data at once, and this is how we kept them apart."
+"Ilham is a platform. Teachers assign classical hadith texts to students, and the
+system tracks what the students learn. The design problem is that it must hold
+two very different kinds of data at the same time. This talk shows how we kept
+them apart."
 
-Then move. Resist introducing yourselves at length.
+Then move on. Do not introduce yourselves at length.
 -->
 
 ---
 
-## The domain, and why it's a modelling problem
+## The domain, and why it is a modelling problem
 
 A **hadith** is a recorded narration. The **matn** is its text.
 
-The **isnad** is the chain of people who transmitted it:
+The **isnad** is the chain of persons who transmitted it:
 
 <div class="chain">
 <span class="end">Companion</span><i>→</i><span>…</span><i>→</i><span>…</span><i>→</i><span class="end">Compiler</span>
@@ -47,140 +48,112 @@ The **isnad** is the chain of people who transmitted it:
 
 Scholars grade those narrators — **and they disagree.**
 
-Corpus: large, shared, never edited. Study activity: small, per-user, written
-constantly. **Two opposite profiles, one database.**
+Corpus: large, shared, never edited. Study activity: small, one user at a time,
+written constantly. **Two opposite profiles, one database.**
 
 <!--
-60 seconds. The most compressed slide, and it makes the next three intelligible.
+60 seconds. This is the most compressed slide. It makes the next three
+understandable.
 
-"Every hadith carries its own provenance — the chain isn't metadata about the
-text, for this domain it's half the text. That's the reference side: large,
-shared, and it never changes. Against it sits student activity: small, per-user,
-written constantly. Two opposite profiles, one database."
+"Every hadith carries its own provenance. The chain is not metadata about the
+text. In this domain it is half of the text. That is the reference side: large,
+shared, and it never changes. Against it sits the student activity: small, one
+user at a time, and written constantly. Two opposite profiles, one database."
 
-Without isnad defined here, slide 3 is unreadable to a non-specialist.
+Define the isnad here. Without it, a non-specialist cannot read slide 3.
 -->
 
 ---
 
-<!-- _class: corpus -->
+<!-- _class: corpus figure-slide -->
 
 ## The corpus
 
-<div class="diagram" style="--dw:72%">
-<div>
-<div class="callout corpus">
-<b>A chain position is<br>a weak entity</b>
-Identified by <i>(hadith, which chain, position)</i> — stored explicitly,
-Companion first, compiler last.
-</div>
-</div>
-<div class="fig"><img src="../erd/chen/corpus-sfdp.svg" alt="corpus ER diagram"></div>
-</div>
+<div class="fig-only"><img src="../erd/chen/corpus-sfdp.svg" alt="corpus ER diagram"></div>
 
 <!--
-80 seconds. The longest slide. This is where the marks are.
+80 seconds. The longest slide. The marks are here.
 
-"Collections hold chapters hold hadiths — that part is ordinary. The interesting
-entity is the double-bordered one: a chain position. It can't exist on its own;
-it's identified by which hadith, which chain, and where in that chain.
+The slide is the diagram. Speak the weak-entity point; do not print it. Point at
+the box with the double border while you say it.
 
-The alternative was a 'this narrator taught that narrator' link, and it fails —
-teacher-and-student isn't a fact about a narrator, it's a fact about a narrator
-WITHIN ONE SPECIFIC CHAIN. Storing position explicitly makes chains first-class,
-and it means walking a chain is plain aggregation rather than recursion."
+"Collections hold chapters, and chapters hold hadiths. That part is ordinary. The
+interesting entity is the one with the double border: a chain position. It cannot
+exist on its own. Three things identify it: which hadith, which chain, and where
+in that chain.
 
-If five seconds spare: "And note the two separate grading relationships — we
-kept both scholars rather than collapsing them, because the disagreement is the
+The alternative was a link that says 'this narrator taught that narrator', and it
+fails. Teacher and student is not a fact about a narrator. It is a fact about a
+narrator INSIDE ONE SPECIFIC CHAIN. To store the position explicitly makes chains
+first-class. It also makes a chain walk plain aggregation instead of recursion."
+
+If you have five seconds: "Note the two separate grading relationships. We kept
+both scholars instead of one combined value, because the disagreement is the
 interesting part."
 
-Do NOT enumerate attributes. Do NOT explain 0..1. One point.
+Do NOT list the attributes. Do NOT explain the arrowheads. Make one point.
 -->
 
 ---
 
-<!-- _class: app -->
+<!-- _class: app figure-slide -->
 
 ## The study layer
 
-<div class="diagram" style="--dw:62%">
-<div>
-
-<div class="callout app">
-<b>Users specialise</b>
-Disjoint: Student / Teacher / Admin. A foreign key to a <i>subtype</i> makes the
-rule structural — an admin cannot own a circle.
-</div>
-
-<div class="callout app">
-<b>Progress is grained per<br>(student, hadith, assignment)</b>
-A hadith assigned twice is two obligations; prior self-study is never reset.
-</div>
-
-</div>
-<div class="fig"><img src="../erd/chen/app-sfdp.svg" alt="app ER diagram"></div>
-</div>
+<div class="fig-only"><img src="../erd/chen/app-sfdp.svg" alt="app ER diagram"></div>
 
 <!--
-70 seconds.
+70 seconds. Two spoken points. Point at both on the diagram: the ISA triangle
+under User, and the grain of Progress.
 
-"A teacher owns a circle, students enrol, the teacher assigns a study set, and
-that produces progress rows — one per student per hadith.
+"A teacher owns a circle. Students enrol. The teacher assigns a study set, and
+that makes the progress rows: one row for each student and each hadith.
 
-Two decisions worth pointing at. Users specialise into three subtypes, so a
-foreign key pointing at TEACHERS means an admin simply cannot own a circle — the
-database enforces the rule with no application code. And progress is grained per
-assignment, not per hadith, because the same hadith assigned twice is two
-separate obligations."
+Two decisions are worth a look. First, users specialise into three subtypes. A
+foreign key that points at TEACHERS therefore makes it impossible for an admin to
+own a circle. The database enforces the rule, and it needs no application code.
 
-Cut: inheritance trade-offs, trigger-maintained tables, partial indexes.
+Second, progress is grained for each assignment, not for each hadith. The same
+hadith assigned two times is two separate obligations."
+
+Cut these: the trade-offs of inheritance, the trigger-maintained tables, and the
+partial indexes.
 -->
 
 ---
 
-<!-- _class: cross -->
+<!-- _class: cross figure-slide -->
 
 ## The boundary
 
-<div class="diagram" style="--dw:56%">
-<div>
-
-Everything the study layer knows about the corpus is here.
-
-**Four** relationships, all pointing at hadith — the entire interface between
-the two halves.
-
-<div class="revoke">
-REVOKE INSERT, UPDATE, DELETE<br>
-&nbsp;&nbsp;ON corpus.* FROM &lt;app role&gt;;
-</div>
-
-</div>
-<div class="fig"><img src="../erd/chen/inter_layer-sfdp.svg" alt="inter-layer ER diagram"></div>
-</div>
+<div class="fig-only"><img src="../erd/chen/inter_layer-sfdp.svg" alt="inter-layer ER diagram"></div>
 
 <!--
-60 seconds. This slide IS the thesis; everything before was setup.
+60 seconds. This slide IS the thesis. Everything before it was preparation.
 
-"This is everything the study layer knows about the corpus. Four relationships,
-all pointing at hadith — a set contains them, progress tracks them, a review
-tests them, a note is about one. That's the whole interface.
+The REVOKE is not printed. Say it, and say it slowly:
+    REVOKE INSERT, UPDATE, DELETE ON corpus.* FROM <app role>;
 
-And because it's that narrow, we could revoke write privileges on the corpus
-entirely. The distinction I want to leave you with is between a convention and a
-guarantee: a comment saying 'don't write here' is a convention; a revoked
-privilege is a guarantee. Nothing in the corpus even knows the application
+"This is everything that the study layer knows about the corpus. Four
+relationships, and all four point at the hadith. A set contains them, progress
+tracks them, a review tests them, and a note is about one. That is the whole
+interface.
+
+Because the interface is that narrow, we could remove write privileges on the
+corpus completely. I want to leave you with one distinction: a convention against
+a guarantee. A comment that says 'do not write here' is a convention. A revoked
+privilege is a guarantee. Nothing in the corpus even knows that the application
 exists."
 -->
 
 ---
 
-## It's a real schema — and what it guarantees
+## It is a real schema — and here is what it guarantees
 
 <div class="thumbs">
 <figure>
 <img src="../erd/relational/corpus.svg" alt="corpus tables">
-<figcaption>corpus — 7 tables + 1 view</figcaption>
+<figcaption>corpus — 8 tables + 1 view</figcaption>
 </figure>
 <figure>
 <img src="../erd/relational/app.svg" alt="app tables">
@@ -189,23 +162,23 @@ exists."
 </div>
 
 <div class="claims">
-<div><b>Chains are first-class</b>Stored positions, so traversal is aggregation — not recursion.</div>
-<div><b>Disagreement preserved</b>Both scholars' grades kept, never collapsed into one number.</div>
-<div><b>Corpus is read-only</b>Enforced by privilege — no application bug can undo it.</div>
+<div><b>Chains are first-class</b>The positions are stored, so a chain walk is aggregation — not recursion.</div>
+<div><b>Disagreement is kept</b>Both scholars' grades stay. We never reduce them to one number.</div>
+<div><b>The corpus is read-only</b>A privilege enforces it. No application bug can undo it.</div>
 </div>
 
 <!--
-50 seconds. Evidence plus close.
+50 seconds. Evidence, then close.
 
-"Those conceptual models are implemented — every entity is a table, every
-relationship a foreign key, and I'm showing these only to make the point that
-the design exists as DDL rather than as a drawing.
+"Those conceptual models are implemented. Every entity is a table and every
+relationship is a foreign key. I show these only to make one point: the design
+exists as DDL, not as a drawing.
 
-To close: chains are stored positionally so they're queryable without recursion,
-we kept both scholars' grades because the disagreement is the finding, and the
-corpus is read-only in a way no application bug can undo. Happy to go deeper on
-any of it."
+To close. The chains are stored by position, so you can query them without
+recursion. We kept the grades of both scholars, because the disagreement is the
+finding. And the corpus is read-only in a way that no application bug can undo. I
+am happy to go deeper on any part of it."
 
-Do NOT invite the audience to read the thumbnails. If someone asks, that's a
-good question to get — open the full SVG.
+Do NOT ask the audience to read the thumbnails. If somebody asks about one, that
+is a good question. Open the full SVG.
 -->

@@ -1,4 +1,4 @@
-graph ERD_Users {
+digraph ERD_Users {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -7,16 +7,23 @@ graph ERD_Users {
     K=1.1;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
     User; Student; Teacher; Admin; Circle; StudySet; Hadith;
 
-    // ISA circle — declared inline. Never set `label` in a `node [...]` default:
+    // ISA triangle — declared inline. Never set `label` in a `node [...]` default:
     // it leaks to every bare-declared node that follows.
-    isa_user [shape=circle, fixedsize=true, width=0.75, style=filled,
-              fillcolor="#3D2C08", color="#E3B341", fontcolor="#E6EDF3", label="ISA"];
+    // fixedsize keeps the apex from ballooning: a free-sized triangle pads the
+    // label out to the full base width and dwarfs the entities around it.
+    isa_user [shape=triangle, fixedsize=true, width=1.3, height=0.8, fontsize=9,
+              style=filled, fillcolor="#3D2C08", color="#E3B341", fontcolor="#E6EDF3",
+              label="ISA"];
 
     // Relationship diamonds
     node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
@@ -48,40 +55,40 @@ graph ERD_Users {
 
     // Attribute edges — gold solid = key, grey dotted = ordinary
     edge [color="#484F58", style=dotted];
-    User -- user_id [color="#E3B341", style=solid, penwidth=1.4];
-    User -- email;
-    User -- password_hash;
-    User -- full_name;
-    User -- role [color="#F85149", style=solid, penwidth=1.4];   // ISA discriminator
-    User -- created_at;
-    Student -- student_level;
-    Teacher -- institution;
-    Teacher -- specialization;
-    Admin -- admin_level;
-    EnrolledIn -- enrolled_at;
-    Circle -- circle_id [color="#E3B341", style=solid, penwidth=1.4];
-    Circle -- circle_name;
-    Circle -- circ_created;
-    StudySet -- set_id [color="#E3B341", style=solid, penwidth=1.4];
-    StudySet -- set_name;
-    StudySet -- set_created;
-    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    User -> user_id [color="#E3B341", style=solid, penwidth=1.4];
+    User -> email;
+    User -> password_hash;
+    User -> full_name;
+    User -> role [color="#F85149", style=solid, penwidth=1.4];   // ISA discriminator
+    User -> created_at;
+    Student -> student_level;
+    Teacher -> institution;
+    Teacher -> specialization;
+    Admin -> admin_level;
+    EnrolledIn -> enrolled_at;
+    Circle -> circle_id [color="#E3B341", style=solid, penwidth=1.4];
+    Circle -> circle_name;
+    Circle -> circ_created;
+    StudySet -> set_id [color="#E3B341", style=solid, penwidth=1.4];
+    StudySet -> set_name;
+    StudySet -> set_created;
+    Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
 
     // ISA edges — d = disjoint, carried on the supertype edge
     edge [color="#E3B341", style=solid, penwidth=2, fontcolor="#E3B341"];
-    User -- isa_user [label="d"];
-    isa_user -- Student;
-    isa_user -- Teacher;
-    isa_user -- Admin;
+    User -> isa_user [label="d"];
+    isa_user -> Student;
+    isa_user -> Teacher;
+    isa_user -> Admin;
 
     // Relationships
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    Teacher -- Teaches [taillabel="1"];
-    Circle  -- Teaches [taillabel="N"];
-    Student -- EnrolledIn [taillabel="M"];
-    Circle  -- EnrolledIn [taillabel="N"];
-    User     -- Owns [taillabel="1"];
-    StudySet -- Owns [taillabel="N"];
-    StudySet -- Contains_SetHad [taillabel="M"];
-    Hadith   -- Contains_SetHad [taillabel="N"];
+    Teacher -> Teaches [dir=back, arrowtail=normal];
+    Circle  -> Teaches [color="#8B949E:#8B949E"];
+    Student -> EnrolledIn;
+    Circle  -> EnrolledIn;
+    User     -> Owns [dir=back, arrowtail=normal];
+    StudySet -> Owns [color="#8B949E:#8B949E"];
+    StudySet -> Contains_SetHad;
+    Hadith   -> Contains_SetHad;
 }

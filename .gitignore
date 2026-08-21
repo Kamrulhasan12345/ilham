@@ -1,0 +1,37 @@
+# ---------------------------------------------------------------------------
+# Source data. ~710MB of Ifta JSON; GitHub hard-rejects files over 100MB.
+# Acquired manually — see etl/README.md for the dataset URL and the filenames.
+# Integrity is guaranteed by etl/sources.json (sha256), not by version control.
+# ---------------------------------------------------------------------------
+etl/raw/
+
+# Intermediate CSVs produced by `extract`. Regenerated on every run.
+etl/build/
+
+# ---------------------------------------------------------------------------
+# Node
+# ---------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+.npm
+
+# ---------------------------------------------------------------------------
+# Local config & secrets
+# ---------------------------------------------------------------------------
+.env
+.env.local
+etl/shape.override.local.json
+
+# ---------------------------------------------------------------------------
+# Database dumps (published to GitHub Releases, not committed)
+# ---------------------------------------------------------------------------
+*.dump
+*.sql.gz
+
+# ---------------------------------------------------------------------------
+# Editor / OS
+# ---------------------------------------------------------------------------
+.DS_Store
+*.swp
+.vscode/
+.idea/

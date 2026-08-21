@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Field-name overrides for the Ifta dump. Anything named here wins outright",
+    "over shape.js's detection. Delete a key to fall back to auto-detection.",
+    "",
+    "Only the NARRATOR fields need pinning. Ifta prefixes its rijal grades with",
+    "'rank_by_' and calls the madhhab 'school_of_thought'; neither form is in",
+    "shape.js's candidate lists, and guessing wrong here is silent -- the columns",
+    "load as NULL, every narrator scores the neutral 0.50, and chain_strength",
+    "flattens to a constant.",
+    "",
+    "The hadith and mention shapes are detected correctly from the data and are",
+    "deliberately NOT pinned here, so a re-shaped source is still adapted to",
+    "automatically."
+  ],
+  "narrator": {
+    "school": "school_of_thought",
+    "rankIbnHajar": "rank_by_ibn_hajar",
+    "rankDhahabi": "rank_by_al_dhahabi"
+  }
+}

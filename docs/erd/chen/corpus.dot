@@ -1,6 +1,6 @@
 // CORPUS LAYER — read-only reference data. Takes no runtime writes:
 // permissions are REVOKEd from the app role, and staging is dropped after load.
-graph ERD_Corpus {
+digraph ERD_Corpus {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -9,10 +9,14 @@ graph ERD_Corpus {
     K=1.2;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
-    node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
+    node [shape=box, peripheries=1,style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
     Collection; Chapter; Hadith; Narrator; RankLevel;
 
     // Weak entity boxes (double border)
@@ -21,17 +25,17 @@ graph ERD_Corpus {
 
     // Relationship diamonds (double = identifying)
     node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
-    Contains_CollCh  [label="Contains"];
-    CollectedIn      [label="Collected In"];
-    ClassifiedUnder  [label="Classified Under"];
-    HasChainPosition [peripheries=2, label="Has Chain\nPosition"];
-    NarratedBy       [label="Narrated By"];
-    GradedIH         [label="Graded\n(Ibn Hajar)"];
-    GradedDh         [label="Graded\n(al-Dhahabi)"];
+    Contains_CollCh  [peripheries=1,label="Contains"];
+    CollectedIn      [peripheries=1,label="Collected In"];
+    ClassifiedUnder  [peripheries=1,label="Classified Under"];
+    HasChainPosition [peripheries=2,label="Has Chain\nPosition"];
+    NarratedBy       [peripheries=1,label="Narrated By"];
+    GradedIH         [peripheries=1,label="Graded\n(Ibn Hajar)"];
+    GradedDh         [peripheries=1,label="Graded\n(al-Dhahabi)"];
     TranslatedAs     [peripheries=2, label="Translated As"];
 
     // Attribute ellipses (dashed border = derived)
-    node [shape=ellipse, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
+    node [shape=ellipse,peripheries=1, style="filled", fillcolor="#161B22", color="#6E7681", penwidth=1, fontsize=9, fontcolor="#8B949E"];
     coll_id [label=<<U>collection_id</U>>];
     coll_slug [label="slug"];
     coll_title_ar [label="title_ar"];
@@ -77,64 +81,64 @@ graph ERD_Corpus {
     // Attribute edges — gold solid = key, gold dashed = partial key of a weak
     // entity, grey dotted = ordinary
     edge [color="#484F58", style=dotted];
-    Collection -- coll_id [color="#E3B341", style=solid, penwidth=1.4];
-    Collection -- coll_slug;
-    Collection -- coll_title_ar;
-    Collection -- coll_title_en;
-    Chapter -- chap_id [color="#E3B341", style=solid, penwidth=1.4];
-    Chapter -- chap_title_ar;
-    Hadith -- h_id [color="#E3B341", style=solid, penwidth=1.4];
-    Hadith -- h_num;
-    Hadith -- h_text_plain;
-    Hadith -- h_text_diac;
-    Hadith -- h_matn_plain;
-    Hadith -- h_matn_diac;
-    Hadith -- h_sanad_count;
-    Hadith -- h_chain_str;
-    Narrator -- n_id [color="#E3B341", style=solid, penwidth=1.4];
-    Narrator -- n_display;
-    Narrator -- n_name;
-    Narrator -- n_name_norm;
-    Narrator -- n_name_en;
-    Narrator -- n_kunya;
-    Narrator -- n_lineage;
-    Narrator -- n_relation;
-    Narrator -- n_tabaqa;
-    Narrator -- n_school;
-    Narrator -- n_rank_ih_raw;
-    Narrator -- n_rank_dh_raw;
-    Narrator -- n_dod;
-    Narrator -- n_is_ph;
-    RankLevel -- rl_code [color="#E3B341", style=solid, penwidth=1.4];
-    RankLevel -- rl_label;
-    RankLevel -- rl_ord;
-    RankLevel -- rl_weight;
-    IsnadLink -- il_sanad [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
-    IsnadLink -- il_pos [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
-    IsnadLink -- il_raw;
-    IsnadLink -- il_trans;
-    IsnadLink -- il_comp;
-    IsnadLink -- il_res;
-    Translation -- tr_lang [color="#E3B341", style=dashed, penwidth=1.4]; // partial key
-    Translation -- tr_text;
-    Translation -- tr_source;
+    Collection -> coll_id [color="#E3B341", style=solid, penwidth=1.4];
+    Collection -> coll_slug;
+    Collection -> coll_title_ar;
+    Collection -> coll_title_en;
+    Chapter -> chap_id [color="#E3B341", style=solid, penwidth=1.4];
+    Chapter -> chap_title_ar;
+    Hadith -> h_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -> h_num;
+    Hadith -> h_text_plain;
+    Hadith -> h_text_diac;
+    Hadith -> h_matn_plain;
+    Hadith -> h_matn_diac;
+    Hadith -> h_sanad_count;
+    Hadith -> h_chain_str;
+    Narrator -> n_id [color="#E3B341", style=solid, penwidth=1.4];
+    Narrator -> n_display;
+    Narrator -> n_name;
+    Narrator -> n_name_norm;
+    Narrator -> n_name_en;
+    Narrator -> n_kunya;
+    Narrator -> n_lineage;
+    Narrator -> n_relation;
+    Narrator -> n_tabaqa;
+    Narrator -> n_school;
+    Narrator -> n_rank_ih_raw;
+    Narrator -> n_rank_dh_raw;
+    Narrator -> n_dod;
+    Narrator -> n_is_ph;
+    RankLevel -> rl_code [color="#E3B341", style=solid, penwidth=1.4];
+    RankLevel -> rl_label;
+    RankLevel -> rl_ord;
+    RankLevel -> rl_weight;
+    IsnadLink -> il_sanad [color="#E3B341", style=dashed, penwidth=1.4];  // partial key
+    IsnadLink -> il_pos [color="#E3B341", style=dashed, penwidth=1.4];    // partial key
+    IsnadLink -> il_raw;
+    IsnadLink -> il_trans;
+    IsnadLink -> il_comp;
+    IsnadLink -> il_res;
+    Translation -> tr_lang [color="#E3B341", style=dashed, penwidth=1.4]; // partial key
+    Translation -> tr_text;
+    Translation -> tr_source;
 
-    // Relationships (double lines on the N-side of identifying edges)
+    // Relationships (double lines on the many side of identifying edges)
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    Collection -- Contains_CollCh [taillabel="1"];
-    Chapter    -- Contains_CollCh [taillabel="N", color="#8B949E:#8B949E"];
-    Collection -- CollectedIn [taillabel="1"];
-    Hadith     -- CollectedIn [taillabel="N", color="#8B949E:#8B949E"];
-    Chapter -- ClassifiedUnder [taillabel="0..1"];   // hadiths.chapter_id nullable
-    Hadith  -- ClassifiedUnder [taillabel="N"];
-    Hadith    -- HasChainPosition [taillabel="1"];
-    IsnadLink -- HasChainPosition [taillabel="N", color="#8B949E:#8B949E"];
-    IsnadLink -- NarratedBy [taillabel="N"];
-    Narrator  -- NarratedBy [taillabel="0..1"];      // narrator_id NULL = unresolved
-    Narrator  -- GradedIH [taillabel="N"];
-    RankLevel -- GradedIH [taillabel="0..1"];        // named-but-ungraded / unnamed
-    Narrator  -- GradedDh [taillabel="N"];
-    RankLevel -- GradedDh [taillabel="0..1"];
-    Hadith      -- TranslatedAs [taillabel="1"];
-    Translation -- TranslatedAs [taillabel="N", color="#8B949E:#8B949E"];
+    Collection -> Contains_CollCh [dir=back, arrowtail=normal];
+    Chapter    -> Contains_CollCh [color="#8B949E:#8B949E"];
+    Collection -> CollectedIn [dir=back, arrowtail=normal];
+    Hadith     -> CollectedIn [color="#8B949E:#8B949E"];
+    Chapter -> ClassifiedUnder [dir=back, arrowtail=onormal];   // hadiths.chapter_id nullable
+    Hadith  -> ClassifiedUnder;
+    Hadith    -> HasChainPosition [dir=back, arrowtail=normal];
+    IsnadLink -> HasChainPosition [color="#8B949E:#8B949E"];
+    IsnadLink -> NarratedBy;
+    Narrator  -> NarratedBy [dir=back, arrowtail=onormal];      // narrator_id NULL = unresolved
+    Narrator  -> GradedIH;
+    RankLevel -> GradedIH [dir=back, arrowtail=onormal];        // named-but-ungraded / unnamed
+    Narrator  -> GradedDh;
+    RankLevel -> GradedDh [dir=back, arrowtail=onormal];
+    Hadith      -> TranslatedAs [dir=back, arrowtail=normal];
+    Translation -> TranslatedAs [color="#8B949E:#8B949E"];
 }

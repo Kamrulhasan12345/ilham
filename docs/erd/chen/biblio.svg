@@ -21,11 +21,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="337.66,-342.54 282.28,-324.54 337.66,-306.54 393.04,-324.54 337.66,-342.54"/>
 <text xml:space="preserve" text-anchor="middle" x="337.66" y="-321.42" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Contains</text>
 </g>
-<!-- Collection&#45;&#45;Contains_CollCh -->
+<!-- Collection&#45;&gt;Contains_CollCh -->
 <g id="edge15" class="edge">
-<title>Collection&#45;&#45;Contains_CollCh</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M533.87,-261.03C485.66,-276.64 408.24,-301.69 366.52,-315.2"/>
-<text xml:space="preserve" text-anchor="middle" x="530.49" y="-264.08" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Collection&#45;&gt;Contains_CollCh</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M521.45,-265.05C473.2,-280.67 404.82,-302.8 366.52,-315.2"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="522.57,-268.74 531.85,-261.69 520.2,-261.41 522.57,-268.74"/>
 </g>
 <!-- CollectedIn -->
 <g id="node5" class="node">
@@ -33,11 +33,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="672.19,-497.13 596.05,-479.13 672.19,-461.13 748.34,-479.13 672.19,-497.13"/>
 <text xml:space="preserve" text-anchor="middle" x="672.19" y="-476.01" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Collected In</text>
 </g>
-<!-- Collection&#45;&#45;CollectedIn -->
+<!-- Collection&#45;&gt;CollectedIn -->
 <g id="edge17" class="edge">
-<title>Collection&#45;&#45;CollectedIn</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M583.94,-265.89C602.17,-309.95 647.8,-420.19 665.25,-462.36"/>
-<text xml:space="preserve" text-anchor="middle" x="580.56" y="-268.94" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">1</text>
+<title>Collection&#45;&gt;CollectedIn</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M588.95,-278C609.47,-327.57 649.23,-423.65 665.25,-462.36"/>
+<polygon fill="#8b949e" stroke="#8b949e" stroke-width="1.4" points="592.51,-276.54 584.75,-267.85 585.4,-279.49 592.51,-276.54"/>
 </g>
 <!-- collection_id -->
 <g id="node7" class="node">
@@ -45,9 +45,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="387.24" cy="-94.64" rx="49.85" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="353.12" y="-92.72" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">collection_id</text>
 </g>
-<!-- Collection&#45;&#45;collection_id -->
+<!-- Collection&#45;&gt;collection_id -->
 <g id="edge1" class="edge">
-<title>Collection&#45;&#45;collection_id</title>
+<title>Collection&#45;&gt;collection_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M553.07,-228.59C515.91,-198.58 443.57,-140.14 408,-111.41"/>
 </g>
 <!-- slug -->
@@ -56,9 +56,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="806.18" cy="-150.34" rx="27" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="806.18" y="-147.42" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">slug</text>
 </g>
-<!-- Collection&#45;&#45;slug -->
+<!-- Collection&#45;&gt;slug -->
 <g id="edge2" class="edge">
-<title>Collection&#45;&#45;slug</title>
+<title>Collection&#45;&gt;slug</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M618.69,-229.42C667.09,-209 744.48,-176.36 782.93,-160.15"/>
 </g>
 <!-- title_ar -->
@@ -67,9 +67,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="532.03" cy="-18" rx="34.32" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="532.03" y="-15.07" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">title_ar</text>
 </g>
-<!-- Collection&#45;&#45;title_ar -->
+<!-- Collection&#45;&gt;title_ar -->
 <g id="edge3" class="edge">
-<title>Collection&#45;&#45;title_ar</title>
+<title>Collection&#45;&gt;title_ar</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M572.63,-228.55C564.3,-185.33 543.83,-79.23 535.57,-36.38"/>
 </g>
 <!-- title_en -->
@@ -78,9 +78,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="699.56" cy="-41.78" rx="34.32" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="699.56" y="-38.86" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">title_en</text>
 </g>
-<!-- Collection&#45;&#45;title_en -->
+<!-- Collection&#45;&gt;title_en -->
 <g id="edge4" class="edge">
-<title>Collection&#45;&#45;title_en</title>
+<title>Collection&#45;&gt;title_en</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M587.41,-228.71C611.06,-189.29 665.96,-97.79 689.03,-59.32"/>
 </g>
 <!-- Chapter -->
@@ -89,12 +89,11 @@
 <polygon fill="#21262d" stroke="#58a6ff" stroke-width="1.8" points="294.33,-572.76 231.08,-572.76 231.08,-536.76 294.33,-536.76 294.33,-572.76"/>
 <text xml:space="preserve" text-anchor="middle" x="262.7" y="-551.06" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">Chapter</text>
 </g>
-<!-- Chapter&#45;&#45;Contains_CollCh -->
+<!-- Chapter&#45;&gt;Contains_CollCh -->
 <g id="edge16" class="edge">
-<title>Chapter&#45;&#45;Contains_CollCh</title>
+<title>Chapter&#45;&gt;Contains_CollCh</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M267.89,-535.61C282.19,-491.69 317.56,-383.05 331.21,-341.12"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M269.79,-536.23C284.09,-492.31 319.46,-383.67 333.11,-341.74"/>
-<text xml:space="preserve" text-anchor="middle" x="265.46" y="-525.47" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- ClassifiedUnder -->
 <g id="node6" class="node">
@@ -102,11 +101,11 @@
 <polygon fill="#342612" stroke="#d29922" stroke-width="1.4" points="465.44,-704.55 368.52,-686.55 465.44,-668.55 562.35,-686.55 465.44,-704.55"/>
 <text xml:space="preserve" text-anchor="middle" x="465.44" y="-683.42" font-family="DejaVu Sans Mono" font-size="10.00" fill="#e6edf3">Classified Under</text>
 </g>
-<!-- Chapter&#45;&#45;ClassifiedUnder -->
+<!-- Chapter&#45;&gt;ClassifiedUnder -->
 <g id="edge19" class="edge">
-<title>Chapter&#45;&#45;ClassifiedUnder</title>
-<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M291.75,-573.64C332.7,-600.26 406.5,-648.24 443.31,-672.16"/>
-<text xml:space="preserve" text-anchor="middle" x="278.25" y="-576.69" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">0..1</text>
+<title>Chapter&#45;&gt;ClassifiedUnder</title>
+<path fill="none" stroke="#8b949e" stroke-width="1.4" d="M302.72,-580.77C344.84,-608.15 409.59,-650.25 443.31,-672.16"/>
+<polygon fill="none" stroke="#8b949e" stroke-width="1.4" points="304.85,-577.56 293.53,-574.8 300.65,-584.02 304.85,-577.56"/>
 </g>
 <!-- chapter_id -->
 <g id="node11" class="node">
@@ -114,9 +113,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="40.53" cy="-481.95" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="14.28" y="-480.03" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">chapter_id</text>
 </g>
-<!-- Chapter&#45;&#45;chapter_id -->
+<!-- Chapter&#45;&gt;chapter_id -->
 <g id="edge5" class="edge">
-<title>Chapter&#45;&#45;chapter_id</title>
+<title>Chapter&#45;&gt;chapter_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M230.4,-544.17C188.52,-530.45 115.85,-506.64 73.6,-492.79"/>
 </g>
 <!-- ch_title_ar -->
@@ -125,9 +124,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="70.51" cy="-700.42" rx="34.32" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="70.51" y="-697.5" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">title_ar</text>
 </g>
-<!-- Chapter&#45;&#45;ch_title_ar -->
+<!-- Chapter&#45;&gt;ch_title_ar -->
 <g id="edge6" class="edge">
-<title>Chapter&#45;&#45;ch_title_ar</title>
+<title>Chapter&#45;&gt;ch_title_ar</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M237.97,-573.51C199.45,-602.7 125.86,-658.47 90.48,-685.29"/>
 </g>
 <!-- Hadith -->
@@ -136,18 +135,16 @@
 <polygon fill="#21262d" stroke="#58a6ff" stroke-width="1.8" points="742.41,-759.61 685.91,-759.61 685.91,-723.61 742.41,-723.61 742.41,-759.61"/>
 <text xml:space="preserve" text-anchor="middle" x="714.16" y="-737.91" font-family="DejaVu Sans Mono" font-size="11.00" fill="#e6edf3">Hadith</text>
 </g>
-<!-- Hadith&#45;&#45;CollectedIn -->
+<!-- Hadith&#45;&gt;CollectedIn -->
 <g id="edge18" class="edge">
-<title>Hadith&#45;&#45;CollectedIn</title>
+<title>Hadith&#45;&gt;CollectedIn</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M710.16,-722.89C702.38,-674.23 681.71,-544.99 674.09,-497.3"/>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M712.13,-722.58C704.35,-673.91 683.69,-544.68 676.06,-496.99"/>
-<text xml:space="preserve" text-anchor="middle" x="707.77" y="-712.28" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
-<!-- Hadith&#45;&#45;ClassifiedUnder -->
+<!-- Hadith&#45;&gt;ClassifiedUnder -->
 <g id="edge20" class="edge">
-<title>Hadith&#45;&#45;ClassifiedUnder</title>
+<title>Hadith&#45;&gt;ClassifiedUnder</title>
 <path fill="none" stroke="#8b949e" stroke-width="1.4" d="M685.14,-735.19C642.34,-725.71 561.89,-707.9 511.12,-696.66"/>
-<text xml:space="preserve" text-anchor="middle" x="681.77" y="-738.24" font-family="DejaVu Sans Mono" font-size="11.00" fill="#c9d1d9">N</text>
 </g>
 <!-- hadith_id -->
 <g id="node13" class="node">
@@ -155,9 +152,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="966.91" cy="-763.75" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="start" x="943.28" y="-761.83" font-family="DejaVu Sans Mono" text-decoration="underline" font-size="9.00" fill="#8b949e">hadith_id</text>
 </g>
-<!-- Hadith&#45;&#45;hadith_id -->
+<!-- Hadith&#45;&gt;hadith_id -->
 <g id="edge7" class="edge">
-<title>Hadith&#45;&#45;hadith_id</title>
+<title>Hadith&#45;&gt;hadith_id</title>
 <path fill="none" stroke="#e3b341" stroke-width="1.4" d="M743.16,-744.15C789.19,-748.18 878.95,-756.05 929.68,-760.49"/>
 </g>
 <!-- hadith_num -->
@@ -166,9 +163,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="915.43" cy="-876.9" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="915.43" y="-873.98" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">hadith_num</text>
 </g>
-<!-- Hadith&#45;&#45;hadith_num -->
+<!-- Hadith&#45;&gt;hadith_num -->
 <g id="edge8" class="edge">
-<title>Hadith&#45;&#45;hadith_num</title>
+<title>Hadith&#45;&gt;hadith_num</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M742.15,-760.42C782.33,-787.43 855.6,-836.68 892.66,-861.6"/>
 </g>
 <!-- text_plain -->
@@ -177,9 +174,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="823.26" cy="-965.76" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="823.26" y="-962.83" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">text_plain</text>
 </g>
-<!-- Hadith&#45;&#45;text_plain -->
+<!-- Hadith&#45;&gt;text_plain -->
 <g id="edge9" class="edge">
-<title>Hadith&#45;&#45;text_plain</title>
+<title>Hadith&#45;&gt;text_plain</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M723.28,-760.34C743.97,-802.84 794.26,-906.17 814.56,-947.87"/>
 </g>
 <!-- text_diac -->
@@ -188,9 +185,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="839.31" cy="-598.56" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="839.31" y="-595.64" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">text_diac</text>
 </g>
-<!-- Hadith&#45;&#45;text_diac -->
+<!-- Hadith&#45;&gt;text_diac -->
 <g id="edge10" class="edge">
-<title>Hadith&#45;&#45;text_diac</title>
+<title>Hadith&#45;&gt;text_diac</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M730.52,-722.91C755.04,-694.89 800.94,-642.43 824.51,-615.49"/>
 </g>
 <!-- matn_plain -->
@@ -199,9 +196,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="955.16" cy="-632.1" rx="40.53" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="955.16" y="-629.18" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">matn_plain</text>
 </g>
-<!-- Hadith&#45;&#45;matn_plain -->
+<!-- Hadith&#45;&gt;matn_plain -->
 <g id="edge11" class="edge">
-<title>Hadith&#45;&#45;matn_plain</title>
+<title>Hadith&#45;&gt;matn_plain</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M743.23,-728.4C789.68,-707.3 880.09,-666.21 926.36,-645.19"/>
 </g>
 <!-- matn_diac -->
@@ -210,9 +207,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="577.01" cy="-964.14" rx="37.42" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="577.01" y="-961.22" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">matn_diac</text>
 </g>
-<!-- Hadith&#45;&#45;matn_diac -->
+<!-- Hadith&#45;&gt;matn_diac -->
 <g id="edge12" class="edge">
-<title>Hadith&#45;&#45;matn_diac</title>
+<title>Hadith&#45;&gt;matn_diac</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M702.71,-760.2C676.63,-802.51 613.16,-905.49 587.76,-946.69"/>
 </g>
 <!-- sanad_count -->
@@ -221,9 +218,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" cx="529.21" cy="-851.17" rx="43.64" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="529.21" y="-848.25" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">sanad_count</text>
 </g>
-<!-- Hadith&#45;&#45;sanad_count -->
+<!-- Hadith&#45;&gt;sanad_count -->
 <g id="edge13" class="edge">
-<title>Hadith&#45;&#45;sanad_count</title>
+<title>Hadith&#45;&gt;sanad_count</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M685.26,-758.73C649.4,-779.98 588.81,-815.87 554.63,-836.11"/>
 </g>
 <!-- chain_strength -->
@@ -232,9 +229,9 @@
 <ellipse fill="#161b22" stroke="#6e7681" stroke-dasharray="5,2" cx="700.36" cy="-976.02" rx="52.96" ry="18"/>
 <text xml:space="preserve" text-anchor="middle" x="700.36" y="-973.1" font-family="DejaVu Sans Mono" font-size="9.00" fill="#8b949e">chain_strength</text>
 </g>
-<!-- Hadith&#45;&#45;chain_strength -->
+<!-- Hadith&#45;&gt;chain_strength -->
 <g id="edge14" class="edge">
-<title>Hadith&#45;&#45;chain_strength</title>
+<title>Hadith&#45;&gt;chain_strength</title>
 <path fill="none" stroke="#484f58" stroke-dasharray="1,5" d="M713.06,-760.4C710.46,-804.51 704,-914.25 701.43,-957.8"/>
 </g>
 </g>

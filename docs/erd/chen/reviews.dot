@@ -1,4 +1,4 @@
-graph ERD_Reviews {
+digraph ERD_Reviews {
     bgcolor="#0D1117";
     splines=spline;
     overlap=prism;
@@ -7,7 +7,11 @@ graph ERD_Reviews {
     K=1.1;
     graph [fontname="DejaVu Sans Mono", fontcolor="#C9D1D9"];
     node [fontname="DejaVu Sans Mono", fontsize=11];
-    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9"];
+    // Cardinality is carried by arrowheads, not 1/N labels. The arrow points at
+    // the "one" side: filled = exactly one, hollow = at most one, none = many.
+    // Written `Entity -> Relationship`, so the head lands on the tail (dir=back).
+    // dir=none is the graph-level default -- attribute and ISA edges stay plain.
+    edge [fontname="DejaVu Sans Mono", fontsize=9, color="#8B949E", fontcolor="#C9D1D9", dir=none, arrowsize=1.1];
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
@@ -33,23 +37,23 @@ graph ERD_Reviews {
 
     // PK edges
     edge [color="#484F58", style=dotted];
-    Student -- student_id [color="#E3B341", style=solid, penwidth=1.4];
-    Teacher -- t_inst;
-    Teacher -- t_spec;
-    Circle -- circle_id [color="#E3B341", style=solid, penwidth=1.4];
-    Hadith -- hadith_id [color="#E3B341", style=solid, penwidth=1.4];
-    ReviewSession -- session_id [color="#E3B341", style=solid, penwidth=1.4];
-    ReviewSession -- rs_created;
-    Tested -- result_attr;
+    Student -> student_id [color="#E3B341", style=solid, penwidth=1.4];
+    Teacher -> t_inst;
+    Teacher -> t_spec;
+    Circle -> circle_id [color="#E3B341", style=solid, penwidth=1.4];
+    Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
+    ReviewSession -> session_id [color="#E3B341", style=solid, penwidth=1.4];
+    ReviewSession -> rs_created;
+    Tested -> result_attr;
 
     // Relationships
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
-    ReviewSession -- Reviews [taillabel="N"];
-    Student       -- Reviews [taillabel="1"];
-    ReviewSession -- ReviewedBy [taillabel="N"];
-    Teacher       -- ReviewedBy [taillabel="0..1"];   // reviewer_id NULL = self-study
-    ReviewSession -- InContextOf [taillabel="N"];
-    Circle        -- InContextOf [taillabel="0..1"];  // circle_id nullable
-    ReviewSession -- Tested [taillabel="M"];
-    Hadith        -- Tested [taillabel="N"];
+    ReviewSession -> Reviews [color="#8B949E:#8B949E"];
+    Student       -> Reviews [dir=back, arrowtail=normal];
+    ReviewSession -> ReviewedBy;
+    Teacher       -> ReviewedBy [dir=back, arrowtail=onormal];   // reviewer_id NULL = self-study
+    ReviewSession -> InContextOf;
+    Circle        -> InContextOf [dir=back, arrowtail=onormal];  // circle_id nullable
+    ReviewSession -> Tested;
+    Hadith        -> Tested;
 }

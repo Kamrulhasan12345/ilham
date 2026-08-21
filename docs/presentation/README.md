@@ -1,14 +1,14 @@
 # Presentation
 
-Marp source for the Ilham database design talk.
+The Marp source for the talk about the Ilham database design.
 
-| File | What |
+| File | Contents |
 |---|---|
-| `compact.md` | The 6-slide / ~5:40 deck — **the source of truth** |
-| `compact.pdf` | Build output; this is what you present |
-| `theme/ilham.css` | Dark theme, colour-matched to the ERD diagrams |
-| `plan-compact.md` | The content plan this deck was built from |
-| `plan.md` | Content plan for the full 30-slide version (not built) |
+| `compact.md` | The deck of 6 slides, about 5:40 long. **This file is correct** |
+| `compact.pdf` | The build output. Present this file |
+| `theme/ilham.css` | The dark theme. The colours match the ERD diagrams |
+| `plan-compact.md` | The content plan for this deck |
+| `plan.md` | The content plan for the full 30-slide version, which nobody built |
 
 ## Build
 
@@ -21,50 +21,53 @@ npm run build      # -> compact.pdf
 Other targets:
 
 ```bash
-npm run html       # -> compact.html (single file)
-npm run images     # -> build/slide.00N.png, one per slide (for review)
-npm run watch      # live preview + presenter view at localhost:8080
+npm run html       # -> compact.html (one file)
+npm run images     # -> build/slide.00N.png, one for each slide (to review)
+npm run watch      # live preview and presenter view at localhost:8080
 ```
 
-**Requires Chromium or Chrome** for PDF/PNG export — Marp drives it headlessly
-(`pacman -S chromium`). Marp finds it on `PATH`; if it complains it cannot,
-set `CHROME_PATH=/usr/bin/chromium`.
+**You need Chromium or Chrome** for the PDF and PNG export. Marp drives it with
+no window. Install it with `pacman -S chromium`. Marp finds it on `PATH`. If Marp
+reports that it cannot, set `CHROME_PATH=/usr/bin/chromium`.
 
-`--allow-local-files` is in every script and is **required** — without it the
-diagrams silently fail to embed and you get a deck of empty boxes.
+The flag `--allow-local-files` is in every script, and it is **necessary**.
+Without it the diagrams fail to embed with no error, and you get a deck of empty
+boxes.
 
 ## The diagrams are vector, on purpose
 
-Slides 3–6 embed **SVG**, not PNG, and the PDF keeps them as vector. These
-graphs carry a lot of small text; a raster blurs it the moment a projector
-scales it, whereas the PDF stays sharp and you can zoom into a chain during
-questions without it falling apart.
+Slides 3 to 6 embed **SVG**, not PNG. The PDF keeps them as vector.
 
-To confirm a build kept its vectors, pull text out of a diagram page:
+These graphs carry much small text. A raster image blurs it as soon as a
+projector scales it. The PDF stays sharp, so you can zoom into a chain during
+questions and it holds together.
+
+To confirm that a build kept the vectors, pull the text out of a diagram page:
 
 ```bash
 pdftotext -f 5 -l 5 compact.pdf - | head
 ```
 
-Labels from inside the diagram (`StudySet`, `set_id`, …) should appear. If the
-page yields only the slide heading, the diagrams were rasterised.
+Labels from inside the diagram, such as `StudySet` and `set_id`, must appear. If
+the page gives only the slide heading, the build rasterised the diagrams.
 
-Sources: `../erd/chen/*-sfdp.svg` (Chen) and `../erd/relational/*.svg`
-(crow's foot). Rebuild those with the loops in `../erd/README.md` and
-`../erd/relational/README.md`.
+The sources are `../erd/chen/*-sfdp.svg` for Chen notation and
+`../erd/relational/*.svg` for crow's foot. Rebuild them with the loops in
+`../erd/README.md` and `../erd/relational/README.md`.
 
-The PNGs under `build/` are a **review aid only** — they are raster by
-definition. Judge layout there; judge sharpness in the PDF.
+The PNG files under `build/` are a **review aid only**. They are raster by
+definition. Judge the layout there. Judge the sharpness in the PDF.
 
 ## Speaker notes
 
-Every slide carries its notes in an HTML comment, including the target seconds.
-`npm run watch` opens presenter view, which shows them alongside a timer.
+Each slide carries its notes in an HTML comment, with the target time in seconds.
+The command `npm run watch` opens the presenter view, which shows the notes and a
+timer.
 
-Total budget is **5:40**. If a rehearsal runs past ~6:30, cut words on slides 2
-and 6 — never cut a diagram.
+The total budget is **5:40**. If a rehearsal runs past about 6:30, cut words on
+slides 2 and 6. Never cut a diagram.
 
-## Before presenting
+## Before you present
 
-`compact.md` slide 1 still has placeholders: `[TEAMMATE NAME]`, `[COURSE CODE]`,
-`[DATE]`. Fill them in and rebuild.
+Slide 1 of `compact.md` still holds three placeholders: `[TEAMMATE NAME]`,
+`[COURSE CODE]`, and `[DATE]`. Fill them in, then build again.

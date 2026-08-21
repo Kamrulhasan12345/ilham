@@ -107,6 +107,7 @@ digraph ilham_corpus {
 <TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">lang</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">char(2)  ISO 639-1</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_full</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">source</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text  provenance</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">match_via</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">char(1) NULL  E/P/6/4/M</FONT></TD></TR>
 </TABLE>>];
 
         isnad_edges [label=<

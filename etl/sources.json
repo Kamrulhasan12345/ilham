@@ -1,0 +1,56 @@
+{
+  "_comment": [
+    "Checksum manifest for the raw source files. NOT a download list -- the",
+    "dataset lives behind a Kaggle account, so acquisition is manual (see",
+    "README.md). `npm run verify` checks these hashes and refuses to proceed on",
+    "drift.",
+    "",
+    "Why this file exists: the raw data is 710MB and cannot go in git, so the",
+    "repo alone does not pin what a load consumed. These hashes are what make",
+    "'my teammate got the same corpus' a checkable claim rather than a hope.",
+    "verify also writes them into corpus.etl_metrics, so the sealed corpus",
+    "carries its own provenance after staging is dropped."
+  ],
+  "dataset": {
+    "name": "Ifta Sunnah Hadith & Narrators Dataset",
+    "url": "TODO: paste the Kaggle dataset URL here",
+    "note": "Download the three files below into etl/raw/ (flat, no subdirectories)."
+  },
+  "files": [
+    {
+      "name": "sahih-al-bukhari.json",
+      "bytes": 337272566,
+      "sha256": "ad5762d230ed0976aadcf91dd6f1bf572f33333c17e04941d3e39a49175f74c6",
+      "records": 7410,
+      "required": true
+    },
+    {
+      "name": "sahih-muslim.json",
+      "bytes": 355797622,
+      "sha256": "1da79a52c902fcd15ff3a49fa95303e08bfb10075e00119a717feb60b8b3bcc8",
+      "records": 7666,
+      "required": true
+    },
+    {
+      "name": "ifta_narrators.json",
+      "bytes": 16826873,
+      "sha256": "ac2d4b4eb7e6f3630ea2034b5c9ddb10743cb9d09c4fd1a7dc1924150755e6bf",
+      "records": 20957,
+      "required": true
+    }
+  ],
+  "optional_datasets": [
+    {
+      "name": "LK-Hadith-Corpus",
+      "role": "English translations -> corpus.hadith_translations (stage 14)",
+      "url": "https://github.com/ahmedkhaleel2004/LK-Hadith-Corpus  (Leeds/King Saud, LREC 2020)",
+      "path": "etl/raw/lk-translations/{bukhari,muslim}/Chapter*.csv",
+      "files": 154,
+      "bytes": 49122629,
+      "rows": 14659,
+      "tree_sha256": "8b6398565d240db71fb3d614042b5afdc87fc44664850eb06debfb193695633b",
+      "tree_sha256_recipe": "find . -name '*.csv' -type f | LC_ALL=C sort | xargs sha256sum | sha256sum",
+      "note": "Optional. Absent -> stage 14 is a no-op and the corpus is Arabic-only. Not checked by `npm run verify`, which only pins the required Ifta files."
+    }
+  ]
+}
