@@ -1,0 +1,27 @@
+{
+  "name": "ilham-etl",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ifta JSON -> staging -> corpus. Structural flattening in Node, all semantic shaping in SQL.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "verify": "node src/cli.js verify",
+    "doctor": "node src/cli.js doctor",
+    "profile": "node src/cli.js profile",
+    "rankmap": "node src/cli.js rankmap",
+    "extract": "node src/cli.js extract",
+    "load": "node src/cli.js load",
+    "transform": "node src/cli.js transform",
+    "seed": "node src/cli.js seed",
+    "all": "node src/cli.js all",
+    "fixtures": "node tools/make_fixtures.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pg": "^8.12.0",
+    "pg-copy-streams": "^6.0.6"
+  }
+}

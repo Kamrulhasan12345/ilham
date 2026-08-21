@@ -1,0 +1,95 @@
+# Ilham — containerised PostgreSQL, and optionally the ETL too.
+# Works with `podman compose` and `docker compose` unchanged.
+#
+#   podman compose up -d db          start the database (schema loads on first run)
+#   podman compose logs db           watch the DDL + smoke test
+#   podman compose down              stop, keep the data
+#   podman compose down -v           stop and WIPE — next `up` reloads the schema
+#
+# Use `down`, not `stop`/`start`. podman-compose runs services in a POD, and the
+# published port lives on the pod's infra container, not on ilham-pg. Restarting
+# the container while an older pod lingers gives you a container that reports
+# `5432/tcp -> 127.0.0.1:5432` and is nonetheless unreachable, because the pod
+# it rejoined never had the mapping. `down` removes the pod; `up` recreates it
+# with the ports. (docker has no pods and is unaffected.)
+#
+# The ETL runs on the host by default (fast iteration, your own node). If you do
+# not want node installed at all, use the etl profile:
+#
+#   podman compose --profile tools run --rm etl npm run doctor
+#
+# ON PODMAN: `podman compose` shells out to the Docker Compose binary, which
+# speaks the Docker API and needs the podman socket:
+#
+#   systemctl --user enable --now podman.socket
+#
+# `podman-compose` (the python one) talks to podman directly and needs no
+# socket. Either works with this file; if `podman compose` reports it cannot
+# reach podman.sock, that is which one you are hitting.
+#
+# The db/*.sql files must be world-READABLE. The init scripts run as the
+# postgres user (uid 70) inside the container, while a rootless bind mount
+# presents host-owned files as root-owned — so mode 0600 gives
+# "psql: /db/00_init.sql: Permission denied". Git does not track read bits, so
+# a fresh clone is fine; a 0600 umask locally is not.
+
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    container_name: ilham-pg
+    environment:
+      POSTGRES_DB: ilham
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ilham
+      # UTF8 is not optional: 00_init.sql aborts on anything else, and the
+      # corpus is canonically Arabic. C.UTF-8 keeps collation deterministic
+      # across machines, which is what lets the reconciliation numbers
+      # reproduce on someone else's laptop.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+      ILHAM_SMOKE_TEST: "1"
+    ports:
+      # Bound to loopback: this database has no password worth the name and
+      # should not be reachable from the network.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # :z relabels for SELinux (Fedora/RHEL). Harmless elsewhere; without it,
+      # rootless podman on an enforcing host cannot read the mount.
+      - ./db:/db:ro,z
+      - ./db/docker-init.sh:/docker-entrypoint-initdb.d/10-ilham.sh:ro,z
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Names the db explicitly — pg_isready against the default would report
+      # ready while the init scripts are still running.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ilham"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # Optional. Only starts with `--profile tools`, so `up -d` never builds it.
+  etl:
+    profiles: ["tools"]
+    build: ./etl
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db            # service name, not localhost — different netns
+      PGPORT: "5432"
+      PGDATABASE: ilham
+      PGUSER: postgres
+      PGPASSWORD: ilham
+      ILHAM_BOOKS_DIR: /app/raw
+      ILHAM_NARRATORS_FILE: /app/raw/ifta_narrators.json
+      ILHAM_MANIFEST_FILE: /app/book_manifest.json
+      ILHAM_SQL_DIR: /app/sql
+      ILHAM_OUT_DIR: /app/build
+    volumes:
+      - ./etl:/app:z
+      # Keeps the image's node_modules from being shadowed by the host mount —
+      # and stops a host-built tree (different libc, different arch) leaking in.
+      - /app/node_modules
+    working_dir: /app
+
+volumes:
+  pgdata:
