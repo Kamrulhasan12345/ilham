@@ -13,10 +13,10 @@ Ilham (إلهام) is a term project for a database course. Two persons build it
 is a hadith study platform, and a teacher leads the study.
 
 The current deliverable is a **database design**: the DDL, the ERD set, and the
-product specification. The directories `backend/` and `frontend/` are empty. No
-application code exists yet.
+product specification. `backend/` now has a scaffold: a Hono/TypeScript API
+over the read-only `corpus` schema. `frontend/` is still empty.
 
-**Planned stack:** PERN — PostgreSQL, Express, React, Node.
+**Planned stack:** PostgreSQL, Hono (Node.js, TypeScript), React.
 
 Start from these files. They are correct, and the whole picture lives across
 them:
