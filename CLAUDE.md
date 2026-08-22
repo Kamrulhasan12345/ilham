@@ -125,14 +125,20 @@ grades restraint. Read `docs/prd.md` §5 before you add a routine.
 
 ## Commands
 
-Start PostgreSQL 16 in a container and load the schema. Podman and docker both
-work. On Windows, run these from WSL2 (recommended) or Git Bash — `db/*.sh` are
-bash scripts and plain PowerShell/cmd cannot run them; see `README.md`'s
-"Getting started" for the Windows-specific notes:
+Start PostgreSQL 16 in a container. Podman and docker both work, and this needs
+no bash at all — it works the same from native Windows PowerShell/cmd:
 
 ```bash
-podman compose up -d db          # the first start also runs db/98_smoke_test.sql
+podman compose up -d db          # or: docker compose up -d db
 ```
+
+The first start restores `db/ilham.dump` — a committed snapshot of the real
+corpus and a seeded app layer — automatically. If that file is ever absent, it
+falls back to loading the empty schema plus `db/98_smoke_test.sql` instead.
+`db/run_container.sh` wraps the same container with convenience commands
+(`bootstrap`, `dump`, `reset`) for anyone who wants the CLI directly; it is a
+bash script, so on Windows it needs WSL2 (recommended) or Git Bash — see
+`README.md`'s "Getting started" for the Windows-specific notes.
 
 Or use a PostgreSQL that you already have. Version 14 or higher is the baseline,
 and version 11 is enough for `CREATE PROCEDURE`:

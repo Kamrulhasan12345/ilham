@@ -163,34 +163,28 @@ not need a local PostgreSQL, and we do not recommend one. The schema needs
 `server_encoding=UTF8` and a fixed collation. A container pins both. This is what
 makes the numbers reproduce on a different machine.
 
-**On Windows**, `db/run_container.sh` is a bash script — plain PowerShell or
-cmd cannot run it. Use **WSL2** (real Linux bash, and Docker Desktop already
-needs it as its backend, so it's usually already installed): open a WSL
-terminal, clone the repo inside the Linux filesystem, and everything below
-works exactly as on Linux or macOS. **Git Bash** also works — the script sets
-`MSYS_NO_PATHCONV` itself, which is the standard fix for Git Bash's MSYS
-runtime otherwise mangling the container-side paths the script passes to
-`docker`.
-
 ### 1. Start the database
 
 ```bash
 podman compose up -d db        # or: docker compose up -d db
-podman compose logs -f db      # watch the DDL load and the smoke test
+podman compose logs -f db      # watch it load
 ```
 
-The first start creates the `staging`, `corpus`, and `app` schemas. It also
-creates the `chain_strength` function, the `assign_study_set` procedure, both
-triggers, and the `rank_levels` rows. It then runs `db/98_smoke_test.sql`, which
-makes 13 checks against synthetic data.
+This one command is enough on **any** host, including native Windows PowerShell
+or cmd — no bash, no other tool required. The repo carries a committed snapshot
+at `db/ilham.dump`: the real corpus (14,901 hadiths) and a seeded study layer,
+already sealed. The container's own init script restores it automatically on
+first start, in a few seconds.
 
-**Make sure all 13 checks print `PASS`.** If one fails, stop and read the log.
-Nothing after that point is correct.
+If `db/ilham.dump` is ever absent, the same init script falls back to loading
+just the empty schema plus `db/98_smoke_test.sql`, which makes 13 checks against
+synthetic data. **In that case, make sure all 13 checks print `PASS`** — if one
+fails, stop and read the log, because nothing after that point is correct.
 
 The database listens on `127.0.0.1:5432`. The database name is `ilham`, the user
 is `postgres`, and the password is `ilham`. The data lives in a named volume.
 The command `down` keeps the data. The command `down -v` deletes it, and the next
-`up` then loads the schema again.
+`up` repeats the restore-or-fallback above.
 
 ```bash
 podman compose exec db psql -U postgres -d ilham     # open a shell
@@ -235,10 +229,33 @@ Use `podman compose down` and then `up`. Do not use `stop` and `start`. Only
 has no pods and does not have this problem.
 </details>
 
-### 2. Build the corpus (optional)
+### 2. Prefer the CLI? `db/run_container.sh`
 
-The schema alone is enough to read the design. To put **data** in it, you need
-the Ifta dataset of about 710 MB. It is not in the repository. See
+`compose.yaml` above is the simplest path — it needs no bash. `db/run_container.sh`
+wraps the same container with a few convenience commands, for anyone who'd
+rather drive it directly:
+
+```bash
+./db/run_container.sh bootstrap  # same restore-or-fallback logic as compose,
+                                  #   plus it's idempotent: safe to re-run,
+                                  #   never touches data already there
+./db/run_container.sh dump       # refresh db/ilham.dump after a schema/corpus
+                                  #   change, from an already-populated instance
+./db/run_container.sh reset      # destroy the container and start clean
+```
+
+**On Windows**, this script needs a real shell — plain PowerShell or cmd cannot
+run it (`docker compose up -d db` above has no such requirement). Use **WSL2**
+(real Linux bash, and Docker Desktop already needs it as its backend, so it's
+usually already installed) or **Git Bash** — the script sets `MSYS_NO_PATHCONV`
+itself, the standard fix for Git Bash's MSYS runtime otherwise mangling the
+container-side paths it passes to `docker`.
+
+### 3. Build the corpus from scratch (optional)
+
+The committed dump above already has real data. This section is for rebuilding
+it — from a newer Kaggle dump, or while working on the ETL pipeline itself. You
+need the Ifta dataset of about 710 MB. It is not in the repository. See
 [`etl/README.md`](etl/README.md) for the download and the full run order.
 
 The short version, with node on the host:
@@ -268,6 +285,13 @@ read-only **by permission** and not by convention:
 
 ```bash
 psql -h 127.0.0.1 -U postgres -d ilham -f db/05_post_load.sql
+```
+
+To share the result instead of making everyone redo the steps above, refresh
+the committed snapshot and commit it:
+
+```bash
+./db/run_container.sh dump      # writes db/ilham.dump
 ```
 
 ### Rebuild the ERD diagrams
