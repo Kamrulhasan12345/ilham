@@ -174,8 +174,10 @@ bootstrap_main() {
       psql -X -q -v ON_ERROR_STOP=1 -d "$DB" -c \
       "DROP SCHEMA IF EXISTS staging CASCADE; DROP SCHEMA IF EXISTS app CASCADE; DROP SCHEMA IF EXISTS corpus CASCADE;"
     # ilham_app must exist before either dump's GRANT statements replay;
-    # CREATE ROLE has no IF NOT EXISTS, so reuse 05_post_load.sql's own guard.
-    psql_scalar "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='ilham_app') THEN CREATE ROLE ilham_app LOGIN; END IF; END \$\$;" >/dev/null
+    # CREATE ROLE has no IF NOT EXISTS, so reuse 05_post_load.sql's own guard
+    # (same default password too -- pg_dump never carries role definitions,
+    # so nothing else here can set it).
+    psql_scalar "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='ilham_app') THEN CREATE ROLE ilham_app LOGIN PASSWORD 'ilham'; END IF; END \$\$;" >/dev/null
 
     if [[ -f "$DUMP_FILE_FC" ]]; then
       echo "-- bootstrap: restoring from $DUMP_FILE_FC (skipping DDL + ETL)"
