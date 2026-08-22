@@ -1,10 +1,13 @@
 # Ilham — containerised PostgreSQL, and optionally the ETL too.
-# Works with `podman compose` and `docker compose` unchanged.
+# Works with `podman compose` and `docker compose` unchanged. Needs no bash on
+# the host at all — this is the path that works from a native Windows shell.
 #
-#   podman compose up -d db          start the database (schema loads on first run)
-#   podman compose logs db           watch the DDL + smoke test
+#   podman compose up -d db          start the database (loads on first run:
+#                                     restores db/ilham.dump if committed, else
+#                                     schema-only DDL + the smoke test)
+#   podman compose logs db           watch the restore or the DDL + smoke test
 #   podman compose down              stop, keep the data
-#   podman compose down -v           stop and WIPE — next `up` reloads the schema
+#   podman compose down -v           stop and WIPE — next `up` reloads from scratch
 #
 # Use `down`, not `stop`/`start`. podman-compose runs services in a POD, and the
 # published port lives on the pod's infra container, not on ilham-pg. Restarting
