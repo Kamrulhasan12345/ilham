@@ -20,6 +20,15 @@
 # UTF8 is not optional: 00_init.sql aborts on any other server_encoding, and the
 # corpus is canonically Arabic. C.UTF-8 keeps collation deterministic across
 # machines, which matters because the reconciliation numbers must reproduce.
+#
+# Windows: WSL2 is the recommended shell (real Linux bash, no path quirks).
+# Git Bash also works -- MSYS_NO_PATHCONV below is for exactly that case. Without
+# it, Git Bash's MSYS runtime rewrites any argument that looks like a POSIX
+# path before handing it to docker.exe, including paths meant to stay literal
+# INSIDE the container (/db, /tmp/...) -- this script passes plenty of those.
+# The env var is a no-op outside MSYS (Linux, macOS, WSL2), so it's safe to set
+# unconditionally rather than only under Git Bash.
+export MSYS_NO_PATHCONV=1
 set -euo pipefail
 
 ENGINE="${ILHAM_ENGINE:-$(command -v podman >/dev/null 2>&1 && echo podman || echo docker)}"

@@ -163,6 +163,15 @@ not need a local PostgreSQL, and we do not recommend one. The schema needs
 `server_encoding=UTF8` and a fixed collation. A container pins both. This is what
 makes the numbers reproduce on a different machine.
 
+**On Windows**, `db/run_container.sh` is a bash script — plain PowerShell or
+cmd cannot run it. Use **WSL2** (real Linux bash, and Docker Desktop already
+needs it as its backend, so it's usually already installed): open a WSL
+terminal, clone the repo inside the Linux filesystem, and everything below
+works exactly as on Linux or macOS. **Git Bash** also works — the script sets
+`MSYS_NO_PATHCONV` itself, which is the standard fix for Git Bash's MSYS
+runtime otherwise mangling the container-side paths the script passes to
+`docker`.
+
 ### 1. Start the database
 
 ```bash

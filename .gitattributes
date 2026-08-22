@@ -1,0 +1,30 @@
+# Force LF regardless of the cloning machine's git config. Without this, a
+# Windows checkout with the common core.autocrlf=true gets CRLF line endings
+# on these files. That is not cosmetic: db/docker-init.sh is bind-mounted
+# straight into the postgres container as its init script, and a CRLF
+# shebang there makes the container fail to start outright. The DDL and the
+# shell tooling need the same guarantee, so it applies everywhere those live.
+* text=auto eol=lf
+
+*.sh       text eol=lf
+*.sql      text eol=lf
+*.dot      text eol=lf
+*.js       text eol=lf
+*.ts       text eol=lf
+*.json     text eol=lf
+*.yaml     text eol=lf
+*.yml      text eol=lf
+*.md       text eol=lf
+*.css      text eol=lf
+*.svg      text eol=lf
+*.example  text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+Dockerfile text eol=lf
+
+# Binary: never run these through text/eol normalization.
+*.dump  binary
+*.png   binary
+*.zip   binary
+*.woff2 binary
+*.pdf   binary
