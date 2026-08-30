@@ -43,6 +43,7 @@ digraph ERD_Users {
     student_level;
     institution;
     specialization;
+    is_verified;
     admin_level;
     enrolled_at;
     circle_id [label=<<U>circle_id</U>>];
@@ -64,6 +65,7 @@ digraph ERD_Users {
     Student -> student_level;
     Teacher -> institution;
     Teacher -> specialization;
+    Teacher -> is_verified;
     Admin -> admin_level;
     EnrolledIn -> enrolled_at;
     Circle -> circle_id [color="#E3B341", style=solid, penwidth=1.4];

@@ -59,6 +59,7 @@ digraph ERD_App {
     stu_level [label="student_level"];
     tea_inst [label="institution"];
     tea_spec [label="specialization"];
+    tea_verified [label="is_verified"];
     adm_level [label="admin_level"];
     enroll_at [label="enrolled_at"];
     cir_id [label=<<U>circle_id</U>>];
@@ -102,6 +103,7 @@ digraph ERD_App {
     Student -> stu_level;
     Teacher -> tea_inst;
     Teacher -> tea_spec;
+    Teacher -> tea_verified;
     Admin -> adm_level;
     EnrolledIn -> enroll_at;
     Circle -> cir_id [color="#E3B341", style=solid, penwidth=1.4];
