@@ -1,7 +1,7 @@
 # Ilham — backend PRD
 
 **The API layer over the sealed corpus and the study schema**
-**Stack:** PostgreSQL 16 · Hono (Node 18+, TypeScript) · `pg`
+**Stack:** PostgreSQL 16 · **Express 5** (Node 18+, TypeScript) · `pg`
 **Status:** DRAFT for agreement. The DDL is final. This document adds no table
 and changes no design rule.
 **Companion files:** `docs/prd.md` (the product), `db/01_corpus.sql` and
@@ -17,8 +17,25 @@ This document uses ASD-STE100 Simplified Technical English.
 narrators — a `pg` pool, a pagination helper, and one error class. It reads the
 corpus. It has no authentication, no study layer, and no analytics.
 
-This document specifies the complete API. It keeps the scaffold's shape:
-`routes.ts` → `controller.ts` → `model.ts` → `interface.ts` for each module.
+**The scaffold uses Hono. This document specifies Express.** `docs/prd.md` §0
+names the stack PERN, and the E in PERN is Express. The scaffold and the
+`README.md` drifted from the product PRD. Express is the correct target, and
+this document is the correction.
+
+Three files state the stack and two of them are now wrong. Fix them in the same
+pull request as the conversion:
+
+| File | Line | Says | Must say |
+|---|---|---|---|
+| `CLAUDE.md` | 16, 19 | Hono | Express |
+| `README.md` | 37, 40, 71 | Hono | Express |
+| `docs/prd.md` | 5 | PERN — Express | correct already |
+
+**The conversion is small.** The scaffold has ten source files and the layered
+shape survives unchanged: `routes.ts` → `controller.ts` → `model.ts` →
+`interface.ts`. Every `model.ts` file is pure SQL over `pg` and does not change
+at all. Only the controllers, the routers and `app.ts` change. §7.3 gives the
+exact mapping. Budget half a day.
 
 The API adds **no new business rule to the database**. Every routine the course
 grades is already in the DDL. The backend calls them.
@@ -45,10 +62,36 @@ grades is already in the DDL. The backend calls them.
 
 ## 2. Cross-cutting contracts
 
-### 2.1 Response envelope
+### 2.1 Dependencies
 
-The scaffold returns bare arrays. **Change this now**, while only three modules
-exist. A list response returns:
+```jsonc
+// dependencies
+"express": "^5.1.0",        // 5, not 4 — see §7.2
+"pg": "^8.13.1",
+"jsonwebtoken": "^9.0.2",
+"bcryptjs": "^2.4.3",       // pure JS: no build tools on a Windows laptop
+"zod": "^3.23.8",
+"cors": "^2.8.5",
+"cookie-parser": "^1.4.7",
+"helmet": "^8.0.0",
+"morgan": "^1.10.0",
+"express-rate-limit": "^7.4.1",
+"dotenv": "^16.4.5"
+
+// devDependencies
+"@types/express", "@types/node", "@types/pg", "@types/jsonwebtoken",
+"@types/bcryptjs", "@types/cors", "@types/cookie-parser", "@types/morgan",
+"typescript", "tsx", "supertest", "@types/supertest"
+```
+
+Express carries no batteries. Each package above replaces something Hono had
+built in. That is the true cost of the change, and it is acceptable: Express is
+what the product PRD names, and it is what the examiner expects from "PERN".
+
+### 2.2 Response envelope
+
+The scaffold returns bare arrays. **Change this during the conversion**, while
+only three modules exist. A list response returns:
 
 ```json
 { "data": [ ... ], "page": { "limit": 20, "offset": 0, "total": 14901 } }
@@ -58,7 +101,7 @@ A single-object response returns `{ "data": { ... } }`. The envelope lets the
 frontend page a list without a second endpoint, and it lets a later field
 addition stay compatible.
 
-### 2.2 Errors
+### 2.3 Errors
 
 One shape, always:
 
@@ -85,27 +128,51 @@ Never return a PostgreSQL error message to the client. Map the SQL state:
 `23505` → 409, `23503` → 422, `42501` (permission denied) → 500 with an alarm in
 the log, because that means the corpus lockdown caught a bug.
 
-### 2.3 Pagination
+The mapping lives in **one** error middleware. See §7.2.
+
+### 2.4 Pagination
 
 Keep `limit` and `offset`. Default limit 20, maximum 100. Every list endpoint
 returns `page.total` from a second `count(*)` over the same predicate.
 
-### 2.4 Language
+### 2.5 Language
 
 `?lang=en` selects the translation. The default is `en`. The Arabic is always
 present in the response. A missing translation gives `"translation": null`, and
 the frontend shows Arabic. Do not substitute Arabic into an English field.
 
-### 2.5 Validation
+### 2.6 Validation
 
-Add **zod**. Every controller parses `params`, `query` and `body` through a
-schema before it calls the model. A validation failure raises 400 with the field
-name. This replaces the hand-written `parseOptionalInt` in the scaffold.
+Add **zod**, and one middleware factory:
 
-### 2.6 CORS
+```ts
+export const validate = (schemas: {
+  params?: ZodSchema; query?: ZodSchema; body?: ZodSchema;
+}) => (req: Request, _res: Response, next: NextFunction) => {
+  try {
+    if (schemas.params) req.params = schemas.params.parse(req.params);
+    if (schemas.body)   req.body   = schemas.body.parse(req.body);
+    if (schemas.query)  res.locals.query = schemas.query.parse(req.query);
+    next();
+  } catch (e) { next(e); }        // the error middleware maps ZodError -> 400
+};
+```
 
-The React frontend runs on a different port in development. Add `hono/cors`,
-with the allowed origin in the configuration.
+**Put the parsed query on `res.locals`, not on `req.query`.** In Express 5
+`req.query` is a getter, so an assignment to it throws. This is a real Express 5
+change and it catches people who port a validator from Express 4.
+
+The factory replaces the hand-written `parseOptionalInt` in the scaffold.
+
+### 2.7 Security and logging
+
+- `helmet()` first in the chain.
+- `cors({ origin: CONFIG.webOrigin, credentials: true })` — `credentials` is
+  required, because the refresh token is a cookie.
+- `morgan('dev')` in development.
+- `express.json({ limit: '100kb' })`. A review session with 50 items is small.
+- `cookieParser()` before the auth routes.
+- `express-rate-limit` on `/auth/login` only. Five attempts per minute per IP.
 
 ---
 
@@ -129,13 +196,40 @@ term project, but state it.
 
 ### 3.2 The guard
 
-One middleware, `requireAuth`. It reads `Authorization: Bearer <token>`,
-verifies it, and puts `{ userId, role }` on the Hono context. A second
-middleware, `requireRole('teacher', 'admin')`, checks the role.
+Two middlewares. `requireAuth` reads `Authorization: Bearer <token>`, verifies
+it, and puts the caller on the request. `requireRole(...roles)` checks the role.
 
-Every route except `/auth/login`, `/auth/register` and `/health` sits behind
-`requireAuth`. Mount the guard on the router, not on each route — a route that a
-person forgets to guard is the failure mode this design must not have.
+```ts
+// middleware/auth.ts
+export function requireAuth(req: Request, _res: Response, next: NextFunction) {
+  const header = req.get('authorization');
+  if (!header?.startsWith('Bearer ')) return next(new UnauthenticatedError());
+  try {
+    const claims = jwt.verify(header.slice(7), CONFIG.jwtSecret) as Claims;
+    req.user = { userId: Number(claims.sub), role: claims.role };
+    next();
+  } catch { next(new UnauthenticatedError()); }
+}
+
+export const requireRole = (...roles: Role[]) =>
+  (req: Request, _res: Response, next: NextFunction) =>
+    roles.includes(req.user!.role) ? next() : next(new ForbiddenError());
+```
+
+`req.user` needs declaration merging, in `src/types/express.d.ts`:
+
+```ts
+declare global {
+  namespace Express {
+    interface Request { user?: { userId: number; role: 'student'|'teacher'|'admin' } }
+  }
+}
+export {};
+```
+
+**Mount the guard on the router, not on each route.** `router.use(requireAuth)`
+at the top of every protected router. A route that a person forgets to guard is
+the failure mode this design must not have.
 
 ### 3.3 Registration
 
@@ -166,7 +260,8 @@ The query layer enforces these. They are predicates, not opinions.
 **One student never sees another.** A teacher sees a student's progress only
 through a circle they own.
 
-Write the predicate in the model function, not in the controller. A controller
+Write the predicate in the model function, not in the controller. Every model
+function that touches `app` takes the caller as its first argument. A controller
 that forgets a filter leaks data; a model that always takes `caller` cannot.
 
 ---
@@ -211,7 +306,7 @@ returns most of it. Add three things:
                    "match_via": "E" },          // null when absent
   "chains": [                                    // GROUPED by sanad_no
     { "sanad_no": 1,
-      "strength": 0.95,                          // per-sanad, see §8.3
+      "strength": 0.95,                          // per-sanad, see §8.4
       "links": [
         { "position": 1, "narrator_id": 4021, "display_name": "…",
           "name_en": "…", "raw_name": "…", "transmission_word": null,
@@ -229,11 +324,10 @@ Three changes against the scaffold, and each one matters:
   them, and a hadith with four sanads renders as one impossible 22-person chain.
 - **Carry the rank on the link.** The narrator panel needs it, and a second
   round trip for each of 5.4 positions is 5.4 queries per hadith.
-- **Carry `chain_strength_basis`.** §3.2 of the corpus review measures that
-  multi-sanad hadiths carry **no** transmission words at all, so the anʿana
-  penalty cannot fire for them. The number is not comparable between hadiths
-  unless the reader can see this. One boolean makes an unstated flaw a stated
-  limitation.
+- **Carry `chain_strength_basis`.** The corpus review measures that multi-sanad
+  hadiths carry **no** transmission words at all, so the anʿana penalty cannot
+  fire for them. The number is not comparable between hadiths unless the reader
+  can see this. One boolean makes an unstated flaw a stated limitation.
 
 **Query count.** The scaffold runs four queries for one hadith. Fold them into
 two: one for the hadith with its collection, chapter and translation joined; one
@@ -299,7 +393,7 @@ ownership rule applies.
 | DELETE | `/circles/:id/students/:sid` | T + owner | Leaves the progress rows. Deleting them destroys the audit trail |
 | GET | `/circles/:id/overview` | T + owner | Q4 |
 
-**`teacher_id` never comes from the body.** It comes from the token. A body
+**`teacher_id` never comes from the body.** It comes from `req.user`. A body
 field here is a horizontal privilege escalation, and it is the first thing an
 examiner tries.
 
@@ -332,13 +426,14 @@ real failure if you break it:
 
 1. **Do not open a transaction around the `CALL`.** The `COMMIT` inside the
    procedure fails with *"invalid transaction termination"* when a transaction
-   block is already open.
+   block is already open. Use `pool.query`, not the `withTransaction` helper.
 2. **Check the ownership before the `CALL`, not after.** The procedure commits.
    There is nothing to roll back.
 3. **Test this in week 3 with the real driver.** A procedure with transaction
    control can refuse to run under the extended query protocol that `pg` uses
-   for a parameterised query. If it does, validate the three integers, then send
-   the `CALL` as a simple query. Find this out early, not in week 8.
+   for a parameterised query. This is a `pg` behaviour and it does not change
+   with the web framework. If it fails, validate the three integers with zod,
+   then send the `CALL` as a simple query. Find this out early, not in week 8.
 
 Calling twice creates **two** assignments and two sets of obligations. This is
 correct and deliberate. Do not add a "already assigned" check.
@@ -474,41 +569,170 @@ the defence. It is the cheapest endpoint in this document.
 
 The project uses three, and the difference is graded (reqs 3 and 6).
 
-| Pattern | Where | Who commits |
-|---|---|---|
-| **No transaction** | Every `GET` | Autocommit. A read needs none |
-| **The procedure commits** | `POST /assignments` | `app.assign_study_set`. The API must not open a block |
-| **The API commits** | `POST /review-sessions`, `PATCH /progress` | Node sends `BEGIN`, `COMMIT`, `ROLLBACK` on one client |
+| Pattern | Where | Who commits | Helper |
+|---|---|---|---|
+| **No transaction** | Every `GET` | Autocommit. A read needs none | `pool.query` |
+| **The procedure commits** | `POST /assignments` | `app.assign_study_set`. The API must not open a block | `pool.query` |
+| **The API commits** | `POST /review-sessions`, `PATCH /progress` | Node sends `BEGIN`, `COMMIT`, `ROLLBACK` on one client | `withTransaction` |
 
-Write one helper, `withTransaction(fn)`, that takes a client from the pool,
-sends `BEGIN`, runs the callback, commits, rolls back on a throw, and always
-releases. Use it for the two API-owned flows. Do **not** use it for the
-procedure call.
+```ts
+// lib/transaction.ts
+export async function withTransaction<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+```
+
+Use it for the two API-owned flows. Do **not** use it for the procedure call.
 
 ---
 
-## 7. Module layout
+## 7. Express specifics
 
-Keep the scaffold's shape. Add these modules:
+### 7.1 Module layout
 
 ```
 src/
-  middleware/   auth.ts  requireRole.ts  errorHandler.ts
-  lib/          jwt.ts  password.ts  transaction.ts  pagination.ts  errors.ts
+  server.ts                 // listen() only
+  app.ts                    // the express() instance and the middleware chain
+  config.ts
+  types/express.d.ts        // req.user declaration merging
+  db/pool.ts
+  middleware/  requireAuth.ts  requireRole.ts  validate.ts  errorHandler.ts  notFound.ts
+  lib/         jwt.ts  password.ts  transaction.ts  pagination.ts  errors.ts
   modules/
     auth/  collections/  hadiths/  narrators/  analytics/
     circles/  studySets/  assignments/  reviews/  progress/  notes/  meta/
 ```
 
-`model.ts` holds SQL and takes the caller. `controller.ts` validates and maps.
-`routes.ts` mounts the guard. `interface.ts` holds the types. No SQL leaves a
-model file.
+Each module keeps four files. `model.ts` holds SQL and takes the caller.
+`controller.ts` validates and maps. `routes.ts` builds an `express.Router()` and
+mounts the guards. `interface.ts` holds the types. No SQL leaves a model file.
+
+`app.ts` exports the app without listening. `server.ts` listens. This split is
+what lets `supertest` drive the app in a test with no open port.
+
+### 7.2 The middleware chain — order is the contract
+
+```ts
+const app = express();
+app.use(helmet());
+app.use(cors({ origin: CONFIG.webOrigin, credentials: true }));
+app.use(morgan('dev'));
+app.use(express.json({ limit: '100kb' }));
+app.use(cookieParser());
+
+app.use('/health', healthRoutes);          // no guard
+app.use('/auth',   authRoutes);            // guards itself, per route
+
+app.use('/collections',     requireAuth, collectionsRoutes);
+app.use('/hadiths',         requireAuth, hadithsRoutes);
+app.use('/narrators',       requireAuth, narratorsRoutes);
+app.use('/analytics',       requireAuth, analyticsRoutes);
+app.use('/circles',         requireAuth, circlesRoutes);
+app.use('/study-sets',      requireAuth, studySetsRoutes);
+app.use('/assignments',     requireAuth, assignmentsRoutes);
+app.use('/review-sessions', requireAuth, reviewsRoutes);
+app.use('/progress',        requireAuth, progressRoutes);
+app.use('/notes',           requireAuth, notesRoutes);
+app.use('/meta',            requireAuth, metaRoutes);
+
+app.use(notFound);        // must be after every route
+app.use(errorHandler);    // must be LAST, and must take four arguments
+```
+
+Four Express rules that the team must know:
+
+1. **The error middleware needs four parameters.** `(err, req, res, next)`.
+   Express identifies it by arity. Three parameters makes it an ordinary
+   middleware and every error becomes a hang.
+2. **Express 5 forwards a rejected promise to the error middleware.** Express 4
+   does not — an `async` handler that throws hangs the request until the client
+   gives up. This is the reason the dependency list pins Express 5. If the team
+   must use Express 4, add `express-async-errors` as the first import in
+   `app.ts`, or wrap every handler. Do not rely on remembering `try/catch`.
+3. **`req.query` is read-only in Express 5.** Put parsed query values on
+   `res.locals`. See §2.6.
+4. **`app.use(path, guard, router)` guards every route in the router.** This is
+   how §3.2's rule is enforced structurally.
+
+The error middleware is the single place that maps to §2.3:
+
+```ts
+export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
+  if (err instanceof ZodError)           return send(res, 400, 'bad_request', 'invalid request');
+  if (err instanceof UnauthenticatedError) return send(res, 401, 'unauthenticated', 'sign in');
+  if (err instanceof ForbiddenError)     return send(res, 403, 'forbidden', err.message);
+  if (err instanceof NotFoundError)      return send(res, 404, 'not_found', err.message);
+  if (err instanceof UnprocessableError) return send(res, 422, 'unprocessable', err.message);
+
+  const code = (err as { code?: string }).code;          // pg SQLSTATE
+  if (code === '23505') return send(res, 409, 'conflict', 'already exists');
+  if (code === '23503') return send(res, 422, 'unprocessable', 'referenced row is missing');
+  if (code === '42501') console.error('CORPUS LOCKDOWN HIT — a write reached corpus.*', err);
+
+  console.error(err);
+  return send(res, 500, 'internal_error', 'internal error');
+}
+```
+
+### 7.3 Converting the scaffold
+
+The mapping is mechanical. `model.ts` and `interface.ts` do not change.
+
+| Hono | Express |
+|---|---|
+| `new Hono()` | `express.Router()` |
+| `(c: Context)` | `(req: Request, res: Response, next: NextFunction)` |
+| `c.req.param('id')` | `req.params.id` |
+| `c.req.query('lang')` | `req.query.lang` |
+| `c.req.json()` | `req.body`, after `express.json()` |
+| `return c.json(x)` | `res.json(x)` — return nothing |
+| `return c.json(x, 404)` | `res.status(404).json(x)` |
+| `throw new HTTPException(400, …)` | `next(new BadRequestError(…))`, or `throw` under Express 5 |
+| `app.route('/hadiths', r)` | `app.use('/hadiths', r)` |
+| `app.onError(fn)` | `app.use(errorHandler)`, four parameters, last |
+| `app.notFound(fn)` | `app.use(notFound)`, before the error handler |
+| `app.request('/x')` in a test | `supertest(app).get('/x')` |
+| `hono/logger` | `morgan` |
+| `hono/cors` | `cors` |
+| `@hono/node-server` | `app.listen()` |
+
+Remove `hono` and `@hono/node-server` from `package.json`. Delete
+`src/lib/errors.ts`'s single class and replace it with the error family that
+§7.2 maps.
+
+### 7.4 Testing
+
+`node --test` with `supertest`. `app.ts` exports the app, so a test needs no
+port:
+
+```ts
+const res = await supertest(app).get('/hadiths/1')
+  .set('Authorization', `Bearer ${token}`);
+assert.equal(res.status, 200);
+```
+
+Add `"test": "node --test --import tsx"` to the scripts. Three tests are enough
+for the defence: a guard rejects an unauthenticated request, a student cannot
+read another student's progress, and the corpus write test of §11.
 
 ---
 
 ## 8. Database work the backend needs
 
-Four items. All are additive. None changes a design rule.
+Four items. All are additive. None changes a design rule. None depends on the
+web framework.
 
 ### 8.1 The refresh-token table
 
@@ -565,7 +789,7 @@ this project has otherwise avoided.
 
 | Req | Where it lands in the API |
 |---|---|
-| 1–2 | `/auth/*`, `requireAuth`, `requireRole`. Every router carries a guard |
+| 1–2 | `/auth/*`, `requireAuth`, `requireRole`. Every router is mounted with a guard |
 | 3 | `POST /review-sessions` and `PATCH /progress`. `withTransaction` sends `BEGIN`/`COMMIT`/`ROLLBACK` |
 | 4a | Fires under `POST /review-sessions`. The API never writes `student_stats` |
 | 4b | `PATCH /progress`, with `set_config('ilham.user_id', …, true)` first |
@@ -581,8 +805,9 @@ this project has otherwise avoided.
 
 The split follows `docs/prd.md` §7.
 
-- **The teammate:** `auth/`, the two middlewares, `circles/`, `studySets/`,
-  `assignments/`, Q4 and Q6, and the `student_stats` read path.
+- **The teammate:** the conversion of `app.ts` and the middleware chain,
+  `auth/`, the two guards, `circles/`, `studySets/`, `assignments/`, Q4 and Q6,
+  and the `student_stats` read path.
 - **You:** `collections/`, `hadiths/`, `narrators/`, `analytics/` with Q1, Q2, Q3
   and Q5, `reviews/`, `progress/` with the override, `meta/`, and the search
   index.
@@ -595,12 +820,12 @@ The split follows `docs/prd.md` §7.
 
 | Week | Backend | Gate |
 |---|---|---|
-| 3 | Envelope, errors, zod, CORS. Auth and the guards. **Test the procedure call** | `curl` logs in and reads a guarded route |
+| 3 | **Convert the scaffold to Express.** Envelope, errors, zod, helmet, CORS. Auth and the guards. **Test the procedure call** | `curl` logs in and reads a guarded route |
 | 4 | Circles, enrolment, study sets, assignments | A teacher assigns a set and progress rows appear |
 | 5 | Review sessions, progress, the override. `withTransaction` | The stats trigger and the audit trigger both fire from HTTP |
 | 6 | `db/06_queries.sql`, the analytics endpoints, `/meta/etl-metrics` | Six queries answer over HTTP |
 | 7 | Search index, hadith detail v2, per-sanad strength, notes | The frontend has everything it needs |
-| 8 | Hardening: rate limit on login, request logging, the permission test | A `ilham_app` write to `corpus` fails, on camera |
+| 8 | Hardening: the rate limit, request logging, the permission test | A `ilham_app` write to `corpus` fails, on camera |
 
 **The permission test.** Write one test that tries
 `INSERT INTO corpus.hadiths` as `ilham_app` and asserts that it fails with
@@ -610,13 +835,16 @@ The split follows `docs/prd.md` §7.
 
 ## 12. Open decisions
 
-1. **Revocable logout?** If no, drop §8.1 and record the cut.
-2. **Does a review carry `assignment_id`?** §5.8 recommends yes, in the body
+1. **Express 5 or Express 4?** §7.2 recommends 5, for the async error handling
+   alone. Express 4 needs `express-async-errors` and a different `req.query`
+   rule.
+2. **Revocable logout?** If no, drop §8.1 and record the cut.
+3. **Does a review carry `assignment_id`?** §5.8 recommends yes, in the body
    only. Agree this before week 5 — it is the seam between the two halves.
-3. **Per-sanad strength: view or function?** §8.4 recommends the view.
-4. **Does a student self-review?** The schema allows it — `reviewer_id` is
+4. **Per-sanad strength: view or function?** §8.4 recommends the view.
+5. **Does a student self-review?** The schema allows it — `reviewer_id` is
    nullable. If yes, a student may `POST /review-sessions` for themselves only.
    If no, restrict the endpoint to a teacher and say why.
-5. **Does `DELETE` exist for a circle or an assignment?** Both have progress and
+6. **Does `DELETE` exist for a circle or an assignment?** Both have progress and
    audit rows under them. The safe answer is no, and a `is_archived` flag is a
    schema change. Recommend: no delete, and say so.
