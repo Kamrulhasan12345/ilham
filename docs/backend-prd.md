@@ -5,40 +5,30 @@
 **Status:** DRAFT for agreement. The DDL is final. This document adds no table
 and changes no design rule.
 **Companion files:** `docs/prd.md` (the product), `db/01_corpus.sql` and
-`db/02_app.sql` (the objects), `backend/src/` (the current scaffold)
+`db/02_app.sql` (the objects)
 
 This document uses ASD-STE100 Simplified Technical English.
 
 ---
 
-## 0. What exists, and what this adds
+## 0. Starting point
 
-`backend/` holds a scaffold. It has three modules — collections, hadiths,
-narrators — a `pg` pool, a pagination helper, and one error class. It reads the
-corpus. It has no authentication, no study layer, and no analytics.
+`backend/` is empty. This document is the complete design, not a conversion of
+anything already written. `docs/prd.md` §0 names the stack PERN — PostgreSQL,
+Express, React, Node — and Express is what this document builds.
 
-**The scaffold uses Hono. This document specifies Express.** `docs/prd.md` §0
-names the stack PERN, and the E in PERN is Express. The scaffold and the
-`README.md` drifted from the product PRD. Express is the correct target, and
-this document is the correction.
+The API adds **no new business rule to the database**. Every routine the
+course grades already exists in the DDL:
 
-Three files state the stack and two of them are now wrong. Fix them in the same
-pull request as the conversion:
-
-| File | Line | Says | Must say |
-|---|---|---|---|
-| `CLAUDE.md` | 16, 19 | Hono | Express |
-| `README.md` | 37, 40, 71 | Hono | Express |
-| `docs/prd.md` | 5 | PERN — Express | correct already |
-
-**The conversion is small.** The scaffold has ten source files and the layered
-shape survives unchanged: `routes.ts` → `controller.ts` → `model.ts` →
-`interface.ts`. Every `model.ts` file is pure SQL over `pg` and does not change
-at all. Only the controllers, the routers and `app.ts` change. §7.3 gives the
-exact mapping. Budget half a day.
-
-The API adds **no new business rule to the database**. Every routine the course
-grades is already in the DDL. The backend calls them.
+- `corpus.chain_strength(hadith_id)` — req 5.
+- `app.assign_study_set(circle, set, due)`, a **PROCEDURE** that owns its
+  `COMMIT` — req 6.
+- `trg_progress_stats` and `trg_progress_audit` — reqs 4a and 4b.
+- Table inheritance for `app.users` → `students` / `teachers` / `admins`.
+- `trg_circles_teacher_verified` — a teacher must have `is_verified = true`
+  before a new circle can name them (added in `db/02_app.sql`, week of the
+  `feat/teacher-verified-status` merge). The backend calls these. It writes
+  none of the logic they contain.
 
 ---
 
@@ -49,7 +39,9 @@ grades is already in the DDL. The backend calls them.
    an assignment out by itself.
 2. **The backend connects as `ilham_app`.** The `REVOKE` in `05_post_load.sql`
    is then load-bearing. A write to `corpus.*` fails with a permission error, not
-   with a code review.
+   with a code review. Local dev password is `ilham` — `05_post_load.sql`
+   creates the role with it, and `backend/.env.example` will carry the same
+   value so `docker compose up -d db` needs no manual `ALTER ROLE` step.
 3. **One feature, one place** (PRD req 8). An analytics query lives in SQL, one
    time. The model file selects from it.
 4. **Arabic is canonical. English is optional.** Every response that carries
@@ -57,19 +49,42 @@ grades is already in the DDL. The backend calls them.
 5. **A derived row says how it was derived.** The corpus records `resolution`,
    `rank_*_via` and `match_via`. The API passes them through. It never hides
    them.
+6. **A gate in the database is not re-implemented in the API.** The teacher
+   verification rule (§3.4) lives in a trigger. The API checks nothing before
+   the insert; it maps the trigger's error after.
 
 ---
 
 ## 2. Cross-cutting contracts
 
-### 2.1 Dependencies
+### 2.1 Project layout and dependencies
+
+```
+backend/
+  src/
+    server.ts                 # listen() only
+    app.ts                    # the express() instance, the middleware chain
+    config.ts
+    types/express.d.ts        # req.user declaration merging
+    db/pool.ts
+    middleware/  requireAuth.ts  requireRole.ts  validate.ts
+                 errorHandler.ts  notFound.ts
+    lib/         jwt.ts  password.ts  transaction.ts  pagination.ts  errors.ts
+    modules/
+      auth/  collections/  hadiths/  narrators/  analytics/
+      circles/  teachers/  studySets/  assignments/
+      reviews/  progress/  notes/  meta/
+  .env.example
+  package.json
+  tsconfig.json
+```
 
 ```jsonc
 // dependencies
-"express": "^5.1.0",        // 5, not 4 — see §7.2
+"express": "^5.1.0",
 "pg": "^8.13.1",
 "jsonwebtoken": "^9.0.2",
-"bcryptjs": "^2.4.3",       // pure JS: no build tools on a Windows laptop
+"bcryptjs": "^2.4.3",       // pure JS: no native build tools on a Windows laptop
 "zod": "^3.23.8",
 "cors": "^2.8.5",
 "cookie-parser": "^1.4.7",
@@ -84,24 +99,48 @@ grades is already in the DDL. The backend calls them.
 "typescript", "tsx", "supertest", "@types/supertest"
 ```
 
-Express carries no batteries. Each package above replaces something Hono had
-built in. That is the true cost of the change, and it is acceptable: Express is
-what the product PRD names, and it is what the examiner expects from "PERN".
+Each module keeps four files. `model.ts` holds SQL and takes the caller.
+`controller.ts` validates and maps. `routes.ts` builds an `express.Router()`
+and is mounted with its guard in `app.ts`. `interface.ts` holds the types. No
+SQL leaves a model file.
 
-### 2.2 Response envelope
+### 2.2 `.env.example`
 
-The scaffold returns bare arrays. **Change this during the conversion**, while
-only three modules exist. A list response returns:
+```bash
+# ilham_app is the application DB role: SELECT-only on corpus (enforced by
+# GRANT/REVOKE in db/05_post_load.sql), read-write on app. `docker compose up
+# -d db` (or ./db/run_container.sh bootstrap) creates it with this password
+# automatically -- a known, disposable local-dev credential. Change it (here
+# and in the DB) before this is ever reachable from outside loopback.
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=ilham
+PGUSER=ilham_app
+PGPASSWORD=ilham
+
+PORT=3000
+JWT_SECRET=change-me-before-deploying
+JWT_ACCESS_TTL=15m
+REFRESH_TOKEN_TTL_DAYS=7
+WEB_ORIGIN=http://localhost:5173
+```
+
+The server refuses to start if `JWT_SECRET` is unset or equals the placeholder
+in a non-development `NODE_ENV`.
+
+### 2.3 Response envelope
+
+A list response:
 
 ```json
 { "data": [ ... ], "page": { "limit": 20, "offset": 0, "total": 14901 } }
 ```
 
-A single-object response returns `{ "data": { ... } }`. The envelope lets the
-frontend page a list without a second endpoint, and it lets a later field
-addition stay compatible.
+A single-object response: `{ "data": { ... } }`. The envelope lets the frontend
+page a list without a second endpoint, and lets a later field addition stay
+compatible.
 
-### 2.3 Errors
+### 2.4 Errors
 
 One shape, always:
 
@@ -124,31 +163,35 @@ One shape, always:
 caller may know the row exists — for example, a teacher who is not the owner of
 a circle they can see in a list.
 
-Never return a PostgreSQL error message to the client. Map the SQL state:
-`23505` → 409, `23503` → 422, `42501` (permission denied) → 500 with an alarm in
-the log, because that means the corpus lockdown caught a bug.
+Never return a PostgreSQL error message to the client. The mapping lives in one
+error middleware (§7.2):
 
-The mapping lives in **one** error middleware. See §7.2.
+| Postgres condition | SQLSTATE | HTTP |
+|---|---|---|
+| unique_violation | `23505` | 409 |
+| foreign_key_violation | `23503` | 422 |
+| **check_violation from `assert_teacher_verified`** | `23514` | **403**, `code: teacher_not_verified` |
+| permission denied (the corpus lockdown) | `42501` | 500, and log an alarm — this means a bug reached a write it should never attempt |
 
-### 2.4 Pagination
+### 2.5 Pagination
 
-Keep `limit` and `offset`. Default limit 20, maximum 100. Every list endpoint
+`limit` and `offset`. Default limit 20, maximum 100. Every list endpoint
 returns `page.total` from a second `count(*)` over the same predicate.
 
-### 2.5 Language
+### 2.6 Language
 
 `?lang=en` selects the translation. The default is `en`. The Arabic is always
 present in the response. A missing translation gives `"translation": null`, and
 the frontend shows Arabic. Do not substitute Arabic into an English field.
 
-### 2.6 Validation
+### 2.7 Validation
 
-Add **zod**, and one middleware factory:
+One middleware factory, backed by zod:
 
 ```ts
 export const validate = (schemas: {
   params?: ZodSchema; query?: ZodSchema; body?: ZodSchema;
-}) => (req: Request, _res: Response, next: NextFunction) => {
+}) => (req: Request, res: Response, next: NextFunction) => {
   try {
     if (schemas.params) req.params = schemas.params.parse(req.params);
     if (schemas.body)   req.body   = schemas.body.parse(req.body);
@@ -159,12 +202,10 @@ export const validate = (schemas: {
 ```
 
 **Put the parsed query on `res.locals`, not on `req.query`.** In Express 5
-`req.query` is a getter, so an assignment to it throws. This is a real Express 5
-change and it catches people who port a validator from Express 4.
+`req.query` is a getter; an assignment to it throws. This is the one Express 5
+change most likely to surprise someone who has written Express 4 before.
 
-The factory replaces the hand-written `parseOptionalInt` in the scaffold.
-
-### 2.7 Security and logging
+### 2.8 Security and logging
 
 - `helmet()` first in the chain.
 - `cors({ origin: CONFIG.webOrigin, credentials: true })` — `credentials` is
@@ -187,20 +228,18 @@ The factory replaces the hand-written `parseOptionalInt` in the scaffold.
   Lifetime 7 days.
 - The claims are `sub` (user_id), `role`, `iat`, `exp`. Nothing else. The role
   is in the token, so a guard needs no database round trip.
-- The secret comes from the environment. The server refuses to start without it.
+- The secret comes from the environment. The server refuses to start without
+  it (§2.2).
 
 The refresh token needs storage to be revocable. **This is the one table the
-backend must add**: see §8.1. If you decide that logout may be client-side only,
-drop the table and say so in the report — that is an acceptable scope cut for a
-term project, but state it.
+backend must add**: see §8.1. If the team decides that logout may be
+client-side only, drop the table and say so in the report — that is an
+acceptable scope cut for a term project, but state it.
 
 ### 3.2 The guard
 
-Two middlewares. `requireAuth` reads `Authorization: Bearer <token>`, verifies
-it, and puts the caller on the request. `requireRole(...roles)` checks the role.
-
 ```ts
-// middleware/auth.ts
+// middleware/requireAuth.ts
 export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   const header = req.get('authorization');
   if (!header?.startsWith('Bearer ')) return next(new UnauthenticatedError());
@@ -211,6 +250,7 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   } catch { next(new UnauthenticatedError()); }
 }
 
+// middleware/requireRole.ts
 export const requireRole = (...roles: Role[]) =>
   (req: Request, _res: Response, next: NextFunction) =>
     roles.includes(req.user!.role) ? next() : next(new ForbiddenError());
@@ -227,9 +267,9 @@ declare global {
 export {};
 ```
 
-**Mount the guard on the router, not on each route.** `router.use(requireAuth)`
-at the top of every protected router. A route that a person forgets to guard is
-the failure mode this design must not have.
+**Mount the guard on the router, not on each route:**
+`app.use('/hadiths', requireAuth, hadithsRoutes)`. A route that a person forgets
+to guard is the failure mode this design must not have.
 
 ### 3.3 Registration
 
@@ -241,8 +281,38 @@ user with no subtype and no role attributes.
 The `assert_email_unique` trigger refuses an email that already exists under
 another subtype. Map its `unique_violation` to 409.
 
-Open the teacher and admin roles only to an admin, or seed them. A public
-endpoint that mints teachers defeats the whole visibility model.
+Open the admin role only to an existing admin, or seed it. A public endpoint
+that mints admins defeats the whole visibility model. A teacher may
+self-register — see §3.4 for what that account can and cannot do next.
+
+### 3.4 Teacher verification (new: `teachers.is_verified`)
+
+A newly registered teacher has `is_verified = false`. `POST /circles` inserts a
+row naming that teacher as `teacher_id`; the trigger
+`trg_circles_teacher_verified` fires `BEFORE INSERT` and raises
+`check_violation` if the teacher is unverified. The gate is one-directional: it
+blocks a **new** circle, and does not touch a circle that already exists, a
+study set the teacher owns, or a review they run.
+
+The API's job is two endpoints and one error mapping:
+
+| Method | Path | Guard | Notes |
+|---|---|---|---|
+| GET | `/teachers/unverified` | Ad | List for the verification queue |
+| POST | `/teachers/:id/verify` | Ad | Sets `is_verified = true`. No corresponding "unverify" is specified — see §12.7 |
+
+`POST /circles` needs no pre-check. Let the insert run and map `23514` /
+`check_violation` from `assert_teacher_verified` to **403**,
+`code: teacher_not_verified`, message from the trigger's own text. This is the
+"a gate in the database is not re-implemented in the API" principle (§1.6) —
+duplicating the check in the controller is exactly the kind of double
+enforcement req 8 penalises, and it can drift from the trigger's condition
+(for example, if the trigger's `coalesce(..., true)` behaviour for a
+not-yet-committed teacher ever changes).
+
+A student's `GET /circles` list and a teacher's own `GET /circles` list are
+unaffected — an unverified teacher still exists, still owns study sets, and
+still shows up in `/teachers/unverified` for an admin to act on.
 
 ---
 
@@ -254,14 +324,14 @@ The query layer enforces these. They are predicates, not opinions.
 |---|---|
 | Student | `WHERE student_id = :me` on progress, reviews and stats. Their own sets and notes. Circles they are enrolled in |
 | Teacher | Circles where `teacher_id = :me`, and everything under them: enrollments, assignments, the progress of enrolled students |
-| Admin | Everything |
+| Admin | Everything, including the teacher verification queue |
 | Any authenticated user | The whole corpus |
 
 **One student never sees another.** A teacher sees a student's progress only
 through a circle they own.
 
-Write the predicate in the model function, not in the controller. Every model
-function that touches `app` takes the caller as its first argument. A controller
+Every model function that touches `app` takes the caller as its first
+argument, and the predicate lives there, not in the controller. A controller
 that forgets a filter leaks data; a model that always takes `caller` cannot.
 
 ---
@@ -274,27 +344,33 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
-| POST | `/auth/register` | — | Body carries `role`. Inserts into the subtype table |
+| POST | `/auth/register` | — | Body carries `role`. Inserts into the subtype table. A teacher starts unverified |
 | POST | `/auth/login` | — | Returns the access token, sets the refresh cookie |
 | POST | `/auth/refresh` | — | Reads the cookie, returns a new access token |
 | POST | `/auth/logout` | A | Deletes the refresh token |
-| GET | `/auth/me` | A | The caller's own row, including the subtype attributes |
+| GET | `/auth/me` | A | The caller's own row, including the subtype attributes (`is_verified` for a teacher) |
 
-### 5.2 Corpus — read-only
+### 5.2 Teachers (admin)
+
+| Method | Path | Guard | Notes |
+|---|---|---|---|
+| GET | `/teachers/unverified` | Ad | Paged |
+| POST | `/teachers/:id/verify` | Ad | Sets `is_verified = true` |
+
+### 5.3 Corpus — read-only
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
 | GET | `/collections` | A | `collection_id, slug, title_ar, title_en` |
 | GET | `/collections/:id/chapters` | A | Ordered by `seq`. Include `hadith_count` |
 | GET | `/chapters/:id/hadiths` | A | Paged |
-| GET | `/hadiths` | A | Filters: `collection_id`, `chapter_id`, `q`. See §5.3 |
+| GET | `/hadiths` | A | Filters: `collection_id`, `chapter_id`, `q`. See §5.4 |
 | GET | `/hadiths/:id` | A | The detail. See below |
 | GET | `/narrators/:id` | A | The profile, the grades, both raw and coded |
 | GET | `/narrators/:id/hadiths` | A | Paged. The chains the narrator appears in |
 | GET | `/narrators` | A | Search by name. `q` matches `name_norm` or `display_norm` |
 
-**`GET /hadiths/:id` — the shape the frontend needs.** The scaffold already
-returns most of it. Add three things:
+**`GET /hadiths/:id` — the response shape:**
 
 ```jsonc
 {
@@ -318,23 +394,27 @@ returns most of it. Add three things:
 }
 ```
 
-Three changes against the scaffold, and each one matters:
+Three things worth spelling out:
 
 - **Group the links by `sanad_no`.** A flat list makes the frontend regroup
-  them, and a hadith with four sanads renders as one impossible 22-person chain.
+  them, and a hadith with four sanads renders as one impossible 22-person
+  chain.
 - **Carry the rank on the link.** The narrator panel needs it, and a second
-  round trip for each of 5.4 positions is 5.4 queries per hadith.
-- **Carry `chain_strength_basis`.** The corpus review measures that multi-sanad
-  hadiths carry **no** transmission words at all, so the anʿana penalty cannot
-  fire for them. The number is not comparable between hadiths unless the reader
-  can see this. One boolean makes an unstated flaw a stated limitation.
+  round trip for each of ~5.4 average chain positions is 5.4 queries per
+  hadith.
+- **Carry `chain_strength_basis`.** The corpus review measures that
+  multi-sanad hadiths carry **no** transmission words at all — the ETL only
+  aligns sighas for single-sanad hadiths — so the anʿana penalty cannot fire
+  for 52% of chain positions in the corpus. The number is not comparable
+  between hadiths unless the reader can see this. One boolean turns an
+  unstated flaw into a stated limitation.
 
-**Query count.** The scaffold runs four queries for one hadith. Fold them into
-two: one for the hadith with its collection, chapter and translation joined; one
-for the links with the narrator and the rank levels joined. Call
-`corpus.chain_strength` in the first one.
+Build this from two queries, not four: one for the hadith with its collection,
+chapter, translation and `corpus.chain_strength` joined; one for the links with
+the narrator and the rank levels joined, ordered `sanad_no, position`, grouped
+in application code.
 
-### 5.3 Corpus search
+### 5.4 Corpus search
 
 `GET /hadiths?q=<arabic>` matches the normalised text:
 
@@ -342,50 +422,47 @@ for the links with the narrator and the rank levels joined. Call
 WHERE corpus.normalize_arabic(text_plain) LIKE '%' || corpus.normalize_arabic($1) || '%'
 ```
 
-The existing index (`normalize_arabic(left(matn_plain, 200))`) is a B-tree on an
-expression. It serves equality and prefix only. It cannot serve this query.
-
-**Add a trigram index.** See §8.2. `pg_trgm` gives real substring search over
-Arabic. It is the correct choice here, and the reason is worth one line in the
-report: PostgreSQL ships no Arabic stemmer, so `tsvector` would use the `simple`
-configuration and degrade to exact-word matching with more machinery.
+The existing DDL index (`normalize_arabic(left(matn_plain, 200))`) is a B-tree
+on an expression; it serves equality and prefix only and cannot serve this
+query. **Add a trigram index** — see §8.2. `pg_trgm` gives real substring
+search over Arabic, which is the right call here: PostgreSQL ships no Arabic
+stemmer, so `tsvector` would fall back to the `simple` configuration and
+degrade to exact-word matching with more machinery for no real gain.
 
 Normalise the search term with the same function the index uses. If the two
 differ, the index is never used and nothing tells you.
 
-### 5.4 Analytics (req 7)
+### 5.5 Analytics (req 7)
 
-**These queries do not exist yet.** `docs/prd.md` §5 says six are written in the
-DDL. A search of `db/*.sql` finds one assertion line in the smoke test. This is
-the largest open gap in the project.
+**These queries do not exist yet.** `docs/prd.md` §5 states six are written in
+the DDL. A search of `db/*.sql` finds one assertion line in the smoke test.
+This is the largest open gap in the project, and the cheapest one to close —
+the corpus already supports all four corpus-side queries.
 
 Write them in a new `db/06_queries.sql`, as **views**, and grant `SELECT` to
-`ilham_app`. The model file then selects from the view with a `LIMIT`. This
-keeps req 7 true (the query is in the DDL), keeps req 8 true (it exists one
-time), and keeps the API thin.
+`ilham_app`. The model file selects from the view with a `LIMIT`. This keeps
+req 7 true (the query is in the DDL), req 8 true (it exists one time), and
+the API thin.
 
 | Q | Endpoint | Object | Notes |
 |---|---|---|---|
 | Q1 | `GET /analytics/top-narrators` | `corpus.v_top_narrators` | Count of chain positions per narrator. Exclude `is_compiler` and `is_placeholder` |
-| Q2 | `GET /analytics/contested-narrators` | `corpus.v_contested_narrators` | `rank_levels.ordinal` differs between the two scholars. **Exclude `rank_*_via = 'S'`** — pass S sets both columns from one tabaqa rule, so those narrators are not contested, they are unjudged |
-| Q3 | `GET /analytics/shared-narrators?a=&b=` | `corpus.shared_narrators(a, b)` | Two hadiths, the narrators in common. A view cannot take a parameter and the self-join over 117k links is not materialisable, so this one is a SQL function |
+| Q2 | `GET /analytics/contested-narrators` | `corpus.v_contested_narrators` | `rank_levels.ordinal` differs between the two scholars. **Exclude `rank_*_via = 'S'`** — the Companion tabaqa pass sets both columns from one rule, so those narrators are not contested, they are unjudged |
+| Q3 | `GET /analytics/shared-narrators?a=&b=` | `corpus.shared_narrators(a, b)` | Two hadiths, the narrators in common. A view cannot take a parameter and the self-join over 139k links is not materialisable, so this one is a SQL function |
 | Q4 | `GET /circles/:id/overview` | `app.v_circle_overview` | The teacher dashboard. Per student: assigned, mastered, overdue. `count(DISTINCT hadith_id)` |
 | Q5 | `GET /analytics/weakest-chains` | `corpus.v_weakest_chains` | Ordered by `chain_strength`. Join to the collection and the chapter for display |
 | Q6 | `GET /assignments/:id/completion` | `app.v_assignment_completion` | Per student: due, done, percentage |
 
 Q4 and Q6 are views in `app`, filtered by the caller's circle in the model. Q1,
-Q2, Q3 and Q5 read the corpus only.
+Q2, Q3 and Q5 read the corpus only, and need no special role — a student may
+read the corpus analytics.
 
-`GET /analytics/*` needs no special role. A student may read the corpus
-analytics. Q4 and Q6 sit under `/circles` and `/assignments`, where the
-ownership rule applies.
-
-### 5.5 Circles and enrolment
+### 5.6 Circles and enrolment
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
 | GET | `/circles` | A | A teacher sees the circles they own. A student sees the circles they are in |
-| POST | `/circles` | T | `teacher_id` comes from the token, never from the body |
+| POST | `/circles` | T | `teacher_id` from the token, never from the body. **403 `teacher_not_verified`** if unverified — §3.4 |
 | GET | `/circles/:id` | A + member | 404 for a non-member |
 | PATCH | `/circles/:id` | T + owner | Rename only |
 | GET | `/circles/:id/students` | T + owner | |
@@ -393,11 +470,7 @@ ownership rule applies.
 | DELETE | `/circles/:id/students/:sid` | T + owner | Leaves the progress rows. Deleting them destroys the audit trail |
 | GET | `/circles/:id/overview` | T + owner | Q4 |
 
-**`teacher_id` never comes from the body.** It comes from `req.user`. A body
-field here is a horizontal privilege escalation, and it is the first thing an
-examiner tries.
-
-### 5.6 Study sets
+### 5.7 Study sets
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
@@ -409,10 +482,11 @@ examiner tries.
 | POST | `/study-sets/:id/items` | A + owner | `{ hadith_id }`. 409 on a repeat |
 | DELETE | `/study-sets/:id/items/:hid` | A + owner | |
 
-A teacher owns the sets they assign. A student owns their own. `owner_id` is
-polymorphic, so the trigger, not a foreign key, checks it.
+A teacher owns the sets they assign; a student owns their own. `owner_id` is
+polymorphic, so the trigger, not a foreign key, checks it. An unverified
+teacher may still own study sets — the gate is on circles only (§3.4).
 
-### 5.7 Assignments (req 6)
+### 5.8 Assignments (req 6)
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
@@ -421,24 +495,24 @@ polymorphic, so the trigger, not a foreign key, checks it.
 | GET | `/assignments/:id` | A + visible | |
 | GET | `/assignments/:id/completion` | T + owner | Q6 |
 
-**The procedure owns its transaction.** Three rules follow, and each one is a
-real failure if you break it:
+**The procedure owns its transaction.** Three rules, each a real failure if
+broken:
 
 1. **Do not open a transaction around the `CALL`.** The `COMMIT` inside the
    procedure fails with *"invalid transaction termination"* when a transaction
    block is already open. Use `pool.query`, not the `withTransaction` helper.
-2. **Check the ownership before the `CALL`, not after.** The procedure commits.
-   There is nothing to roll back.
+2. **Check the circle ownership before the `CALL`, not after.** The procedure
+   commits. There is nothing to roll back.
 3. **Test this in week 3 with the real driver.** A procedure with transaction
    control can refuse to run under the extended query protocol that `pg` uses
-   for a parameterised query. This is a `pg` behaviour and it does not change
-   with the web framework. If it fails, validate the three integers with zod,
-   then send the `CALL` as a simple query. Find this out early, not in week 8.
+   for a parameterised query. If it fails, validate the three integers with
+   zod, then send the `CALL` as a simple query. Find this out early, not in
+   week 8.
 
 Calling twice creates **two** assignments and two sets of obligations. This is
-correct and deliberate. Do not add a "already assigned" check.
+correct and deliberate. Do not add an "already assigned" check.
 
-### 5.8 Review sessions (req 3)
+### 5.9 Review sessions (req 3)
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
@@ -466,23 +540,20 @@ COMMIT   (or ROLLBACK on any error)
 client.release()
 ```
 
-This is the explicit multi-table transaction the checklist asks for. Do not use
-`pool.query` for the steps — each call may take a different connection, and the
-`BEGIN` then applies to a connection that does no work.
+This is the explicit multi-table transaction the checklist asks for. Do not
+use `pool.query` for the individual steps — each call may take a different
+connection from the pool, and `BEGIN` then applies to a connection that does no
+further work.
 
-**Open decision — which progress row does a review update?** `app.review_sessions`
-carries `student_id`, `reviewer_id` and `circle_id`. It does **not** carry
-`assignment_id`. The grain of `app.progress` is `(student, hadith, assignment)`.
-So a student with two assignments plus self-study on one hadith has three
-progress rows, and the schema does not say which one a review discharges.
+**Open decision — which progress row does a review update?**
+`app.review_sessions` carries `student_id`, `reviewer_id` and `circle_id`. It
+does **not** carry `assignment_id`. The grain of `app.progress` is
+`(student, hadith, assignment)`. A student with two assignments plus
+self-study on one hadith has three progress rows, and the schema does not say
+which one a review discharges.
 
-The seed already gets this wrong: `seed.js:198-203` updates by
-`(student_id, hadith_id)` with no assignment predicate, so one review bumps every
-row including the private-study one. That breaks the invariant the seed exists to
-demonstrate.
-
-**Recommendation.** Take `assignment_id` in the request body, not in the schema.
-The API then updates exactly one row per item:
+**Recommendation.** Take `assignment_id` in the request body, not from the
+schema. The API updates exactly one row per item:
 
 ```sql
 UPDATE app.progress
@@ -492,8 +563,8 @@ UPDATE app.progress
 ```
 
 When `assignment_id` is absent, the review is self-study and the target is the
-`assignment_id IS NULL` row. Insert that row if it does not exist. This needs no
-schema change, no ERD change, and no new document.
+`assignment_id IS NULL` row. Insert that row if it does not exist. This needs
+no schema change and no ERD change.
 
 **The mastery rule.** State it once, in the model, with a comment:
 
@@ -507,7 +578,7 @@ schema change, no ERD change, and no new document.
 `trg_progress_stats` derives the counts; the pedagogy belongs to the API. Two
 routines that both write mastery is exactly what req 8 penalises.
 
-### 5.9 Progress and the teacher override (req 4b)
+### 5.10 Progress and the teacher override (req 4b)
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
@@ -528,21 +599,23 @@ COMMIT
 client.release()
 ```
 
-**Use `true`, not `false`, for the third argument.** The comment at
-`db/02_app.sql:296` shows `false`. `false` makes the setting persist on the
-connection after the request ends. The next request that takes that connection
-from the pool inherits a stale actor, and the audit log attributes a teacher's
-override to whoever used the connection last. With `true` the setting is
-transaction-local and resets at `COMMIT`. Fix the comment in the DDL as well.
+**Use `true`, not `false`, for `set_config`'s third argument.** The DDL comment
+at `db/02_app.sql` currently shows `false`; `false` makes the setting persist on
+the connection after the request ends, and the next request that draws that
+connection from the pool inherits a stale actor — the audit log then
+attributes an override to whoever used the connection last. `true` makes the
+setting transaction-local; it resets at `COMMIT`. Fix the comment in the DDL
+in the same change.
 
 **A teacher may not override self-study.** If the target row has
-`assignment_id IS NULL`, refuse with 422. That row belongs to the student alone.
+`assignment_id IS NULL`, refuse with 422. That row belongs to the student
+alone.
 
-The audit row is best-effort by design: `changed_by` is nullable and the trigger
-does not check it. Do not add a check — a failure there rolls back the
-legitimate write it is recording.
+The audit row is best-effort by design: `changed_by` is nullable and the
+trigger does not check it. Do not add a check — a failure there would roll
+back the legitimate write it exists to record.
 
-### 5.10 Notes
+### 5.11 Notes
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
@@ -553,15 +626,15 @@ legitimate write it is recording.
 
 `notes.user_id` is polymorphic. The `assert_user_exists` trigger checks it.
 
-### 5.11 Operations
+### 5.12 Operations
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
 | GET | `/health` | — | Database reachable, and the corpus row counts |
 | GET | `/meta/etl-metrics` | A | Reads `corpus.etl_metrics`. This is the report's evidence, served |
 
-`/meta/etl-metrics` costs ten lines and it demonstrates the whole ETL story in
-the defence. It is the cheapest endpoint in this document.
+`/meta/etl-metrics` costs ten lines and demonstrates the whole ETL story live
+in the defence. It is the cheapest endpoint in this document.
 
 ---
 
@@ -599,30 +672,7 @@ Use it for the two API-owned flows. Do **not** use it for the procedure call.
 
 ## 7. Express specifics
 
-### 7.1 Module layout
-
-```
-src/
-  server.ts                 // listen() only
-  app.ts                    // the express() instance and the middleware chain
-  config.ts
-  types/express.d.ts        // req.user declaration merging
-  db/pool.ts
-  middleware/  requireAuth.ts  requireRole.ts  validate.ts  errorHandler.ts  notFound.ts
-  lib/         jwt.ts  password.ts  transaction.ts  pagination.ts  errors.ts
-  modules/
-    auth/  collections/  hadiths/  narrators/  analytics/
-    circles/  studySets/  assignments/  reviews/  progress/  notes/  meta/
-```
-
-Each module keeps four files. `model.ts` holds SQL and takes the caller.
-`controller.ts` validates and maps. `routes.ts` builds an `express.Router()` and
-mounts the guards. `interface.ts` holds the types. No SQL leaves a model file.
-
-`app.ts` exports the app without listening. `server.ts` listens. This split is
-what lets `supertest` drive the app in a test with no open port.
-
-### 7.2 The middleware chain — order is the contract
+### 7.1 The middleware chain — order is the contract
 
 ```ts
 const app = express();
@@ -639,6 +689,7 @@ app.use('/collections',     requireAuth, collectionsRoutes);
 app.use('/hadiths',         requireAuth, hadithsRoutes);
 app.use('/narrators',       requireAuth, narratorsRoutes);
 app.use('/analytics',       requireAuth, analyticsRoutes);
+app.use('/teachers',        requireAuth, requireRole('admin'), teachersRoutes);
 app.use('/circles',         requireAuth, circlesRoutes);
 app.use('/study-sets',      requireAuth, studySetsRoutes);
 app.use('/assignments',     requireAuth, assignmentsRoutes);
@@ -651,71 +702,50 @@ app.use(notFound);        // must be after every route
 app.use(errorHandler);    // must be LAST, and must take four arguments
 ```
 
-Four Express rules that the team must know:
+Four Express rules the team must know before writing a handler:
 
-1. **The error middleware needs four parameters.** `(err, req, res, next)`.
+1. **The error middleware needs four parameters**, `(err, req, res, next)`.
    Express identifies it by arity. Three parameters makes it an ordinary
    middleware and every error becomes a hang.
-2. **Express 5 forwards a rejected promise to the error middleware.** Express 4
-   does not — an `async` handler that throws hangs the request until the client
-   gives up. This is the reason the dependency list pins Express 5. If the team
-   must use Express 4, add `express-async-errors` as the first import in
-   `app.ts`, or wrap every handler. Do not rely on remembering `try/catch`.
+2. **Express 5 forwards a rejected promise to the error middleware
+   automatically.** An `async` handler that throws is routed to
+   `errorHandler` without a manual `try/catch`. This is the reason the
+   dependency list pins Express 5 over 4.
 3. **`req.query` is read-only in Express 5.** Put parsed query values on
-   `res.locals`. See §2.6.
-4. **`app.use(path, guard, router)` guards every route in the router.** This is
-   how §3.2's rule is enforced structurally.
+   `res.locals` (§2.7).
+4. **`app.use(path, guard, router)` guards every route in that router.** This
+   is what makes "never forget a guard" structural rather than a matter of
+   discipline.
 
-The error middleware is the single place that maps to §2.3:
+The error middleware is the single place that implements §2.4's table:
 
 ```ts
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
-  if (err instanceof ZodError)           return send(res, 400, 'bad_request', 'invalid request');
+  if (err instanceof ZodError)             return send(res, 400, 'bad_request', 'invalid request');
   if (err instanceof UnauthenticatedError) return send(res, 401, 'unauthenticated', 'sign in');
-  if (err instanceof ForbiddenError)     return send(res, 403, 'forbidden', err.message);
-  if (err instanceof NotFoundError)      return send(res, 404, 'not_found', err.message);
-  if (err instanceof UnprocessableError) return send(res, 422, 'unprocessable', err.message);
+  if (err instanceof ForbiddenError)       return send(res, 403, 'forbidden', err.message);
+  if (err instanceof NotFoundError)        return send(res, 404, 'not_found', err.message);
+  if (err instanceof UnprocessableError)   return send(res, 422, 'unprocessable', err.message);
 
-  const code = (err as { code?: string }).code;          // pg SQLSTATE
-  if (code === '23505') return send(res, 409, 'conflict', 'already exists');
-  if (code === '23503') return send(res, 422, 'unprocessable', 'referenced row is missing');
-  if (code === '42501') console.error('CORPUS LOCKDOWN HIT — a write reached corpus.*', err);
+  const pgErr = err as { code?: string; message?: string };
+  if (pgErr.code === '23505') return send(res, 409, 'conflict', 'already exists');
+  if (pgErr.code === '23503') return send(res, 422, 'unprocessable', 'referenced row is missing');
+  if (pgErr.code === '23514' && pgErr.message?.includes('is not verified')) {
+    return send(res, 403, 'teacher_not_verified', pgErr.message);
+  }
+  if (pgErr.code === '42501') {
+    console.error('CORPUS LOCKDOWN HIT — a write reached corpus.*', err);
+  }
 
   console.error(err);
   return send(res, 500, 'internal_error', 'internal error');
 }
 ```
 
-### 7.3 Converting the scaffold
+### 7.2 Testing
 
-The mapping is mechanical. `model.ts` and `interface.ts` do not change.
-
-| Hono | Express |
-|---|---|
-| `new Hono()` | `express.Router()` |
-| `(c: Context)` | `(req: Request, res: Response, next: NextFunction)` |
-| `c.req.param('id')` | `req.params.id` |
-| `c.req.query('lang')` | `req.query.lang` |
-| `c.req.json()` | `req.body`, after `express.json()` |
-| `return c.json(x)` | `res.json(x)` — return nothing |
-| `return c.json(x, 404)` | `res.status(404).json(x)` |
-| `throw new HTTPException(400, …)` | `next(new BadRequestError(…))`, or `throw` under Express 5 |
-| `app.route('/hadiths', r)` | `app.use('/hadiths', r)` |
-| `app.onError(fn)` | `app.use(errorHandler)`, four parameters, last |
-| `app.notFound(fn)` | `app.use(notFound)`, before the error handler |
-| `app.request('/x')` in a test | `supertest(app).get('/x')` |
-| `hono/logger` | `morgan` |
-| `hono/cors` | `cors` |
-| `@hono/node-server` | `app.listen()` |
-
-Remove `hono` and `@hono/node-server` from `package.json`. Delete
-`src/lib/errors.ts`'s single class and replace it with the error family that
-§7.2 maps.
-
-### 7.4 Testing
-
-`node --test` with `supertest`. `app.ts` exports the app, so a test needs no
-port:
+`node --test` with `supertest`. `app.ts` exports the `express()` instance
+without calling `.listen()`, so a test needs no open port:
 
 ```ts
 const res = await supertest(app).get('/hadiths/1')
@@ -723,16 +753,16 @@ const res = await supertest(app).get('/hadiths/1')
 assert.equal(res.status, 200);
 ```
 
-Add `"test": "node --test --import tsx"` to the scripts. Three tests are enough
+`"test": "node --test --import tsx"` in `package.json`. Four tests are enough
 for the defence: a guard rejects an unauthenticated request, a student cannot
-read another student's progress, and the corpus write test of §11.
+read another student's progress, an unverified teacher's `POST /circles` comes
+back 403 `teacher_not_verified`, and the corpus write test of §11.
 
 ---
 
 ## 8. Database work the backend needs
 
-Four items. All are additive. None changes a design rule. None depends on the
-web framework.
+Four items. All are additive. None changes a design rule.
 
 ### 8.1 The refresh-token table
 
@@ -748,8 +778,8 @@ CREATE TRIGGER trg_refresh_user BEFORE INSERT OR UPDATE OF user_id
 ON app.refresh_tokens FOR EACH ROW EXECUTE FUNCTION app.assert_user_exists('user_id');
 ```
 
-Store the hash, not the token. Reuse `assert_user_exists`; do not write a second
-one. If you cut revocable logout, delete this table and record the cut.
+Store the hash, not the token. Reuse `assert_user_exists`; do not write a
+second one. If revocable logout is cut, delete this table and record the cut.
 
 ### 8.2 The search index
 
@@ -766,22 +796,22 @@ CREATE INDEX hadiths_text_trgm_idx ON corpus.hadiths
 `normalize_arabic` is `IMMUTABLE`, so the expression index is legal.
 
 Two operational notes. `05_post_load.sql` is destructive and runs one time, so
-the index cannot go there — it needs its own numbered file. And `db/ilham.dump`
-must be regenerated afterwards, or a fresh clone gets a corpus with no search
-index and no error.
+this index cannot go there — it needs its own numbered file. And
+`db/ilham.dump` must be regenerated afterwards, or a fresh clone gets a corpus
+with no search index and no error telling anyone.
 
 ### 8.3 The six analytics queries
 
-`db/06_queries.sql`, as described in §5.4. This is the biggest single deliverable
-in this document and it belongs to the corpus owner.
+`db/06_queries.sql`, as described in §5.5. This is the biggest single
+deliverable in this document and it belongs to the corpus owner.
 
 ### 8.4 Per-sanad strength (optional)
 
-`corpus.chain_strength` returns the best sanad. The detail page wants the value
-for each sanad. Either add `corpus.sanad_strength(hadith, sanad_no)`, or expose
-the per-sanad `min` in a view. Prefer the view — req 8 grades restraint, and a
-second function that duplicates the first one's arithmetic is the kind of thing
-this project has otherwise avoided.
+`corpus.chain_strength` returns the best sanad. The detail page wants the
+value for each sanad. Either add `corpus.sanad_strength(hadith, sanad_no)`, or
+expose the per-sanad `min` in a view. Prefer the view — req 8 grades
+restraint, and a second function duplicating the first one's arithmetic is
+the kind of thing this project has otherwise avoided.
 
 ---
 
@@ -796,7 +826,7 @@ this project has otherwise avoided.
 | 5 | `GET /hadiths/:id` calls `corpus.chain_strength`. `GET /analytics/weakest-chains` orders by it |
 | 6 | `POST /assignments` calls the procedure. No transaction block around it |
 | 7 | `/analytics/*`, `/circles/:id/overview`, `/assignments/:id/completion` |
-| 8 | Analytics live in SQL one time. Mastery lives in the API one time. No corpus write path exists |
+| 8 | Analytics live in SQL one time. Mastery lives in the API one time. Teacher verification lives in a trigger, checked once. No corpus write path exists |
 | 9 | Every model function is one query with one comment that names its rule |
 
 ---
@@ -805,14 +835,16 @@ this project has otherwise avoided.
 
 The split follows `docs/prd.md` §7.
 
-- **The teammate:** the conversion of `app.ts` and the middleware chain,
-  `auth/`, the two guards, `circles/`, `studySets/`, `assignments/`, Q4 and Q6,
-  and the `student_stats` read path.
-- **You:** `collections/`, `hadiths/`, `narrators/`, `analytics/` with Q1, Q2, Q3
-  and Q5, `reviews/`, `progress/` with the override, `meta/`, and the search
-  index.
+- **The teammate:** `app.ts` and the middleware chain, `auth/`, the two
+  guards, `teachers/`, `circles/`, `studySets/`, `assignments/`, Q4 and Q6, and
+  the `student_stats` read path.
+- **You:** `collections/`, `hadiths/`, `narrators/`, `analytics/` with Q1, Q2,
+  Q3 and Q5, `reviews/`, `progress/` with the override, `meta/`, and the
+  search index.
 - **The seam:** `reviews/`. Your transaction fires their stats trigger. Agree
-  the request body in week 5 and do not change it after.
+  the request body in week 5 and do not change it after. `teachers/` is a
+  small second seam — the teammate owns the verify endpoint, but the 403
+  mapping in `errorHandler` (§7.1) is shared code both halves depend on.
 
 ---
 
@@ -820,8 +852,8 @@ The split follows `docs/prd.md` §7.
 
 | Week | Backend | Gate |
 |---|---|---|
-| 3 | **Convert the scaffold to Express.** Envelope, errors, zod, helmet, CORS. Auth and the guards. **Test the procedure call** | `curl` logs in and reads a guarded route |
-| 4 | Circles, enrolment, study sets, assignments | A teacher assigns a set and progress rows appear |
+| 3 | Scaffold: `app.ts`, the middleware chain, envelope, errors, zod, helmet, CORS. Auth and the guards. **Test the procedure call** | `curl` logs in and reads a guarded route |
+| 4 | Circles (with the verification gate), enrolment, study sets, assignments | An unverified teacher's `POST /circles` returns 403; a verified one's returns 201 |
 | 5 | Review sessions, progress, the override. `withTransaction` | The stats trigger and the audit trigger both fire from HTTP |
 | 6 | `db/06_queries.sql`, the analytics endpoints, `/meta/etl-metrics` | Six queries answer over HTTP |
 | 7 | Search index, hadith detail v2, per-sanad strength, notes | The frontend has everything it needs |
@@ -835,16 +867,25 @@ The split follows `docs/prd.md` §7.
 
 ## 12. Open decisions
 
-1. **Express 5 or Express 4?** §7.2 recommends 5, for the async error handling
-   alone. Express 4 needs `express-async-errors` and a different `req.query`
-   rule.
-2. **Revocable logout?** If no, drop §8.1 and record the cut.
-3. **Does a review carry `assignment_id`?** §5.8 recommends yes, in the body
+1. **Revocable logout?** If no, drop §8.1 and record the cut.
+2. **Does a review carry `assignment_id`?** §5.9 recommends yes, in the body
    only. Agree this before week 5 — it is the seam between the two halves.
-4. **Per-sanad strength: view or function?** §8.4 recommends the view.
-5. **Does a student self-review?** The schema allows it — `reviewer_id` is
-   nullable. If yes, a student may `POST /review-sessions` for themselves only.
-   If no, restrict the endpoint to a teacher and say why.
-6. **Does `DELETE` exist for a circle or an assignment?** Both have progress and
-   audit rows under them. The safe answer is no, and a `is_archived` flag is a
-   schema change. Recommend: no delete, and say so.
+3. **Per-sanad strength: view or function?** §8.4 recommends the view.
+4. **Does a student self-review?** The schema allows it — `reviewer_id` is
+   nullable. If yes, a student may `POST /review-sessions` for themselves
+   only. If no, restrict the endpoint to a teacher and say why.
+5. **Does `DELETE` exist for a circle or an assignment?** Both have progress
+   and audit rows under them. The safe answer is no, and a `is_archived` flag
+   is a schema change. Recommend: no delete, and say so.
+6. **Who verifies the first admin?** `POST /teachers/:id/verify` requires an
+   admin, and `POST /auth/register` should not mint one publicly (§3.3). Seed
+   one admin row directly in `db/04_seed_reference.sql` or via a one-time
+   script; do not add a bootstrap endpoint that creates an admin from an
+   unauthenticated request.
+7. **Does an admin action ever un-verify a teacher?** The trigger comment
+   states the gate does not retroactively close a running circle. If the
+   product wants a revocation path, it is a second endpoint
+   (`DELETE /teachers/:id/verify` or similar) and needs no new trigger — the
+   existing one already only checks the flag at `INSERT`/`UPDATE OF
+   teacher_id` time on `circles`, so unverifying a teacher naturally blocks
+   only their *next* circle, consistent with §3.4.
