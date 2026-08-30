@@ -158,8 +158,8 @@ different systems.
 | Role | Main needs |
 |---|---|
 | **Student** | Browse the corpus, build study sets, complete assignments, record reviews, write notes |
-| **Teacher** | Run circles, enrol students, assign sets, check and override progress |
-| **Researcher or admin** | Narrator analytics, contested grades, chain strength, and administration |
+| **Teacher** | Run circles, enrol students, assign sets, check and override progress. A teacher must be verified to run a circle |
+| **Researcher or admin** | Narrator analytics, contested grades, chain strength, and administration. An admin verifies a teacher |
 
 The query layer enforces visibility. A student sees only their own study data. A
 teacher sees their own circles. One student never sees another. Every
@@ -191,6 +191,14 @@ falls back to Arabic.
    every route (reqs 1 and 2).
 6. Circles: create them, enrol students, and check the work. The teacher
    dashboard is the circle-overview query.
+
+   Only a verified teacher opens a circle. A new teacher account starts at
+   `teachers.is_verified = false`, and an admin sets the flag after the admin
+   confirms the ijaza or the institution. The trigger
+   `trg_circles_teacher_verified` applies the rule in the database. The gate
+   applies to a new circle only: it does not close a circle that already runs,
+   and it does not stop the teacher from owning a study set or reviewing a
+   student.
 7. Study sets and set items.
 8. Assignments. The `assign_study_set` procedure sends the assignment to every
    enrolled student and creates the progress rows. It is one atomic operation

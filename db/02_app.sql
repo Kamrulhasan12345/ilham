@@ -37,9 +37,13 @@ CREATE TABLE app.students (
     student_level text CHECK (student_level IN ('beginner','intermediate','advanced'))
 ) INHERITS (app.users);
 
+-- is_verified: an admin confirms the ijaza or the institution. A new teacher
+-- account starts unverified. The flag gates one thing only -- see
+-- app.assert_teacher_verified below.
 CREATE TABLE app.teachers (
     institution    text,
-    specialization text
+    specialization text,
+    is_verified    boolean NOT NULL DEFAULT false
 ) INHERITS (app.users);
 
 CREATE TABLE app.admins (
@@ -105,12 +109,42 @@ COMMENT ON FUNCTION app.assert_user_exists IS
 -- =============================================================================
 -- Study structures
 -- =============================================================================
+-- Verification gate. Only a verified teacher opens a circle. The rule is a
+-- trigger, not a CHECK, because a CHECK reads one row and this reads another
+-- table. It is not a composite FK either: that needs a redundant boolean
+-- column on circles, and the ERD must stay honest.
+--
+-- The gate applies to the WRITE on circles. It does not reach backwards. An
+-- admin who removes verification from a teacher keeps that teacher's circles
+-- open, and stops new ones. A running halaqa is not cancelled by an
+-- administrative change.
+--
+-- coalesce(..., true) passes an absent teacher through on purpose. A BEFORE
+-- trigger runs before the foreign key, so the FK gives the better message.
+CREATE FUNCTION app.assert_teacher_verified()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NOT coalesce((SELECT is_verified FROM app.teachers
+                   WHERE user_id = NEW.teacher_id), true) THEN
+    RAISE check_violation USING
+      MESSAGE = format('teacher %s is not verified and cannot lead a circle',
+                       NEW.teacher_id);
+  END IF;
+  RETURN NEW;
+END $$;
+
+COMMENT ON FUNCTION app.assert_teacher_verified IS
+'Gate on app.circles writes: the teacher must have teachers.is_verified. Does not apply to circles that already exist.';
+
 CREATE TABLE app.circles (
     circle_id  integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     teacher_id integer NOT NULL REFERENCES app.teachers(user_id),
     name       text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TRIGGER trg_circles_teacher_verified
+BEFORE INSERT OR UPDATE OF teacher_id ON app.circles
+FOR EACH ROW EXECUTE FUNCTION app.assert_teacher_verified();
 CREATE INDEX ON app.circles (teacher_id);
 
 CREATE TABLE app.enrollments (

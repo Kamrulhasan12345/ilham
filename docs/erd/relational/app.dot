@@ -52,6 +52,7 @@ digraph ilham_app {
 <TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">email</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">+ inherited cols</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">institution</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">specialization</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">is_verified</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">boolean  false</FONT></TD></TR>
 </TABLE>>];
 
         admins [label=<
@@ -66,7 +67,7 @@ digraph ilham_app {
 <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
 <TR><TD COLSPAN="3" BGCOLOR="#238636" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>app.circles</B></FONT></TD></TR>
 <TR><TD PORT="circle_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">circle_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
-<TR><TD PORT="teacher_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">teacher_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  -&gt; teachers</FONT></TD></TR>
+<TR><TD PORT="teacher_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">teacher_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  -&gt; teachers, verified</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">name</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">created_at</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz</FONT></TD></TR>
 </TABLE>>];

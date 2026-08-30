@@ -5,17 +5,13 @@ PostgreSQL with the `pg` driver and raw parameterized SQL. There is no ORM.
 
 ## Setup
 
-Get a local database first. See the root `README.md` and `db/README.md`.
+Get a local database first — `docker compose up -d db` from the repo root
+(see the root `README.md`), or `./db/run_container.sh bootstrap`. Either one
+creates `ilham_app` with the default local-dev password already, so no manual
+DB step is needed.
 
 ```bash
-./db/run_container.sh bootstrap
-psql -h 127.0.0.1 -U postgres -d ilham -c "ALTER ROLE ilham_app WITH PASSWORD '...';"
-```
-
-Then:
-
-```bash
-cp .env.example .env    # fill in PGPASSWORD with the value you set above
+cp .env.example .env    # defaults already match a freshly bootstrapped DB
 npm install
 npm run dev              # tsx watch, listens on :3000
 ```

@@ -27,9 +27,13 @@ DUMP_SQLGZ=/db/ilham.sql.gz
 
 if [ -f "$DUMP_FC" ] || [ -f "$DUMP_SQLGZ" ]; then
   # CREATE ROLE has no IF NOT EXISTS; the dump's own GRANT statements target
-  # ilham_app and fail to replay unless the role already exists.
+  # ilham_app and fail to replay unless the role already exists. pg_dump never
+  # carries role definitions (roles are cluster-level, not per-database), so
+  # the password has to be (re)established here regardless of what the source
+  # instance had -- same default as 05_post_load.sql's own guard, and every
+  # other local-dev credential in this repo.
   psql -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
-    "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='ilham_app') THEN CREATE ROLE ilham_app LOGIN; END IF; END \$\$;"
+    "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='ilham_app') THEN CREATE ROLE ilham_app LOGIN PASSWORD 'ilham'; END IF; END \$\$;"
 
   if [ -f "$DUMP_FC" ]; then
     echo "-- restoring $DUMP_FC"
