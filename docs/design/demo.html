@@ -6,46 +6,85 @@
 <style>
 /* Tokens are copied from specimen.html, which stays the source of truth.
    Both collapse into frontend/src/styles/tokens.css at scaffold time. */
+/* ═══ DARK-FIRST TOKENS ═══════════════════════════════════════════════
+   The bare :root is the DARK palette. Light is the alternate. Ilham holds
+   no photography at all, so type, colour and scale carry the whole visual
+   load — which is why the scale below runs 16:1, not 3:1.
+   ═══════════════════════════════════════════════════════════════════════ */
 :root {
-  --bone-50:#F6F7F3; --bone-100:#EDEFE8; --bone-200:#E2E5DA; --bone-300:#C6CAC0;
-  --bone-400:#A3A89C; --bone-500:#7A7F79; --bone-700:#4A5049; --bone-900:#171C19;
-  --sound:#1F5E52; --sound-bg:#DCE8E3; --fault:#B33A2B; --fault-bg:#F2DED9;
-  --warn:#7A5C13;  --warn-bg:#EFE6CE;
+  /* ground → ink, dark */
+  --bone-100:#12150F;  /* page ground        */
+  --bone-50: #1A1E15;  /* raised surface     */
+  --bone-200:#0B0D07;  /* sunken well        */
+  --bone-300:#2C3126;  /* rules, spine       */
+  --bone-400:#454B3D;  /* stronger rule      */
+  --bone-500:#767C6D;  /* large text only · 4.3:1 */
+  --bone-700:#A9AF9F;  /* secondary text · 8.3:1  */
+  --bone-900:#E8EBE0;  /* body text · 15.4:1      */
+
+  /* three semantic hues, saturated for a dark ground */
+  --sound:#4FBF9F;  --sound-bg:#12352C;   /* graded strong · 8.2:1 */
+  --fault:#F2795E;  --fault-bg:#3A1C15;   /* the minimum, anʿana · 6.8:1 */
+  --warn: #E0B24B;  --warn-bg:#332711;    /* unmapped, unverified · 9.4:1 */
+
+  /* categorical, and only for collections. Carries no judgement. */
+  --col-bukhari:#5B92F5;
+  --col-muslim:#9B7BF0;
+
   --paper:var(--bone-100); --surface:var(--bone-50); --ink:var(--bone-900);
   --ink-2:var(--bone-700); --ink-3:var(--bone-500); --rule:var(--bone-300);
   --rule-strong:var(--bone-400); --focus:var(--bone-900);
+
   --font-ar:'Scheherazade New','Noto Naskh Arabic',serif;
   --font-read:'Newsreader',Georgia,serif;
   --font-ui:'Atkinson Hyperlegible',system-ui,sans-serif;
   --font-data:'IBM Plex Mono',ui-monospace,monospace;
+
+  /* Latin scale. 11px → 176px is 16:1. The old system was 3.3:1. */
   --fs-2xs:.6875rem; --fs-xs:.78125rem; --fs-sm:.875rem; --fs-md:1rem;
-  --fs-lg:1.125rem; --fs-xl:1.375rem; --fs-2xl:1.75rem; --fs-3xl:2.25rem;
-  --fs-ar-sm:1.0625rem; --fs-ar-md:1.25rem; --fs-ar-lg:1.625rem;
-  --lh-ar:2.0; --lh-body:1.6;
+  --fs-lg:1.1875rem; --fs-xl:1.5rem; --fs-2xl:2.125rem; --fs-3xl:3rem;
+  --fs-4xl:4.5rem;
+  --fs-hero:clamp(4rem, 13vw, 11rem);
+
+  /* Arabic keeps its own scale. Naskh reads smaller at equal px. */
+  --fs-ar-sm:1.0625rem; --fs-ar-md:1.25rem; --fs-ar-lg:1.875rem;
+  --fs-ar-xl:2.75rem;
+  --lh-ar:1.95; --lh-body:1.6;
+
   --sp-1:.25rem; --sp-2:.5rem; --sp-3:.75rem; --sp-4:1rem; --sp-5:1.25rem;
-  --sp-6:1.5rem; --sp-8:2rem; --sp-10:2.5rem; --sp-12:3rem;
+  --sp-6:1.5rem; --sp-8:2rem; --sp-10:2.5rem; --sp-12:3rem; --sp-16:4rem;
+
   --r-xs:2px; --r-sm:3px; --r-md:6px; --r-pill:999px;
-  --shadow-overlay:0 6px 24px rgba(23,28,25,.14);
+  --shadow-overlay:0 6px 24px rgba(0,0,0,.55);
+
   --dur-fast:120ms; --dur:180ms; --dur-slow:340ms;
   --ease:cubic-bezier(.2,.7,.3,1);
-  --ease-out:cubic-bezier(.25,.46,.45,.94); /* power1.out */
+  --ease-out:cubic-bezier(.25,.46,.45,.94);
   --z-header:20;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bone-50:#1B1F19; --bone-100:#12150F; --bone-200:#23281F; --bone-300:#333A31;
-    --bone-400:#4E564B; --bone-500:#8A9086; --bone-700:#B4BAAF; --bone-900:#E4E7DE;
-    --sound:#6FB8A3; --sound-bg:#17352E; --fault:#E58771; --fault-bg:#3B211B;
-    --warn:#CFA84C; --warn-bg:#33290F;
-    --shadow-overlay:0 6px 24px rgba(0,0,0,.5);
+
+/* Light is the alternate. Same token names, same roles. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bone-100:#EDEFE8; --bone-50:#F6F7F3; --bone-200:#E2E5DA;
+    --bone-300:#C6CAC0; --bone-400:#A3A89C; --bone-500:#7A7F79;
+    --bone-700:#4A5049; --bone-900:#171C19;
+    --sound:#1F5E52; --sound-bg:#DCE8E3;
+    --fault:#B33A2B; --fault-bg:#F2DED9;
+    --warn:#7A5C13;  --warn-bg:#EFE6CE;
+    --col-bukhari:#2A5BC4; --col-muslim:#5B3FB8;
+    --shadow-overlay:0 6px 24px rgba(23,28,25,.14);
   }
 }
-:root[data-theme="dark"] {
-  --bone-50:#1B1F19; --bone-100:#12150F; --bone-200:#23281F; --bone-300:#333A31;
-  --bone-400:#4E564B; --bone-500:#8A9086; --bone-700:#B4BAAF; --bone-900:#E4E7DE;
-  --sound:#6FB8A3; --sound-bg:#17352E; --fault:#E58771; --fault-bg:#3B211B;
-  --warn:#CFA84C; --warn-bg:#33290F;
-  --shadow-overlay:0 6px 24px rgba(0,0,0,.5);
+:root[data-theme="light"] {
+  --bone-100:#EDEFE8; --bone-50:#F6F7F3; --bone-200:#E2E5DA;
+  --bone-300:#C6CAC0; --bone-400:#A3A89C; --bone-500:#7A7F79;
+  --bone-700:#4A5049; --bone-900:#171C19;
+  --sound:#1F5E52; --sound-bg:#DCE8E3;
+  --fault:#B33A2B; --fault-bg:#F2DED9;
+  --warn:#7A5C13;  --warn-bg:#EFE6CE;
+  --col-bukhari:#2A5BC4; --col-muslim:#5B3FB8;
+  --shadow-overlay:0 6px 24px rgba(23,28,25,.14);
 }
 
 *{box-sizing:border-box}
@@ -100,6 +139,31 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-ui
   text-transform:uppercase;color:var(--ink-3);margin:0 0 var(--sp-2)}
 
 /* ── Screens ───────────────────────────────────────────────────────── */
+/* ── The Folio hero ─────────────────────────────────────────────────
+   This project holds no photography, so the hadith's own number carries
+   the scale that an image carries on a site that has one. */
+.folio{display:grid;grid-template-columns:auto auto;justify-content:start;gap:var(--sp-8);
+  align-items:end;padding-block:var(--sp-6) var(--sp-5);
+  border-bottom:1px solid var(--rule);margin-bottom:var(--sp-6)}
+.folio__num{font-family:var(--font-data);font-size:var(--fs-hero);font-weight:600;
+  line-height:.76;letter-spacing:-.045em;color:var(--ink);margin:0;
+  font-variant-numeric:tabular-nums}
+.folio__meta{display:grid;gap:var(--sp-3);padding-bottom:var(--sp-3);min-width:0}
+.folio__coll{display:inline-flex;align-items:center;gap:var(--sp-2);
+  font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink-3)}
+.folio__coll::before{content:'';width:9px;height:9px;border-radius:2px;
+  background:var(--col-bukhari);flex:none}
+.folio__ar{font-family:var(--font-ar);font-size:var(--fs-ar-xl);line-height:1.2;
+  color:var(--ink);text-align:start;justify-self:start}
+.folio__sub{font-family:var(--font-read);font-size:var(--fs-lg);color:var(--ink-2);
+  margin:0;max-width:52ch}
+
+@media (max-width:52rem){
+  .folio{grid-template-columns:minmax(0,1fr);gap:var(--sp-3);align-items:start}
+  .folio__meta{padding-bottom:0}
+}
+
 .screen{display:none}
 .screen.is-on{display:block}
 
@@ -121,7 +185,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-ui
 .matn{font-family:var(--font-ar);font-size:var(--fs-ar-lg);line-height:var(--lh-ar);
   text-align:right;margin:0 0 var(--sp-6)}
 .trans{border-top:1px solid var(--rule);padding-top:var(--sp-5);margin-bottom:var(--sp-8)}
-.trans p{font-family:var(--font-read);font-size:var(--fs-lg);line-height:1.65;margin:0 0 var(--sp-3);max-width:68ch}
+.trans p:not(.srcline){font-family:var(--font-read);font-size:var(--fs-lg);line-height:1.65;margin:0 0 var(--sp-3);max-width:68ch}
 .srcline{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.08em;
   text-transform:uppercase;color:var(--ink-3);display:flex;gap:var(--sp-3);flex-wrap:wrap;margin:0}
 .apphead{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-4);
@@ -437,8 +501,15 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-ui
     <!-- ══════════ HADITH ══════════ -->
     <section class="screen" data-screen="hadith" aria-labelledby="h-hadith">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="#/hadith">Sahih al-Bukhari</a><span class="crumbs__sep" aria-hidden="true">›</span><a href="#/hadith"><span dir="rtl">بدء الوحي</span> · seq 1</a><span class="crumbs__sep" aria-hidden="true">›</span><span>1</span></nav>
-      <h1 class="h1" id="h-hadith">Ṣaḥīḥ al-Bukhārī 1</h1>
-      <p class="lede">The hadith of intentions. One chain of narrators, all seven identified.</p>
+      <header class="folio">
+        <p class="folio__num" aria-hidden="true">1</p>
+        <div class="folio__meta">
+          <span class="folio__coll">Sahih al-Bukhari · hadith 1</span>
+          <span class="folio__ar" dir="rtl">بَدْء الوَحْي</span>
+        </div>
+      </header>
+      <h1 class="vh" id="h-hadith">Sahih al-Bukhari, hadith 1</h1>
+      <p class="folio__sub">The hadith of intentions. One chain of narrators, all seven identified.</p>
 
       <article class="doc rv">
         <aside class="rail">

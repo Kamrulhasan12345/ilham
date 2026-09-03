@@ -65,23 +65,46 @@ Obey these rules:
    sits on the right. The chain is Arabic content, so it runs in the Arabic
    direction.
 
+## Scale
+
+**This project holds no photography.** The corpus is 14,901 hadiths of text and
+no images. Type, colour, and scale carry the whole visual load. A system that
+sets everything at one volume therefore looks flat, and the first draft did.
+
+**The Latin scale runs 16:1**, from 11px to 176px. It ran 3.3:1 before, and that
+was the single largest fault in the first draft.
+
+Give each page one moment of scale and keep everything else quiet. On a hadith
+page the number is that moment. It does the work a photograph does on a site
+that has one.
+
 ## Colour
 
-The palette has one neutral ramp and three meaning colours.
+The system is **dark first.** The bare `:root` holds the dark palette. Light is
+the alternate, under `prefers-color-scheme: light` and `[data-theme="light"]`.
 
-| Token | Value | Use |
-|---|---|---|
-| `--bone-100` | `#EDEFE8` | The page ground. |
-| `--bone-900` | `#171C19` | Body text. The compiler node. |
-| `--bone-700` | `#4A5049` | Secondary text. This is the lightest tone for prose. |
-| `--bone-500` | `#7A7F79` | Labels of 14px and more. Icon strokes. Never body text. |
-| `--sound` | `#1F5E52` | A recorded strong grade. Also success. |
-| `--fault` | `#B33A2B` | The lowest weight. Anʿana. Contested grades. Errors. |
-| `--warn` | `#7A5C13` | An unmapped verdict. An unverified teacher. Unaligned data. |
+The palette has one neutral ramp, three meaning colours, and one categorical
+pair.
+
+| Token | Dark | Light | Use |
+|---|---|---|---|
+| `--bone-100` | `#12150F` | `#EDEFE8` | The page ground. |
+| `--bone-900` | `#E8EBE0` | `#171C19` | Body text. 15.4:1. |
+| `--bone-700` | `#A9AF9F` | `#4A5049` | Secondary text. 8.3:1. |
+| `--bone-500` | `#767C6D` | `#7A7F79` | Large text and rules only. 4.3:1. Never prose. |
+| `--sound` | `#4FBF9F` | `#1F5E52` | A recorded strong grade. Also success. |
+| `--fault` | `#F2795E` | `#B33A2B` | The lowest weight. Anʿana. Errors. |
+| `--warn` | `#E0B24B` | `#7A5C13` | An unmapped verdict. An unverified teacher. |
+| `--col-bukhari` | `#5B92F5` | `#2A5BC4` | The collection, and nothing else. |
+| `--col-muslim` | `#9B7BF0` | `#5B3FB8` | The collection, and nothing else. |
+
+The two collection colours are **categorical**. They name a book. They carry no
+judgement, and they never touch a grade.
 
 Rules:
 
 1. The three meaning colours carry meaning only. Do not use them to decorate.
+   The two collection colours name a collection only.
 2. A primary button is ink, not a hue. A plain action does not spend a meaning
    colour.
 3. Red reports a classical verdict. The platform gives no religious judgement.

@@ -9,68 +9,93 @@
    This :root block is the source of truth. When frontend/ is scaffolded,
    copy it verbatim to frontend/src/styles/tokens.css.
    ═══════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   ILHAM — CANONICAL TOKENS · dark-first
+   The bare :root is the DARK palette. Light is the alternate. This project
+   holds no photography, so type, colour and scale carry the whole visual
+   load — which is why the Latin scale runs 16:1, not 3:1.
+   When frontend/ is scaffolded, copy this block to src/styles/tokens.css.
+   ═══════════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Neutrals: "bone". Cool, faint green cast, matched in temperature to
-        the ink. Deliberately not #F4F1EA parchment cream. ─────────────── */
-  --bone-50:  #F6F7F3;   --bone-100: #EDEFE8;   --bone-200: #E2E5DA;
-  --bone-300: #C6CAC0;   --bone-400: #A3A89C;   --bone-500: #7A7F79;
-  --bone-700: #4A5049;   --bone-900: #171C19;
+  --bone-100: #12150F;  /* page ground             */
+  --bone-50:  #1A1E15;  /* raised surface          */
+  --bone-200: #0B0D07;  /* sunken well             */
+  --bone-300: #2C3126;  /* rules, the ladder spine */
+  --bone-400: #454B3D;  /* stronger rule           */
+  --bone-500: #767C6D;  /* large text only · 4.3:1 */
+  --bone-700: #A9AF9F;  /* secondary text  · 8.3:1 */
+  --bone-900: #E8EBE0;  /* body text       · 15.4:1 */
 
-  /* ── Three semantic hues. Each carries meaning. None decorates. ────── */
-  --sound: #1F5E52;  --sound-bg: #DCE8E3;   /* a recorded strong grade   */
-  --fault: #B33A2B;  --fault-bg: #F2DED9;   /* the minimum, anʿana, error */
-  --warn:  #7A5C13;  --warn-bg:  #EFE6CE;   /* unaligned, unverified      */
+  /* Three semantic hues, saturated for a dark ground. Each carries meaning. */
+  --sound: #4FBF9F;  --sound-bg: #12352C;   /* a recorded strong grade · 8.2:1 */
+  --fault: #F2795E;  --fault-bg: #3A1C15;   /* the minimum, anʿana     · 6.8:1 */
+  --warn:  #E0B24B;  --warn-bg:  #332711;   /* unmapped, unverified    · 9.4:1 */
+
+  /* Categorical, and only for collections. It carries no judgement. */
+  --col-bukhari: #5B92F5;
+  --col-muslim:  #9B7BF0;
 
   --paper: var(--bone-100);  --surface: var(--bone-50);
   --ink: var(--bone-900);    --ink-2: var(--bone-700);  --ink-3: var(--bone-500);
   --rule: var(--bone-300);   --rule-strong: var(--bone-400);
   --focus: var(--bone-900);
 
-  /* ── Four families, four jobs ──────────────────────────────────────── */
   --font-ar:   'Scheherazade New', 'Noto Naskh Arabic', serif;
   --font-read: 'Newsreader', Georgia, serif;
   --font-ui:   'Atkinson Hyperlegible', system-ui, sans-serif;
   --font-data: 'IBM Plex Mono', ui-monospace, monospace;
 
+  /* Latin scale. 11px to 176px is 16:1. The old system was 3.3:1. */
   --fs-2xs: 0.6875rem; --fs-xs: 0.78125rem; --fs-sm: 0.875rem; --fs-md: 1rem;
-  --fs-lg: 1.125rem;   --fs-xl: 1.375rem;   --fs-2xl: 1.75rem; --fs-3xl: 2.25rem;
+  --fs-lg: 1.1875rem;  --fs-xl: 1.5rem;     --fs-2xl: 2.125rem;
+  --fs-3xl: 3rem;      --fs-4xl: 4.5rem;
+  --fs-hero: clamp(4rem, 13vw, 11rem);
 
-  /* Arabic gets its own scale and leading. Naskh reads smaller than Latin
-     at equal px. Reusing one scale is the fastest way to look wrong. */
-  --fs-ar-sm: 1.0625rem; --fs-ar-md: 1.25rem; --fs-ar-lg: 1.625rem; --fs-ar-xl: 2rem;
-  --lh-ar: 2.0; --lh-body: 1.6; --lh-tight: 1.25;
+  /* Arabic keeps its own scale and leading. */
+  --fs-ar-sm: 1.0625rem; --fs-ar-md: 1.25rem; --fs-ar-lg: 1.875rem;
+  --fs-ar-xl: 2.75rem;
+  --lh-ar: 1.95; --lh-body: 1.6; --lh-tight: 1.15;
 
   --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem;
   --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem; --sp-10: 2.5rem;
-  --sp-12: 3rem;   --sp-16: 4rem;
+  --sp-12: 3rem;   --sp-16: 4rem;  --sp-20: 5rem;
 
   --r-xs: 2px; --r-sm: 3px; --r-md: 6px; --r-pill: 999px;
-  --shadow-overlay: 0 6px 24px rgba(23,28,25,0.14);
-  --shadow-modal: 0 16px 48px rgba(23,28,25,0.22);
+  --shadow-overlay: 0 6px 24px rgba(0, 0, 0, 0.55);
+  --shadow-modal:   0 16px 48px rgba(0, 0, 0, 0.7);
 
-  --dur-fast: 120ms; --dur: 180ms; --dur-slow: 280ms;
+  --dur-fast: 120ms; --dur: 180ms; --dur-slow: 340ms;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  --z-rail: 10; --z-header: 20; --z-pop: 30; --z-overlay: 40; --z-modal: 50; --z-toast: 60;
+  --z-rail: 10; --z-header: 20; --z-pop: 30;
+  --z-overlay: 40; --z-modal: 50; --z-toast: 60;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bone-50: #1B1F19; --bone-100: #12150F; --bone-200: #23281F;
-    --bone-300: #333A31; --bone-400: #4E564B; --bone-500: #8A9086;
-    --bone-700: #B4BAAF; --bone-900: #E4E7DE;
-    --sound: #6FB8A3; --sound-bg: #17352E;
-    --fault: #E58771; --fault-bg: #3B211B;
-    --warn: #CFA84C;  --warn-bg: #33290F;
+/* Light is the alternate. Same names, same roles, same contrast promises. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bone-100: #EDEFE8; --bone-50: #F6F7F3; --bone-200: #E2E5DA;
+    --bone-300: #C6CAC0; --bone-400: #A3A89C; --bone-500: #7A7F79;
+    --bone-700: #4A5049; --bone-900: #171C19;
+    --sound: #1F5E52; --sound-bg: #DCE8E3;
+    --fault: #B33A2B; --fault-bg: #F2DED9;
+    --warn:  #7A5C13; --warn-bg:  #EFE6CE;
+    --col-bukhari: #2A5BC4; --col-muslim: #5B3FB8;
+    --shadow-overlay: 0 6px 24px rgba(23, 28, 25, 0.14);
+    --shadow-modal:   0 16px 48px rgba(23, 28, 25, 0.22);
   }
 }
-:root[data-theme="dark"] {
-  --bone-50: #1B1F19; --bone-100: #12150F; --bone-200: #23281F;
-  --bone-300: #333A31; --bone-400: #4E564B; --bone-500: #8A9086;
-  --bone-700: #B4BAAF; --bone-900: #E4E7DE;
-  --sound: #6FB8A3; --sound-bg: #17352E;
-  --fault: #E58771; --fault-bg: #3B211B;
-  --warn: #CFA84C;  --warn-bg: #33290F;
+:root[data-theme="light"] {
+  --bone-100: #EDEFE8; --bone-50: #F6F7F3; --bone-200: #E2E5DA;
+  --bone-300: #C6CAC0; --bone-400: #A3A89C; --bone-500: #7A7F79;
+  --bone-700: #4A5049; --bone-900: #171C19;
+  --sound: #1F5E52; --sound-bg: #DCE8E3;
+  --fault: #B33A2B; --fault-bg: #F2DED9;
+  --warn:  #7A5C13; --warn-bg:  #EFE6CE;
+  --col-bukhari: #2A5BC4; --col-muslim: #5B3FB8;
+  --shadow-overlay: 0 6px 24px rgba(23, 28, 25, 0.14);
+  --shadow-modal:   0 16px 48px rgba(23, 28, 25, 0.22);
 }
 
 /* ═══ BASE ══════════════════════════════════════════════════════════════ */
