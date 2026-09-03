@@ -273,6 +273,10 @@ GET /analytics/* , /narrators/:id , /hadiths/:id :
   `staging.rank_map`.
 - **The seam:** the review and progress flow. The API transaction of the teammate
   fires your triggers.
+- **The frontend:** you build all of it. The teammate builds none of it. The
+  backend split above does not change. Agree this with the instructor before
+  week 8, because requirement 9 asks each member to defend their own work.
+  `docs/frontend-prd.md` §10 gives the detail.
 
 ---
 

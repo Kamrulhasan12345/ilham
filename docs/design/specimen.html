@@ -1,0 +1,1525 @@
+<title>Ilham Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   ILHAM — CANONICAL TOKENS
+   This :root block is the source of truth. When frontend/ is scaffolded,
+   copy it verbatim to frontend/src/styles/tokens.css.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Neutrals: "bone". Cool, faint green cast, matched in temperature to
+        the ink. Deliberately not #F4F1EA parchment cream. ─────────────── */
+  --bone-50:  #F6F7F3;   --bone-100: #EDEFE8;   --bone-200: #E2E5DA;
+  --bone-300: #C6CAC0;   --bone-400: #A3A89C;   --bone-500: #7A7F79;
+  --bone-700: #4A5049;   --bone-900: #171C19;
+
+  /* ── Three semantic hues. Each carries meaning. None decorates. ────── */
+  --sound: #1F5E52;  --sound-bg: #DCE8E3;   /* a recorded strong grade   */
+  --fault: #B33A2B;  --fault-bg: #F2DED9;   /* the minimum, anʿana, error */
+  --warn:  #7A5C13;  --warn-bg:  #EFE6CE;   /* unaligned, unverified      */
+
+  --paper: var(--bone-100);  --surface: var(--bone-50);
+  --ink: var(--bone-900);    --ink-2: var(--bone-700);  --ink-3: var(--bone-500);
+  --rule: var(--bone-300);   --rule-strong: var(--bone-400);
+  --focus: var(--bone-900);
+
+  /* ── Four families, four jobs ──────────────────────────────────────── */
+  --font-ar:   'Scheherazade New', 'Noto Naskh Arabic', serif;
+  --font-read: 'Newsreader', Georgia, serif;
+  --font-ui:   'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-data: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --fs-2xs: 0.6875rem; --fs-xs: 0.78125rem; --fs-sm: 0.875rem; --fs-md: 1rem;
+  --fs-lg: 1.125rem;   --fs-xl: 1.375rem;   --fs-2xl: 1.75rem; --fs-3xl: 2.25rem;
+
+  /* Arabic gets its own scale and leading. Naskh reads smaller than Latin
+     at equal px. Reusing one scale is the fastest way to look wrong. */
+  --fs-ar-sm: 1.0625rem; --fs-ar-md: 1.25rem; --fs-ar-lg: 1.625rem; --fs-ar-xl: 2rem;
+  --lh-ar: 2.0; --lh-body: 1.6; --lh-tight: 1.25;
+
+  --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem;
+  --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem; --sp-10: 2.5rem;
+  --sp-12: 3rem;   --sp-16: 4rem;
+
+  --r-xs: 2px; --r-sm: 3px; --r-md: 6px; --r-pill: 999px;
+  --shadow-overlay: 0 6px 24px rgba(23,28,25,0.14);
+  --shadow-modal: 0 16px 48px rgba(23,28,25,0.22);
+
+  --dur-fast: 120ms; --dur: 180ms; --dur-slow: 280ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  --z-rail: 10; --z-header: 20; --z-pop: 30; --z-overlay: 40; --z-modal: 50; --z-toast: 60;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bone-50: #1B1F19; --bone-100: #12150F; --bone-200: #23281F;
+    --bone-300: #333A31; --bone-400: #4E564B; --bone-500: #8A9086;
+    --bone-700: #B4BAAF; --bone-900: #E4E7DE;
+    --sound: #6FB8A3; --sound-bg: #17352E;
+    --fault: #E58771; --fault-bg: #3B211B;
+    --warn: #CFA84C;  --warn-bg: #33290F;
+  }
+}
+:root[data-theme="dark"] {
+  --bone-50: #1B1F19; --bone-100: #12150F; --bone-200: #23281F;
+  --bone-300: #333A31; --bone-400: #4E564B; --bone-500: #8A9086;
+  --bone-700: #B4BAAF; --bone-900: #E4E7DE;
+  --sound: #6FB8A3; --sound-bg: #17352E;
+  --fault: #E58771; --fault-bg: #3B211B;
+  --warn: #CFA84C;  --warn-bg: #33290F;
+}
+
+/* ═══ BASE ══════════════════════════════════════════════════════════════ */
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-ui); font-size: var(--fs-md); line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+:where(a) { color: inherit; text-decoration-color: var(--rule-strong); text-underline-offset: 3px; }
+:where(a:hover) { text-decoration-color: var(--fault); }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-xs);
+}
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+[dir="rtl"] { font-family: var(--font-ar); line-height: var(--lh-ar); }
+.wrap { max-width: 78rem; margin-inline: auto; padding-inline: var(--sp-6); }
+
+.masthead { border-bottom: 1px solid var(--rule); padding-block: var(--sp-10) var(--sp-8); }
+.masthead__eyebrow, .chapter__label {
+  font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-3); margin: 0 0 var(--sp-3);
+}
+.masthead__title { font-family: var(--font-read); font-size: var(--fs-3xl); font-weight: 500; line-height: var(--lh-tight); margin: 0 0 var(--sp-4); letter-spacing: -0.01em; }
+.masthead__lede { font-family: var(--font-read); font-size: var(--fs-lg); color: var(--ink-2); max-width: 48ch; margin: 0; }
+
+.chapter { border-top: 1px solid var(--rule); padding-block: var(--sp-12); }
+.chapter__label { margin-bottom: var(--sp-2); }
+.chapter__title { font-family: var(--font-read); font-size: var(--fs-2xl); font-weight: 500; margin: 0 0 var(--sp-3); letter-spacing: -0.01em; }
+.chapter__note { font-family: var(--font-read); color: var(--ink-2); max-width: 64ch; margin: 0 0 var(--sp-8); }
+
+/* ═══ THE DOCUMENT ══════════════════════════════════════════════════════ */
+.doc {
+  display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: var(--sp-8);
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: var(--r-md); padding: var(--sp-8);
+}
+.rail { border-inline-end: 1px solid var(--rule); padding-inline-end: var(--sp-6); }
+.rail__row { display: grid; gap: 2px; padding-block: var(--sp-3); border-top: 1px solid var(--rule); }
+.rail__row:first-child { border-top: 0; padding-top: 0; }
+.rail__key { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.rail__val { font-family: var(--font-data); font-size: var(--fs-sm); color: var(--ink); }
+.rail__val--ar { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.7; }
+.rail__val--absent { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--ink-3); }
+.rail__val--warn { color: var(--warn); }
+
+.matn { font-family: var(--font-ar); font-size: var(--fs-ar-lg); line-height: var(--lh-ar); text-align: right; margin: 0 0 var(--sp-6); }
+.trans { border-top: 1px solid var(--rule); padding-top: var(--sp-5); margin-bottom: var(--sp-8); }
+.trans__body { font-family: var(--font-read); font-size: var(--fs-lg); line-height: 1.65; margin: 0 0 var(--sp-3); max-width: 68ch; }
+.trans__body--absent { font-family: var(--font-ui); font-size: var(--fs-md); color: var(--ink-2); max-width: 54ch; }
+.trans__src { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: center; margin: 0; }
+
+.app-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; border-top: 2px solid var(--ink); padding-top: var(--sp-3); margin-bottom: var(--sp-6); }
+.app-head__title { font-family: var(--font-data); font-size: var(--fs-xs); letter-spacing: 0.14em; text-transform: uppercase; margin: 0; }
+.app-head__aside { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); }
+
+/* ═══ THE ISNAD LADDER ══════════════════════════════════════════════════
+   A wholly RTL object inside an LTR page. The chain is Arabic content, so
+   it runs in the Arabic direction: generation gutter right, spine, names.
+   ═══════════════════════════════════════════════════════════════════════ */
+.isnad { list-style: none; margin: 0; padding: 0; }
+.rung, .edge { display: grid; grid-template-columns: 4.25rem 1.75rem minmax(0, 1fr); }
+.rung { align-items: start; }
+.edge { align-items: center; }
+
+.rung__gen { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); letter-spacing: 0.06em; padding-top: 0.35rem; direction: ltr; }
+.rung__gen b { color: var(--ink-2); font-weight: 500; }
+.rung__gen--none { color: var(--bone-400); }
+
+/* align-self: stretch is load-bearing. The row is align-items: start, so
+   without it the cell is only as tall as the dot and the spine breaks into
+   disconnected stubs wherever a narrator block is tall. */
+.rung__node { position: relative; display: flex; justify-content: center; padding-top: 0.4rem; align-self: stretch; }
+.rung__node::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 50%; translate: 50% 0; width: 2px; background: var(--rule); }
+.rung:first-child .rung__node::before { inset-block-start: 0.8rem; }
+.rung:last-of-type .rung__node::before { inset-block-end: calc(100% - 0.8rem); }
+
+.node { position: relative; z-index: 1; width: 13px; height: 13px; border-radius: 50%; background: var(--paper); border: 2.5px solid var(--ink-3); flex: none; }
+.node--sound       { background: var(--sound); border-color: var(--sound); }
+.node--weak        { background: var(--fault); border-color: var(--fault); }
+.node--ungraded    { background: var(--ink-3); border-color: var(--ink-3); }
+.node--ambiguous   { background: var(--paper); border-color: var(--ink-3); }
+.node--unresolved  { background: var(--paper); border-style: dashed; border-color: var(--rule-strong); }
+.node--placeholder { background: var(--paper); border-style: dashed; border-color: var(--rule-strong); border-radius: 1px; }
+.node--compiler    { background: var(--ink); border-color: var(--ink); border-radius: 1px; }
+.node--min { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5.5px var(--fault); }
+
+.edge__spine { position: relative; display: flex; justify-content: center; min-height: 2.5rem; }
+.edge__spine::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 50%; translate: 50% 0; width: 2px; background: var(--rule); }
+.edge[data-sigha="anana"] .edge__spine::before { background: none; border-inline-start: 2px dashed var(--fault); width: 0; }
+.edge[data-sigha="none"]  .edge__spine::before { background: none; border-inline-start: 2px dotted var(--rule-strong); width: 0; }
+.edge__cell { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; padding-inline-start: var(--sp-3); }
+.edge__word { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1; color: var(--ink-2); }
+.edge[data-sigha="anana"] .edge__word { color: var(--fault); }
+.edge__tag { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); direction: ltr; }
+.edge__tag--fault { color: var(--fault); }
+.edge__tag--absent { color: var(--ink-3); font-style: italic; }
+
+.rung__body { padding-block: 0 var(--sp-1); padding-inline-start: var(--sp-3); min-width: 0; }
+.rung__name { font-family: var(--font-ar); font-size: var(--fs-ar-md); line-height: 1.5; }
+.rung__name--raw { color: var(--ink-2); }
+.rung__grades { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.rung__flag { display: inline-flex; align-items: center; gap: 5px; margin: var(--sp-2) 0 0; font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fault); direction: ltr; }
+.rung__flag--quiet { color: var(--ink-3); }
+
+/* grade chip — raw string renders as it is; code and weight are apparatus */
+.grade { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); border-radius: var(--r-xs); padding: 2px var(--sp-2) 3px; background: var(--paper); max-width: 100%; }
+.grade__who { font-family: var(--font-data); font-size: var(--fs-2xs); font-weight: 600; color: var(--ink-3); letter-spacing: 0.06em; direction: ltr; flex: none; }
+.grade__raw { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grade__en  { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--ink-3); direction: ltr; }
+.grade__w { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); direction: ltr; flex: none; }
+.grade__via { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); direction: ltr; flex: none; border-inline-start: 1px solid var(--rule); padding-inline-start: 6px; }
+.grade--sound { border-color: var(--sound); background: var(--sound-bg); }
+.grade--sound .grade__who, .grade--sound .grade__w, .grade--sound .grade__via { color: var(--sound); }
+.grade--weak { border-color: var(--fault); background: var(--fault-bg); }
+.grade--weak .grade__who, .grade--weak .grade__w, .grade--weak .grade__via { color: var(--fault); }
+.grade--absent { border-style: dashed; }
+.grade--unmapped { border-color: var(--warn); background: var(--warn-bg); }
+.grade--unmapped .grade__who, .grade--unmapped .grade__w { color: var(--warn); }
+
+/* ═══ THE STRENGTH PLOT ═════════════════════════════════════════════════
+   NOT a 0→1 bar. Real corpus: avg 0.836, 13 distinct values, clustered at
+   0.90–0.95. A linear bar renders almost every hadith identically. This
+   plots each link against the discrete weights the function can produce,
+   ordered by value — which is how the two "unknown" states end up in the
+   middle of the scale rather than at the bottom, where they belong.
+   ═══════════════════════════════════════════════════════════════════════ */
+.strength { margin-top: var(--sp-8); border-top: 1px solid var(--rule); padding-top: var(--sp-5); }
+.strength__top { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-5); }
+.strength__label { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+.strength__value { font-family: var(--font-data); font-size: var(--fs-2xl); font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.strength__value--low { color: var(--fault); }
+.strength__band { font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--ink-2); }
+
+.plot { display: grid; gap: 0; border: 1px solid var(--rule); border-radius: var(--r-sm); overflow: hidden; background: var(--paper); }
+.plot__row { display: grid; grid-template-columns: 3rem 6.5rem minmax(0, 1fr); align-items: center; border-top: 1px solid var(--rule); min-height: 1.9rem; }
+.plot__row:first-child { border-top: 0; }
+/* The ring marks the row that SETS the score. Its colour follows the weight,
+   so a chain whose minimum is ثقة is never drawn in fault red — otherwise the
+   strongest possible chain renders as if every link were a problem. */
+.plot__row--min { background: var(--fault-bg); }
+.plot__row--set { background: var(--sound-bg); }
+.plot__row--unknown { background: var(--bone-200); }
+.plot__w { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-2); text-align: center; font-variant-numeric: tabular-nums; }
+.plot__name { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1; padding-inline-end: var(--sp-2); text-align: right; }
+.plot__name--en { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--ink-2); text-align: left; direction: ltr; padding-inline-start: var(--sp-2); }
+.plot__cells { display: flex; direction: rtl; height: 100%; align-items: center; border-inline-start: 1px solid var(--rule); }
+.plot__cell { flex: 1 1 0; display: flex; justify-content: center; align-items: center; min-width: 1.5rem; height: 100%; }
+.plot__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-3); }
+.plot__dot--min { background: var(--fault); box-shadow: 0 0 0 3px var(--fault-bg), 0 0 0 4.5px var(--fault); }
+.plot__dot--set { background: var(--sound); box-shadow: 0 0 0 3px var(--sound-bg), 0 0 0 4.5px var(--sound); }
+.plot__dot--excl { width: 9px; height: 9px; border-radius: 1px; background: none; border: 1.5px dashed var(--rule-strong); }
+.plot__foot { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; font-family: var(--font-data); font-size: var(--fs-xs); color: var(--ink-2); margin: var(--sp-4) 0 0; }
+.plot__foot b { font-weight: 600; color: var(--ink); }
+.plot__ctx { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); margin: var(--sp-2) 0 0; }
+
+/* ═══ LEGEND ════════════════════════════════════════════════════════════ */
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--sp-5) var(--sp-6); margin: 0; padding: 0; list-style: none; }
+.legend__item { display: grid; grid-template-columns: 1.75rem 1fr; gap: var(--sp-2); align-items: start; }
+.legend__swatch { display: flex; justify-content: center; padding-top: 3px; }
+.legend__name { font-size: var(--fs-sm); font-weight: 700; margin: 0; }
+.legend__desc { font-size: var(--fs-xs); color: var(--ink-2); margin: 2px 0 0; line-height: 1.45; }
+.legend__code { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); }
+
+/* ═══ FOUNDATIONS ═══════════════════════════════════════════════════════ */
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--sp-5); }
+.swatch { border: 1px solid var(--rule); border-radius: var(--r-sm); overflow: hidden; background: var(--surface); }
+.swatch__chip { height: 4rem; }
+.swatch__meta { padding: var(--sp-3); display: grid; gap: 2px; }
+.swatch__name { font-size: var(--fs-sm); font-weight: 700; }
+.swatch__hex { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); }
+.swatch__use { font-size: var(--fs-xs); color: var(--ink-2); line-height: 1.4; }
+
+.typespec { border-top: 1px solid var(--rule); padding-block: var(--sp-5); display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--sp-5); align-items: baseline; }
+.typespec__meta { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); line-height: 1.7; margin: 0; }
+.typespec__meta b { display: block; color: var(--ink); font-weight: 600; font-size: var(--fs-xs); letter-spacing: 0.06em; text-transform: uppercase; }
+.typespec__sample { margin: 0; }
+
+@media (max-width: 62rem) {
+  .doc { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); padding: var(--sp-5); }
+  .rail { border-inline-end: 0; border-bottom: 1px solid var(--rule); padding-inline-end: 0; padding-bottom: var(--sp-4);
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: var(--sp-3) var(--sp-5); }
+  .rail__row { border-top: 0; padding-block: 0; }
+  .rung, .edge { grid-template-columns: 3rem 1.5rem minmax(0, 1fr); }
+  .matn { font-size: var(--fs-ar-md); }
+  .plot__row { grid-template-columns: 2.75rem 5rem minmax(0, 1fr); }
+  .typespec { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+}
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENTS
+   Every state below exists because the schema can produce it.
+   ═══════════════════════════════════════════════════════════════════════ */
+.bench { display: grid; gap: var(--sp-6); }
+.bench__row { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--sp-5); align-items: start; border-top: 1px solid var(--rule); padding-top: var(--sp-5); }
+.bench__label { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin: 0; line-height: 1.7; }
+.bench__label em { display: block; font-family: var(--font-ui); font-style: normal; letter-spacing: 0; text-transform: none; font-size: var(--fs-xs); color: var(--ink-2); margin-top: var(--sp-2); }
+.bench__set { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+.bench__stack { display: grid; gap: var(--sp-4); }
+
+/* ── Buttons ───────────────────────────────────────────────────────────
+   Coarse pointers get 44px. Fine pointers get 40/32 — above the 24px
+   WCAG 2.2 minimum, and dense enough for a teacher marking 25 hadiths. */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 700; line-height: 1;
+  min-height: 2.5rem; padding: 0 var(--sp-4); border-radius: var(--r-sm);
+  border: 1px solid transparent; background: none; color: var(--ink); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.btn--sm { min-height: 2rem; padding: 0 var(--sp-3); font-size: var(--fs-xs); }
+.btn--primary { background: var(--ink); color: var(--paper); }
+.btn--primary:hover { background: var(--bone-700); }
+.btn--secondary { border-color: var(--rule-strong); background: var(--surface); }
+.btn--secondary:hover { border-color: var(--ink-3); background: var(--bone-200); }
+.btn--quiet { color: var(--ink-2); }
+.btn--quiet:hover { background: var(--bone-200); color: var(--ink); }
+.btn--danger { border-color: var(--fault); color: var(--fault); background: var(--surface); }
+.btn--danger:hover { background: var(--fault-bg); }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.btn[aria-busy="true"] { cursor: progress; }
+.spinner { width: 13px; height: 13px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { rotate: 360deg; } }
+@media (pointer: coarse) { .btn { min-height: 2.75rem; } .btn--sm { min-height: 2.75rem; } }
+
+/* ── Fields ────────────────────────────────────────────────────────── */
+.field { display: grid; gap: var(--sp-2); max-width: 26rem; }
+.field__label { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 700; }
+.field__req { color: var(--fault); font-weight: 400; }
+.field__hint { font-size: var(--fs-xs); color: var(--ink-2); margin: 0; }
+.field__err { display: flex; gap: 6px; font-size: var(--fs-xs); color: var(--fault); margin: 0; font-weight: 700; }
+.input, .textarea, .select {
+  font-family: var(--font-ui); font-size: var(--fs-md); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule-strong); border-radius: var(--r-sm);
+  padding: 0.55rem var(--sp-3); min-height: 2.5rem; width: 100%;
+}
+.textarea { min-height: 6rem; resize: vertical; line-height: 1.6; }
+.input--ar { font-family: var(--font-ar); font-size: var(--fs-ar-sm); text-align: right; }
+.input[aria-invalid="true"] { border-color: var(--fault); border-width: 2px; }
+.input[readonly] { background: var(--bone-200); border-style: dashed; }
+.input[disabled] { background: var(--bone-200); color: var(--ink-3); cursor: not-allowed; }
+
+/* ── Chips ─────────────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 700; line-height: 1;
+  padding: 5px var(--sp-2) 6px; border-radius: var(--r-xs);
+  border: 1px solid var(--rule-strong); background: var(--surface); color: var(--ink-2);
+}
+.chip--sound { border-color: var(--sound); background: var(--sound-bg); color: var(--sound); }
+.chip--fault { border-color: var(--fault); background: var(--fault-bg); color: var(--fault); }
+.chip--warn  { border-color: var(--warn);  background: var(--warn-bg);  color: var(--warn); }
+.chip--quiet { border-style: dashed; color: var(--ink-3); }
+.chip__dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.chip__num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* ── Segmented control · the sanad switcher ────────────────────────── */
+.seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--r-sm); overflow: hidden; background: var(--surface); }
+.seg__btn {
+  font-family: var(--font-data); font-size: var(--fs-xs); font-weight: 500;
+  padding: 0 var(--sp-3); min-height: 2.25rem; border: 0; border-inline-start: 1px solid var(--rule);
+  background: none; color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.seg__btn:first-child { border-inline-start: 0; }
+.seg__btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+/* ── Mastery: five levels, one threshold ───────────────────────────── */
+.mastery { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.mastery__steps { display: inline-flex; gap: 3px; }
+.mastery__step { width: 1.5rem; height: 0.5rem; border-radius: 1px; background: var(--bone-300); }
+.mastery__step--on { background: var(--ink-3); }
+.mastery__step--mastered { background: var(--sound); }
+.mastery__text { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-2); }
+.mastery--met .mastery__text { color: var(--sound); font-weight: 600; }
+
+/* ── Strength chip, for lists ──────────────────────────────────────── */
+.sc { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-2); }
+.sc__bar { width: 3.5rem; height: 5px; background: var(--bone-300); border-radius: 1px; overflow: hidden; }
+.sc__fill { display: block; height: 100%; background: var(--ink-3); }
+.sc__fill--low { background: var(--fault); }
+.sc__val { font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink); }
+
+/* ── Cards and rows ────────────────────────────────────────────────── */
+.card { border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); padding: var(--sp-5); display: grid; gap: var(--sp-3); }
+.card__head { display: flex; justify-content: space-between; align-items: start; gap: var(--sp-3); }
+.card__title { font-family: var(--font-ui); font-size: var(--fs-md); font-weight: 700; margin: 0; }
+.card__title--ar { font-family: var(--font-ar); font-size: var(--fs-ar-md); }
+.card__meta { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); margin: 0; display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.card__foot { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; }
+
+.hrow { display: grid; grid-template-columns: 5rem minmax(0, 1fr) auto; gap: var(--sp-4); align-items: center; padding: var(--sp-3) 0; border-top: 1px solid var(--rule); }
+.hrow__num { font-family: var(--font-data); font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.hrow__text { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.8; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Definition list · omit-when-null ──────────────────────────────── */
+.dl { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--sp-2) var(--sp-4); margin: 0; }
+.dl dt { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+.dl dd { margin: 0; font-size: var(--fs-sm); }
+.dl dd[data-absent] { color: var(--ink-3); font-style: italic; }
+
+/* ── Table ─────────────────────────────────────────────────────────── */
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--r-sm); }
+.table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: var(--fs-sm); }
+.table th, .table td { text-align: start; padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--rule); }
+.table thead th { border-top: 0; background: var(--bone-200); font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+.table td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; text-align: end; }
+.table th[aria-sort] { cursor: pointer; }
+.table th[aria-sort="descending"]::after { content: ' ↓'; color: var(--ink); }
+
+/* ── Empty, error, loading ─────────────────────────────────────────── */
+.empty { border: 1px dashed var(--rule-strong); border-radius: var(--r-md); padding: var(--sp-8) var(--sp-5); display: grid; gap: var(--sp-3); justify-items: start; background: var(--surface); }
+.empty--center { justify-items: center; text-align: center; }
+.empty__title { font-family: var(--font-ui); font-size: var(--fs-md); font-weight: 700; margin: 0; }
+.empty__body { font-size: var(--fs-sm); color: var(--ink-2); margin: 0; max-width: 44ch; }
+.notice { display: grid; gap: var(--sp-2); border-inline-start: 3px solid var(--rule-strong); padding: var(--sp-3) var(--sp-4); background: var(--surface); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.notice--warn { border-inline-start-color: var(--warn); background: var(--warn-bg); }
+.notice--fault { border-inline-start-color: var(--fault); background: var(--fault-bg); }
+.notice__title { font-size: var(--fs-sm); font-weight: 700; margin: 0; }
+.notice__body { font-size: var(--fs-xs); color: var(--ink-2); margin: 0; }
+.notice--warn .notice__body, .notice--fault .notice__body { color: var(--ink-2); }
+.skel { background: var(--bone-200); border-radius: var(--r-xs); height: 0.85rem; }
+.skel--ar { height: 1.4rem; }
+
+/* ── Toast ─────────────────────────────────────────────────────────── */
+.toast { display: inline-flex; align-items: center; gap: var(--sp-3); background: var(--ink); color: var(--paper); border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4); box-shadow: var(--shadow-overlay); font-size: var(--fs-sm); }
+.toast__act { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-sm); background: none; border: 0; color: var(--paper); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* ── Pagination · there is no total count in the API ───────────────── */
+.pager { display: flex; align-items: center; gap: var(--sp-3); font-family: var(--font-data); font-size: var(--fs-xs); color: var(--ink-2); }
+.crumbs { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; font-size: var(--fs-xs); color: var(--ink-2); }
+.crumbs__sep { color: var(--ink-3); }
+.crumbs__gap { color: var(--ink-3); font-style: italic; }
+
+/* ── Audit entry ───────────────────────────────────────────────────── */
+.audit { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--rule); align-items: baseline; }
+.audit__when { font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); white-space: nowrap; }
+.audit__what { font-size: var(--fs-sm); margin: 0; }
+.audit__who { font-size: var(--fs-xs); color: var(--ink-2); margin: 2px 0 0; }
+.audit__who--unknown { color: var(--ink-3); font-style: italic; }
+
+@media (max-width: 62rem) {
+  .bench__row { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .hrow { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+  .dl { grid-template-columns: minmax(0, 1fr); gap: var(--sp-1) 0; }
+  .dl dd { margin-bottom: var(--sp-2); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SHELL, ANALYTICS, FLOWS
+   ═══════════════════════════════════════════════════════════════════════ */
+.icon { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.icon--sm { width: 16px; height: 16px; }
+
+/* ── App shell ─────────────────────────────────────────────────────── */
+.shell { border: 1px solid var(--rule); border-radius: var(--r-md); overflow: hidden; background: var(--surface); }
+.topbar { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--rule); background: var(--paper); }
+.brand { font-family: var(--font-read); font-size: var(--fs-lg); font-weight: 500; letter-spacing: -0.01em; }
+.brand span { font-family: var(--font-ar); font-size: var(--fs-ar-sm); color: var(--ink-3); margin-inline-start: 6px; }
+.topbar__spacer { flex: 1 1 auto; }
+.searchbtn { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 2.25rem; padding: 0 var(--sp-3); border: 1px solid var(--rule-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--ink-3); font-family: var(--font-ui); font-size: var(--fs-xs); cursor: pointer; }
+.searchbtn kbd { font-family: var(--font-data); font-size: var(--fs-2xs); border: 1px solid var(--rule); border-radius: var(--r-xs); padding: 1px 4px; }
+.shell__body { display: grid; grid-template-columns: 13rem minmax(0, 1fr); }
+.sidenav { border-inline-end: 1px solid var(--rule); padding: var(--sp-4) var(--sp-3); display: grid; gap: var(--sp-1); align-content: start; }
+.sidenav__group { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); padding: var(--sp-3) var(--sp-2) var(--sp-1); }
+.navlink { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2); border-radius: var(--r-sm); color: var(--ink-2); font-size: var(--fs-sm); text-decoration: none; min-height: 2.25rem; }
+.navlink:hover { background: var(--bone-200); color: var(--ink); }
+.navlink[aria-current="page"] { background: var(--ink); color: var(--paper); font-weight: 700; }
+.navlink__badge { margin-inline-start: auto; font-family: var(--font-data); font-size: var(--fs-2xs); background: var(--fault); color: var(--bone-50); border-radius: var(--r-pill); padding: 1px 6px; }
+.shell__main { padding: var(--sp-5); min-height: 12rem; }
+.skiplink { position: absolute; inset-inline-start: -9999px; background: var(--ink); color: var(--paper); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); font-size: var(--fs-sm); }
+.skiplink:focus { position: static; display: inline-block; }
+
+/* ── Auth ──────────────────────────────────────────────────────────── */
+.auth { max-width: 24rem; display: grid; gap: var(--sp-4); }
+.rolepick { display: grid; gap: var(--sp-2); }
+.roleopt { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-3); align-items: start; border: 1px solid var(--rule-strong); border-radius: var(--r-sm); padding: var(--sp-3); cursor: pointer; background: var(--surface); }
+.roleopt:has(input:checked) { border-color: var(--ink); border-width: 2px; padding: calc(var(--sp-3) - 1px); }
+.roleopt__name { font-size: var(--fs-sm); font-weight: 700; }
+.roleopt__desc { font-size: var(--fs-xs); color: var(--ink-2); margin: 2px 0 0; }
+
+/* ── Verification queue ────────────────────────────────────────────── */
+.qrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-4); align-items: center; padding: var(--sp-3) 0; border-top: 1px solid var(--rule); }
+.qrow__name { font-size: var(--fs-sm); font-weight: 700; margin: 0; }
+.qrow__meta { font-size: var(--fs-xs); color: var(--ink-2); margin: 2px 0 0; }
+.qrow__acts { display: flex; gap: var(--sp-2); }
+
+/* ── Search results ────────────────────────────────────────────────── */
+.hit { display: grid; gap: var(--sp-2); padding: var(--sp-4) 0; border-top: 1px solid var(--rule); }
+.hit__top { display: flex; gap: var(--sp-3); align-items: baseline; flex-wrap: wrap; font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); }
+.hit__text { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.9; text-align: right; margin: 0; }
+.hit__text mark { background: var(--warn-bg); color: inherit; padding: 0 2px; border-radius: 2px; }
+
+/* ── Review runner ─────────────────────────────────────────────────── */
+.steps { display: flex; align-items: center; gap: var(--sp-2); font-family: var(--font-data); font-size: var(--fs-2xs); color: var(--ink-3); }
+.steps__bar { flex: 1 1 auto; height: 4px; background: var(--bone-300); border-radius: 2px; overflow: hidden; max-width: 14rem; }
+.steps__fill { display: block; height: 100%; background: var(--ink); }
+.verdicts { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.verdict { display: inline-flex; flex-direction: column; align-items: start; gap: 2px; border: 1px solid var(--rule-strong); border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4); background: var(--surface); cursor: pointer; min-width: 8rem; text-align: start; }
+.verdict__k { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 700; }
+.verdict__d { font-family: var(--font-ui); font-size: var(--fs-xs); color: var(--ink-2); }
+.verdict[aria-pressed="true"] { border-width: 2px; padding: calc(var(--sp-3) - 1px) calc(var(--sp-4) - 1px); }
+.verdict--pass[aria-pressed="true"] { border-color: var(--sound); background: var(--sound-bg); }
+.verdict--partial[aria-pressed="true"] { border-color: var(--warn); background: var(--warn-bg); }
+.verdict--fail[aria-pressed="true"] { border-color: var(--fault); background: var(--fault-bg); }
+
+/* ── Dialog ────────────────────────────────────────────────────────── */
+.scrim { background: rgba(23, 28, 25, 0.5); padding: var(--sp-8) var(--sp-4); border-radius: var(--r-md); display: grid; justify-items: center; }
+.dialog { background: var(--surface); border-radius: var(--r-md); box-shadow: var(--shadow-modal); padding: var(--sp-5); max-width: 26rem; display: grid; gap: var(--sp-3); }
+.dialog__title { font-family: var(--font-ui); font-size: var(--fs-lg); font-weight: 700; margin: 0; }
+.dialog__body { font-size: var(--fs-sm); color: var(--ink-2); margin: 0; }
+.dialog__acts { display: flex; gap: var(--sp-2); justify-content: flex-end; flex-wrap: wrap; margin-top: var(--sp-2); }
+
+/* ── Ranked bars · Q1 ──────────────────────────────────────────────── */
+.rank { display: grid; gap: 0; }
+.rank__row { display: grid; grid-template-columns: minmax(7rem, 12rem) minmax(0, 1fr) 4.5rem; gap: var(--sp-3); align-items: center; padding: var(--sp-2) 0; border-top: 1px solid var(--rule); }
+.rank__name { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.4; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank__track { background: var(--bone-200); border-radius: 1px; height: 0.85rem; }
+.rank__fill { display: block; height: 100%; background: var(--ink-3); border-radius: 1px; }
+.rank__val { font-family: var(--font-data); font-size: var(--fs-xs); text-align: end; font-variant-numeric: tabular-nums; }
+
+/* ── Dumbbell · Q2 contested narrators ─────────────────────────────── */
+.dumb { display: grid; gap: 0; }
+.dumb__head { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) 3.5rem; gap: var(--sp-3); font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding-bottom: var(--sp-2); }
+.dumb__row { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) 3.5rem; gap: var(--sp-3); align-items: center; padding: var(--sp-3) 0; border-top: 1px solid var(--rule); }
+.dumb__name { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.4; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dumb__track { position: relative; height: 1.25rem; }
+.dumb__axis { position: absolute; inset-inline: 0; top: 50%; height: 1px; background: var(--rule); }
+.dumb__link { position: absolute; top: 50%; height: 3px; translate: 0 -50%; background: var(--ink-3); border-radius: 2px; }
+.dumb__link--wide { background: var(--fault); }
+.dumb__pt { position: absolute; top: 50%; width: 12px; height: 12px; translate: -50% -50%; background: var(--surface); border: 2.5px solid var(--ink); }
+.dumb__pt--ih { border-radius: 50%; }
+.dumb__pt--dh { border-radius: 1px; rotate: 45deg; }
+.dumb__gap { font-family: var(--font-data); font-size: var(--fs-xs); text-align: end; font-variant-numeric: tabular-nums; }
+.dumb__gap--wide { color: var(--fault); font-weight: 600; }
+/* The scale shares the row template, so the labels stay locked to the track
+   at every width instead of relying on a fixed indent. */
+.dumb__scale { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) 3.5rem; gap: var(--sp-3); margin-top: var(--sp-1); }
+.dumb__scale > span:nth-child(2) { display: flex; justify-content: space-between; font-family: var(--font-ar); font-size: var(--fs-2xs); color: var(--ink-3); }
+.keyline { display: flex; gap: var(--sp-4); flex-wrap: wrap; font-size: var(--fs-xs); color: var(--ink-2); align-items: center; margin: var(--sp-3) 0 0; }
+.keyline__i { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ── Shared narrators · Q3 ─────────────────────────────────────────── */
+.shared { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: var(--sp-4); }
+.sharedcol { border: 1px solid var(--rule); border-radius: var(--r-sm); padding: var(--sp-3); display: grid; gap: var(--sp-2); align-content: start; }
+.sharedcol__h { font-family: var(--font-data); font-size: var(--fs-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.sharedcol__n { font-family: var(--font-ar); font-size: var(--fs-ar-sm); line-height: 1.5; text-align: right; padding: 3px var(--sp-2); border-radius: var(--r-xs); }
+.sharedcol__n--hit { background: var(--sound-bg); border-inline-end: 3px solid var(--sound); }
+
+@media (max-width: 62rem) {
+  .shell__body { grid-template-columns: minmax(0, 1fr); }
+  .sidenav { border-inline-end: 0; border-bottom: 1px solid var(--rule); grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: var(--sp-2); }
+  .sidenav__group { display: none; }
+  .rank__row, .dumb__row, .dumb__head, .dumb__scale { grid-template-columns: minmax(5rem, 8rem) minmax(0, 1fr) 3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="masthead__eyebrow">Ilham · design system · draft 2</p>
+    <h1 class="masthead__title">Critical apparatus</h1>
+    <p class="masthead__lede">A hadith page is a scholarly edition. The text is read; everything that argues about the text is set as apparatus — smaller, coded, in a different face. Every number below comes from the real DDL.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ══════════ SPECIMEN A ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Specimen A · the common case</p>
+    <h2 class="chapter__title">Ṣaḥīḥ al-Bukhārī 1</h2>
+    <p class="chapter__note">Every narrator resolves and Ibn Hajar grades all of them ثقة, so all six weights tie at 0.95 and no single link is the weak one. This is what most of the corpus looks like — the average is 0.836 and only thirteen distinct values occur. The apparatus has to stay interesting when nothing is wrong, and it must not invent a weakest link where the data has a tie.</p>
+
+    <article class="doc">
+      <aside class="rail">
+        <div class="rail__row"><span class="rail__key">Collection</span><span class="rail__val">sahih-al-bukhari</span><span class="rail__val rail__val--ar" dir="rtl">صحيح البخاري</span></div>
+        <div class="rail__row"><span class="rail__key">Number</span><span class="rail__val">1</span></div>
+        <div class="rail__row"><span class="rail__key">Chapter</span><span class="rail__val">seq 1</span><span class="rail__val rail__val--ar" dir="rtl">بدء الوحي</span></div>
+        <div class="rail__row"><span class="rail__key">Sanads</span><span class="rail__val">1</span></div>
+        <div class="rail__row"><span class="rail__key">Positions</span><span class="rail__val">7 · 6 + compiler</span></div>
+        <div class="rail__row"><span class="rail__key">Vocalised</span><span class="rail__val">on</span></div>
+        <div class="rail__row"><span class="rail__key">Translation</span><span class="rail__val">en · via E</span></div>
+      </aside>
+
+      <div>
+        <p class="matn" dir="rtl">إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوْ إِلَى امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ.</p>
+
+        <div class="trans">
+          <p class="trans__body">Actions are judged by intentions, and every person will have only what they intended. Whoever migrated for worldly gain, or to marry a woman, their migration counts for whatever they migrated toward.</p>
+          <p class="trans__src"><span>LK-Hadith-Corpus</span><span aria-hidden="true">·</span><span>via E — anchored text identical</span></p>
+        </div>
+
+        <div class="app-head">
+          <h3 class="app-head__title">Isnad — sanad 1 of 1</h3>
+          <span class="app-head__aside">Companion first · compiler last</span>
+        </div>
+
+        <ol class="isnad" dir="rtl">
+          <li class="rung">
+            <div class="rung__gen">TAB <b>1</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">عُمَر بن الخَطَّاب</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound"><span class="grade__who">IH</span><span class="grade__en">Companion → thiqa</span><span class="grade__w">0.95</span><span class="grade__via">S</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+              </div>
+              <p class="rung__flag rung__flag--quiet">No written verdict — the grade comes from the generation</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">سَمِعْتُ</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen">TAB <b>2</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">عَلْقَمة بن وَقَّاص اللَّيْثي</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound"><span class="grade__who">IH</span><span class="grade__raw">ثقة</span><span class="grade__w">0.95</span><span class="grade__via">E</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+              </div>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">سَمِعَ</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen">TAB <b>4</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">محمد بن إبراهيم التَّيْمي</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound"><span class="grade__who">IH</span><span class="grade__raw">ثقة له أفراد</span><span class="grade__w">0.95</span><span class="grade__via">T</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+              </div>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">أَخْبَرَني</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen">TAB <b>5</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">يحيى بن سعيد الأنصاري</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound"><span class="grade__who">IH</span><span class="grade__raw">ثقة ثبت</span><span class="grade__w">0.95</span><span class="grade__via">T</span></span>
+                <span class="grade grade--unmapped"><span class="grade__who">DH</span><span class="grade__raw">الحافظ</span><span class="grade__w">no code</span></span>
+              </div>
+              <p class="rung__flag rung__flag--quiet">al-Dhahabi wrote a verdict the map does not cover — it does not affect the weight</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">حَدَّثَنا</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen">TAB <b>8</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">سُفْيان بن عُيَيْنة</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound" title="ثقة حافظ فقيه إمام حجة إلا أنه تغير حفظه بأخرة"><span class="grade__who">IH</span><span class="grade__raw">ثقة حافظ فقيه إمام حجة إلا أنه تغير حفظه بأخرة</span><span class="grade__w">0.95</span><span class="grade__via">T</span></span>
+                <span class="grade grade--unmapped"><span class="grade__who">DH</span><span class="grade__raw">الإمام</span><span class="grade__w">no code</span></span>
+              </div>
+              <p class="rung__flag rung__flag--quiet">Long verdict, mapped on its first word. Hover or open the profile for the whole string</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">حَدَّثَنا</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen">TAB <b>10</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">الحُمَيْدي عبد الله بن الزُّبَيْر</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound"><span class="grade__who">IH</span><span class="grade__raw">ثقة حافظ فقيه</span><span class="grade__w">0.95</span><span class="grade__via">T</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+              </div>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">حَدَّثَنا</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen rung__gen--none">TAB <b>—</b></div>
+            <div class="rung__node"><span class="node node--compiler"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">البُخاري</div>
+              <div class="rung__grades"><span class="grade"><span class="grade__who">ROLE</span><span class="grade__en">compiler — excluded from the computation</span></span></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="strength">
+          <div class="strength__top">
+            <span class="strength__label">Chain strength</span>
+            <span class="strength__value">Strong</span>
+            <span class="strength__band"><b class="mono">0.95</b> out of 1 — the highest this measure gives. It scores the chain, not whether the hadith is true.</span>
+          </div>
+
+          <div class="plot">
+            <div class="plot__row plot__row--set">
+              <span class="plot__w">0.95</span><span class="plot__name" dir="rtl">ثقة</span>
+              <div class="plot__cells">
+                <span class="plot__cell"><span class="plot__dot plot__dot--set"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--set"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--set"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--set"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--set"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--set"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--excl"></span></span>
+              </div>
+            </div>
+            <div class="plot__row"><span class="plot__w">0.80</span><span class="plot__name" dir="rtl">صدوق</span><div class="plot__cells"></div></div>
+            <div class="plot__row"><span class="plot__w">0.60</span><span class="plot__name" dir="rtl">مقبول</span><div class="plot__cells"></div></div>
+            <div class="plot__row plot__row--unknown"><span class="plot__w">0.50</span><span class="plot__name plot__name--en">known, but never graded</span><div class="plot__cells"></div></div>
+            <div class="plot__row"><span class="plot__w">0.40</span><span class="plot__name" dir="rtl">لين</span><div class="plot__cells"></div></div>
+            <div class="plot__row"><span class="plot__w">0.25</span><span class="plot__name" dir="rtl">ضعيف</span><div class="plot__cells"></div></div>
+            <div class="plot__row plot__row--unknown"><span class="plot__w">0.15</span><span class="plot__name plot__name--en">we could not identify them</span><div class="plot__cells"></div></div>
+            <div class="plot__row"><span class="plot__w">0.10</span><span class="plot__name" dir="rtl">متروك</span><div class="plot__cells"></div></div>
+          </div>
+
+          <p class="plot__foot">
+            <span>lowest weight <b>0.95</b></span><span aria-hidden="true">−</span>
+            <span>anʿana <b>0.00</b></span><span aria-hidden="true">=</span><span><b>0.95</b></span>
+            <span aria-hidden="true">·</span><span>all six tie at the top of the scale, so no single narrator sets this score</span>
+          </p>
+          <p class="plot__ctx">corpus: avg 0.836 · range 0.10–0.95 · 13 distinct values over 14,901 hadiths</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ══════════ SPECIMEN B ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Specimen B · every degraded state at once</p>
+    <h2 class="chapter__title">What the corpus actually hands us</h2>
+    <p class="chapter__note">A constructed chain, not a real one. It carries anʿana, a narrator only one scholar graded, an ungraded narrator, an ambiguous name, an unresolved name, a placeholder, two unaligned transmission words, and no English text. Each state appears somewhere in the real 14,901 hadiths. If the apparatus survives this, it survives the corpus.</p>
+
+    <article class="doc">
+      <aside class="rail">
+        <div class="rail__row"><span class="rail__key">Collection</span><span class="rail__val">sahih-muslim</span><span class="rail__val rail__val--ar" dir="rtl">صحيح مسلم</span></div>
+        <div class="rail__row"><span class="rail__key">Number</span><span class="rail__val">2564 a</span></div>
+        <div class="rail__row"><span class="rail__key">Chapter</span><span class="rail__val rail__val--absent">not filed</span></div>
+        <div class="rail__row"><span class="rail__key">Sanads</span><span class="rail__val">3 · showing 2</span></div>
+        <div class="rail__row"><span class="rail__key">Positions</span><span class="rail__val">6 · 5 + compiler</span></div>
+        <div class="rail__row"><span class="rail__key">Vocalised</span><span class="rail__val">on</span></div>
+        <div class="rail__row"><span class="rail__key">Translation</span><span class="rail__val rail__val--warn">none</span></div>
+      </aside>
+
+      <div>
+        <p class="matn" dir="rtl">مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ.</p>
+
+        <div class="trans">
+          <p class="trans__body trans__body--absent">No English text is attached to this hadith. The Arabic stays, and the loader never removes a row it could not match.</p>
+          <p class="trans__src"><span>4.7% of the corpus · coverage is 95.3%</span></p>
+        </div>
+
+        <div class="app-head">
+          <h3 class="app-head__title">Isnad — sanad 2 of 3</h3>
+          <span class="app-head__aside">not the strongest sanad · words unaligned on multi-sanad hadiths</span>
+        </div>
+
+        <ol class="isnad" dir="rtl">
+          <li class="rung">
+            <div class="rung__gen">TAB <b>1</b></div>
+            <div class="rung__node"><span class="node node--sound"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">أبو هُرَيْرة</div>
+              <div class="rung__grades">
+                <span class="grade grade--sound"><span class="grade__who">IH</span><span class="grade__en">Companion → thiqa</span><span class="grade__w">0.95</span><span class="grade__via">S</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+              </div>
+            </div>
+          </li>
+          <li class="edge" data-sigha="anana"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">عَنْ</span><span class="edge__tag edge__tag--fault">anʿana · −0.05</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen">TAB <b>6</b></div>
+            <div class="rung__node"><span class="node node--weak"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">محمد بن عمرو بن عَلْقَمة</div>
+              <div class="rung__grades">
+                <span class="grade grade--weak"><span class="grade__who">IH</span><span class="grade__raw">صدوق له أوهام</span><span class="grade__w">0.80 → 0.75</span><span class="grade__via">T</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+              </div>
+              <p class="rung__flag rung__flag--quiet">0.80 from صدوق, less 0.05 because he received by anʿana</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="none"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__tag edge__tag--absent">transmission word not aligned</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen rung__gen--none">TAB <b>—</b></div>
+            <div class="rung__node"><span class="node node--ungraded"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">عبد الله بن سعيد</div>
+              <div class="rung__grades">
+                <span class="grade grade--absent"><span class="grade__who">IH</span><span class="grade__en">not graded</span></span>
+                <span class="grade grade--absent"><span class="grade__who">DH</span><span class="grade__en">not graded</span></span>
+                <span class="grade"><span class="grade__who">W</span><span class="grade__w">0.50 neutral</span></span>
+              </div>
+              <p class="rung__flag rung__flag--quiet">Generation unknown too — 58% of profiles carry no tabaqa</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="none"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__tag edge__tag--absent">transmission word not aligned</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen rung__gen--none">TAB <b>—</b></div>
+            <div class="rung__node"><span class="node node--ambiguous"></span></div>
+            <div class="rung__body">
+              <div class="rung__name rung__name--raw">سفيان</div>
+              <div class="rung__grades">
+                <span class="grade grade--absent"><span class="grade__who">RES</span><span class="grade__en">C — the name fits more than one narrator</span></span>
+                <span class="grade"><span class="grade__who">W</span><span class="grade__w">0.15</span></span>
+              </div>
+              <p class="rung__flag rung__flag--quiet">Not a link — we know the name, not the person</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="anana"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">عَنْ</span><span class="edge__tag edge__tag--fault">anʿana · −0.05</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen rung__gen--none">TAB <b>—</b></div>
+            <div class="rung__node"><span class="node node--placeholder node--min"></span></div>
+            <div class="rung__body">
+              <div class="rung__name rung__name--raw">[راو موضع إبهام]</div>
+              <div class="rung__grades">
+                <span class="grade grade--absent"><span class="grade__who">NAME</span><span class="grade__en">the source itself records no name</span></span>
+                <span class="grade grade--weak"><span class="grade__who">W</span><span class="grade__w">0.15 → 0.10</span></span>
+              </div>
+              <p class="rung__flag">Lowest weight — this link sets the score</p>
+            </div>
+          </li>
+          <li class="edge" data-sigha="direct"><div></div><div class="edge__spine"></div><div class="edge__cell"><span class="edge__word">حَدَّثَنا</span><span class="edge__tag">direct hearing</span></div></li>
+
+          <li class="rung">
+            <div class="rung__gen rung__gen--none">TAB <b>—</b></div>
+            <div class="rung__node"><span class="node node--compiler"></span></div>
+            <div class="rung__body">
+              <div class="rung__name">مُسْلِم</div>
+              <div class="rung__grades"><span class="grade"><span class="grade__who">ROLE</span><span class="grade__en">compiler — excluded from the computation</span></span></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="strength">
+          <div class="strength__top">
+            <span class="strength__label">Chain strength</span>
+            <span class="strength__value strength__value--low">0.10</span>
+            <span class="strength__band">this sanad · the hadith scores 0.45 on its strongest</span>
+          </div>
+
+          <div class="plot">
+            <div class="plot__row">
+              <span class="plot__w">0.95</span><span class="plot__name" dir="rtl">ثقة</span>
+              <div class="plot__cells">
+                <span class="plot__cell"><span class="plot__dot"></span></span>
+                <span class="plot__cell"></span><span class="plot__cell"></span>
+                <span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span>
+              </div>
+            </div>
+            <div class="plot__row">
+              <span class="plot__w">0.80</span><span class="plot__name" dir="rtl">صدوق</span>
+              <div class="plot__cells"><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span></div>
+            </div>
+            <div class="plot__row">
+              <span class="plot__w">0.75</span><span class="plot__name plot__name--en">صدوق less anʿana</span>
+              <div class="plot__cells"><span class="plot__cell"></span><span class="plot__cell"><span class="plot__dot"></span></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span></div>
+            </div>
+            <div class="plot__row">
+              <span class="plot__w">0.60</span><span class="plot__name" dir="rtl">مقبول</span>
+              <div class="plot__cells"><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span></div>
+            </div>
+            <div class="plot__row plot__row--unknown">
+              <span class="plot__w">0.50</span><span class="plot__name plot__name--en">named, not graded</span>
+              <div class="plot__cells"><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"><span class="plot__dot"></span></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span></div>
+            </div>
+            <div class="plot__row"><span class="plot__w">0.40</span><span class="plot__name" dir="rtl">لين</span><div class="plot__cells"></div></div>
+            <div class="plot__row"><span class="plot__w">0.25</span><span class="plot__name" dir="rtl">ضعيف</span><div class="plot__cells"></div></div>
+            <div class="plot__row plot__row--unknown">
+              <span class="plot__w">0.15</span><span class="plot__name plot__name--en">unnamed or unresolved</span>
+              <div class="plot__cells"><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"><span class="plot__dot"></span></span><span class="plot__cell"></span><span class="plot__cell"></span></div>
+            </div>
+            <div class="plot__row plot__row--min">
+              <span class="plot__w">0.10</span><span class="plot__name" dir="rtl">متروك</span>
+              <div class="plot__cells">
+                <span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span><span class="plot__cell"></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--min"></span></span>
+                <span class="plot__cell"><span class="plot__dot plot__dot--excl"></span></span>
+              </div>
+            </div>
+          </div>
+
+          <p class="plot__foot">
+            <span>lowest weight <b>0.15</b></span><span aria-hidden="true">−</span>
+            <span>anʿana <b>0.05</b></span><span aria-hidden="true">=</span><span><b>0.10</b></span>
+            <span aria-hidden="true">·</span><span>the placeholder alone sets this score</span>
+          </p>
+          <p class="plot__ctx">a placeholder lands at 0.15, above متروك at 0.10 — an unknown narrator is not an abandoned one</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ══════════ NODE VOCABULARY ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Vocabulary</p>
+    <h2 class="chapter__title">Seven node states, and why grey is not red</h2>
+    <p class="chapter__note" style="border-inline-start:3px solid var(--fault);padding-inline-start:var(--sp-4);background:var(--fault-bg);padding-block:var(--sp-3);border-radius:0 var(--r-sm) var(--r-sm) 0;max-width:none">
+      <b>This sentence belongs on the product screen, not only here.</b> A red node reports a verdict a classical scholar wrote centuries ago. It is never Ilham's own judgement, and it never means the page is broken. Put that in words next to any red state a reader can see.</p>
+    <p class="chapter__note" style="background:var(--bone-200);padding:var(--sp-3);border-radius:var(--r-sm);max-width:none;font-family:var(--font-ui);font-size:var(--fs-xs)">
+      <b>The six grades, weakest to strongest:</b>
+      <span dir="rtl">متروك</span> abandoned ·
+      <span dir="rtl">ضعيف</span> weak ·
+      <span dir="rtl">لين</span> soft ·
+      <span dir="rtl">مقبول</span> acceptable ·
+      <span dir="rtl">صدوق</span> truthful ·
+      <span dir="rtl">ثقة</span> trustworthy. Never show these words untranslated as a bare axis label.</p>
+    <p class="chapter__note">The schema keeps graded, named-but-ungraded, and unnamed apart, and it splits "no link" into three different reasons. The tempting mistake is one good-to-bad ramp, which renders "we do not know" as "this is bad" — a claim the data never makes. Shape carries the state as well as colour, so nothing depends on colour alone.</p>
+
+    <ul class="legend">
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--sound"></span></span>
+        <div><p class="legend__name">Graded, strong <span class="legend__code">res A · B</span></p><p class="legend__desc">A profile matched and a scholar graded them well. The weight is the stricter of the two scholars.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--weak"></span></span>
+        <div><p class="legend__name">Graded, weak <span class="legend__code">res A · B</span></p><p class="legend__desc">A grade that lowers the weight. Red reports a classical verdict, never ours.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--weak node--min"></span></span>
+        <div><p class="legend__name">Lowest weight</p><p class="legend__desc">The minimum in this sanad, shown only when one link holds it alone. On a tie, nothing is ringed.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--ungraded"></span></span>
+        <div><p class="legend__name">Named, not graded <span class="legend__code">0.50</span></p><p class="legend__desc">Resolved, but no scholar graded them. Neutral, and above مقبول-less-anʿana on the scale. Absence of a grade is not a bad grade.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--ambiguous"></span></span>
+        <div><p class="legend__name">Ambiguous <span class="legend__code">res C</span></p><p class="legend__desc">The name fits more than one narrator. We know the name, not the person, so it does not link.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--unresolved"></span></span>
+        <div><p class="legend__name">Unresolved <span class="legend__code">res X</span></p><p class="legend__desc">No profile matched at all. The raw string stays on screen. The loader never removes the row.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--placeholder"></span></span>
+        <div><p class="legend__name">Placeholder</p><p class="legend__desc">The source itself records an unidentified narrator. A square, because this gap is a different kind from an unmatched name.</p></div></li>
+      <li class="legend__item"><span class="legend__swatch"><span class="node node--compiler"></span></span>
+        <div><p class="legend__name">Compiler</p><p class="legend__desc">Always last, always excluded, always <span class="legend__code">res X</span> in the data — and never a failure. Drawn in ink to sit outside the grade scale.</p></div></li>
+    </ul>
+  </section>
+
+  <!-- ══════════ COLOUR ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Foundations</p>
+    <h2 class="chapter__title">Colour</h2>
+    <p class="chapter__note">Bone, not parchment: a cool ground with a faint green cast, matched in temperature to a green-black ink. Three hues carry meaning and nothing else. Red follows the manuscript rule for rubrication — it marks what you must not miss, and it appears nowhere decorative.</p>
+    <div class="grid-auto">
+      <div class="swatch"><div class="swatch__chip" style="background:var(--bone-100);border-bottom:1px solid var(--rule)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Paper</span><span class="swatch__hex">--bone-100 · #EDEFE8</span><span class="swatch__use">The page ground.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--bone-900)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Ink</span><span class="swatch__hex">--bone-900 · #171C19</span><span class="swatch__use">Body text, the compiler node. 14.8:1.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--bone-700)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Ink 2</span><span class="swatch__hex">--bone-700 · #4A5049</span><span class="swatch__use">Secondary text. 7.4:1 — the lightest tone allowed for prose.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--bone-500)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Ink 3</span><span class="swatch__hex">--bone-500 · #7A7F79</span><span class="swatch__use">Labels 14px and up, icon strokes. 3.5:1 — never body text.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--sound)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Sound</span><span class="swatch__hex">--sound · #1F5E52</span><span class="swatch__use">A recorded strong grade. Doubles as success. 6.4:1.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--fault)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Fault</span><span class="swatch__hex">--fault · #B33A2B</span><span class="swatch__use">Lowest weight, anʿana, contested grades, destructive actions. 5.0:1.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--warn)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Warn</span><span class="swatch__hex">--warn · #7A5C13</span><span class="swatch__use">A verdict the map missed, a teacher awaiting verification, unaligned data. 5.4:1.</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:var(--bone-300)"></div>
+        <div class="swatch__meta"><span class="swatch__name">Rule</span><span class="swatch__hex">--bone-300 · #C6CAC0</span><span class="swatch__use">Hairlines, gutters, the spine of the ladder.</span></div></div>
+    </div>
+  </section>
+
+  <!-- ══════════ TYPE ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Foundations</p>
+    <h2 class="chapter__title">Four families, four jobs</h2>
+    <p class="chapter__note">You can name a face's job by looking at the text it sets. The rule that matters most: Arabic has its own size scale and its own leading. Naskh reads smaller than Latin at equal pixel size, so one shared scale is the fastest way to make an Arabic interface look wrong.</p>
+
+    <div class="typespec"><p class="typespec__meta"><b>Scheherazade New</b>Arabic corpus content<br>26px / 2.0 · 400 · 700</p>
+      <p class="typespec__sample" dir="rtl" style="font-size:var(--fs-ar-lg)">إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ</p></div>
+    <div class="typespec"><p class="typespec__meta"><b>Newsreader</b>English prose<br>18px / 1.65 · 400 · 500 · italic</p>
+      <p class="typespec__sample" style="font-family:var(--font-read);font-size:var(--fs-lg)">Actions are judged by intentions, and every person will have only what they intended.</p></div>
+    <div class="typespec"><p class="typespec__meta"><b>Atkinson Hyperlegible</b>Interface chrome<br>16px / 1.6 · 400 · 700</p>
+      <p class="typespec__sample">Assign this set to <span dir="rtl" style="font-size:var(--fs-ar-sm)">حلقة الفجر</span> · Save changes · 12 students enrolled</p></div>
+    <div class="typespec"><p class="typespec__meta"><b>IBM Plex Mono</b>Database values only<br>11–14px · 400 · 500 · 600</p>
+      <p class="typespec__sample mono" style="font-size:var(--fs-sm)">IH 0.95 · DH no code · TAB 8 · via T · res C · 0.10 · 2564 a</p></div>
+
+    <p class="chapter__note" style="margin-top:var(--sp-6);margin-bottom:var(--sp-12)">Mono is semantic, not stylistic. Text set in mono came out of the database unchanged. That is a rule a component can be checked against, and it keeps mono away from the long labels and wrapping prose where it degrades. It is also why <code class="mono">hadith_num</code> is mono: it is text, it can read <span class="mono">2564 a</span>, and it must never be sorted as a number.</p>
+  </section>
+
+  <!-- ══════════ CONTROLS ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · controls</p>
+    <h2 class="chapter__title">Controls</h2>
+    <p class="chapter__note">One primary action per screen. A button says what happens when you press it, and the word survives into the result — "Assign set" produces "Set assigned", never "Submitted". Destructive actions get the fault colour and sit apart from the rest.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Buttons<em>Primary is ink, not a hue. The palette's three colours are reserved for meaning, so a plain action never spends one.</em></p>
+        <div class="bench__set">
+          <button class="btn btn--primary">Assign set</button>
+          <button class="btn btn--secondary">Add to study set</button>
+          <button class="btn btn--quiet">Cancel</button>
+          <button class="btn btn--danger">Remove student</button>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">States<em>A busy button keeps its label so the page does not jump, and stays disabled until the write returns.</em></p>
+        <div class="bench__set">
+          <button class="btn btn--primary" aria-busy="true" disabled><span class="spinner" aria-hidden="true"></span>Assigning</button>
+          <button class="btn btn--secondary" disabled>Create circle</button>
+          <span class="chip chip--warn">Verify your account to create a circle</span>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Sanad switcher<em>Multi-sanad hadiths are ~1.5 sanads on average. The switcher shows how many exist and which one is strongest, because the strongest sets the score.</em></p>
+        <div class="bench__set">
+          <div class="seg" role="group" aria-label="Choose a sanad">
+            <button class="seg__btn" aria-pressed="false">SANAD 1 <span class="chip__num">0.45</span></button>
+            <button class="seg__btn" aria-pressed="true">SANAD 2 <span class="chip__num">0.10</span></button>
+            <button class="seg__btn" aria-pressed="false">SANAD 3 <span class="chip__num">0.25</span></button>
+          </div>
+          <span class="chip chip--sound">Sanad 1 is strongest</span>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Vocalisation<em>Every hadith stores two Arabic renderings. The toggle is a real feature, not a setting buried in preferences.</em></p>
+        <div class="bench__set">
+          <div class="seg" role="group" aria-label="Arabic rendering">
+            <button class="seg__btn" aria-pressed="true">مشكول</button>
+            <button class="seg__btn" aria-pressed="false">Plain</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ FIELDS ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · input</p>
+    <h2 class="chapter__title">Fields</h2>
+    <p class="chapter__note">Labels are visible, never placeholders. Errors sit under the field they belong to, say what happened and what to do, and are tied to the input with <code class="mono">aria-describedby</code>. Arabic search reverses the field: right-aligned, Naskh, and it tells you that the search strips diacritics, because otherwise a vocalised query looks broken.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Text field</p>
+        <div class="field">
+          <label class="field__label" for="f1">Circle name <span class="field__req" aria-hidden="true">*</span></label>
+          <input class="input" id="f1" value="Halaqa al-Fajr" aria-describedby="f1h">
+          <p class="field__hint" id="f1h">Students see this name when they open the circle.</p>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Arabic field</p>
+        <div class="field">
+          <label class="field__label" for="f2">Search the corpus</label>
+          <input class="input input--ar" id="f2" dir="rtl" value="إنما الأعمال" aria-describedby="f2h">
+          <p class="field__hint" id="f2h">Search ignores diacritics and unifies alif, ta marbuta and ya. <span dir="rtl">إنّما</span> and <span dir="rtl">إنما</span> find the same hadiths.</p>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Error<em>The error names the limit and the fix. It never apologises and never says "invalid input".</em></p>
+        <div class="field">
+          <label class="field__label" for="f3">Due date <span class="field__req" aria-hidden="true">*</span></label>
+          <input class="input" id="f3" value="2026-08-14" aria-invalid="true" aria-describedby="f3e">
+          <p class="field__err" id="f3e" role="alert"><span aria-hidden="true">✕</span> The due date is in the past. Pick today or later.</p>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Read-only vs disabled<em>Two different meanings. Read-only says "this value is real but fixed here". Disabled says "not available to you now".</em></p>
+        <div class="bench__stack" style="max-width:26rem">
+          <div class="field"><label class="field__label" for="f4">Assigned by</label><input class="input" id="f4" value="Ustadh Kamrul" readonly></div>
+          <div class="field"><label class="field__label" for="f5">Circle</label><input class="input" id="f5" value="Verify your account first" disabled></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ CORPUS ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · corpus</p>
+    <h2 class="chapter__title">Browsing the corpus</h2>
+    <p class="chapter__note">Three schema facts drive this whole section. <code class="mono">hadith_num</code> is text and can read <span class="mono">2564 a</span>, so it never sorts as a number. A hadith can have no chapter, so the breadcrumb must survive a missing middle. And the list endpoints return no total count, so pagination says what you are looking at rather than which page of how many.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Breadcrumb<em>Chapter titles are often the bare word باب, so the sequence number disambiguates. When a hadith is unfiled, the gap is stated.</em></p>
+        <div class="bench__stack">
+          <nav class="crumbs" aria-label="Breadcrumb"><a href="#0">Sahih al-Bukhari</a><span class="crumbs__sep" aria-hidden="true">›</span><a href="#0"><span dir="rtl">باب</span> · seq 12</a><span class="crumbs__sep" aria-hidden="true">›</span><span>1</span></nav>
+          <nav class="crumbs" aria-label="Breadcrumb"><a href="#0">Sahih Muslim</a><span class="crumbs__sep" aria-hidden="true">›</span><span class="crumbs__gap">no chapter recorded</span><span class="crumbs__sep" aria-hidden="true">›</span><span>2564 a</span></nav>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Hadith rows<em>Strength reads as a figure and a short bar. Most of the corpus sits at 0.90–0.95, so the bar exists to catch the outlier, not to rank the majority.</em></p>
+        <div style="width:100%">
+          <div class="hrow"><span class="hrow__num">1</span><span class="hrow__text" dir="rtl">إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى</span><span class="sc"><span class="sc__bar"><span class="sc__fill" style="width:95%"></span></span><span class="sc__val">0.95</span></span></div>
+          <div class="hrow"><span class="hrow__num">2564 a</span><span class="hrow__text" dir="rtl">مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا</span><span class="sc"><span class="sc__bar"><span class="sc__fill sc__fill--low" style="width:45%"></span></span><span class="sc__val">0.45</span></span></div>
+          <div class="hrow"><span class="hrow__num">7563</span><span class="hrow__text" dir="rtl">الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ</span><span class="sc"><span class="sc__val" style="color:var(--ink-3)">no chain</span></span></div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Pagination<em>The API returns rows and an offset, never a total. Saying "page 3 of 47" would be a number we do not have.</em></p>
+        <div class="bench__set">
+          <nav class="pager" aria-label="Pagination">
+            <button class="btn btn--secondary btn--sm">Previous</button>
+            <span>Showing 21–40</span>
+            <button class="btn btn--secondary btn--sm">Next</button>
+          </nav>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Narrator profile<em>A field with no value is left out. A placeholder narrator has no values at all, so the whole profile is one honest empty state.</em></p>
+        <div class="bench__stack">
+          <div class="card">
+            <div class="card__head"><h3 class="card__title card__title--ar" dir="rtl">سُفْيان بن عُيَيْنة</h3><span class="chip chip--sound"><span class="chip__dot"></span>3,453 chain positions</span></div>
+            <dl class="dl">
+              <dt>English</dt><dd>Sufyan ibn ʿUyayna</dd>
+              <dt>Kunya</dt><dd dir="rtl">أبو محمد</dd>
+              <dt>Generation</dt><dd dir="rtl">الطبقة الثامنة</dd>
+              <dt>Died</dt><dd dir="rtl">198 هـ</dd>
+              <dt>School</dt><dd data-absent>not recorded</dd>
+            </dl>
+          </div>
+          <div class="empty">
+            <h3 class="empty__title" dir="rtl" style="font-size:var(--fs-ar-md)">[راو موضع إبهام]</h3>
+            <p class="empty__body">The source records this narrator without naming them. There is no biography, no generation, and no grade to show — and that absence is itself the finding. Chain strength treats the link as a weakness of 0.15.</p>
+            <button class="btn btn--secondary btn--sm">See the 12 chains this link appears in</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ STUDY LAYER ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · study</p>
+    <h2 class="chapter__title">Circles, assignments, progress</h2>
+    <p class="chapter__note">Mastery runs 0 to 4 and the schema names none of them, so the interface does. Three or above counts as mastered — that is the only threshold in the database, and it is what the stats trigger and the circle overview both use. Assignments carry a due date and nothing else: overdue, due soon and upcoming are all computed, so the design must be explicit that they are derived rather than stored.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Mastery<em>Five steps, one threshold. Reaching 3 changes the colour, because that is the moment the count changes.</em></p>
+        <div class="bench__stack">
+          <span class="mastery"><span class="mastery__steps"><span class="mastery__step"></span><span class="mastery__step"></span><span class="mastery__step"></span><span class="mastery__step"></span><span class="mastery__step"></span></span><span class="mastery__text">0 · not started</span></span>
+          <span class="mastery"><span class="mastery__steps"><span class="mastery__step mastery__step--on"></span><span class="mastery__step mastery__step--on"></span><span class="mastery__step"></span><span class="mastery__step"></span><span class="mastery__step"></span></span><span class="mastery__text">2 · learning</span></span>
+          <span class="mastery mastery--met"><span class="mastery__steps"><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step"></span></span><span class="mastery__text">3 · mastered</span></span>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Assigned vs private<em>A student can hold both rows for the same hadith at once, with different mastery. A new assignment never resets private study, so the two can never share a component.</em></p>
+        <div class="bench__stack">
+          <div class="card">
+            <div class="card__head"><h3 class="card__title">Assigned · Halaqa al-Fajr</h3><span class="chip chip--fault"><span class="chip__dot"></span>Overdue by 3 days</span></div>
+            <p class="card__meta"><span>due 2026-08-31</span><span aria-hidden="true">·</span><span>updates automatically as the date passes</span></p>
+            <span class="mastery"><span class="mastery__steps"><span class="mastery__step mastery__step--on"></span><span class="mastery__step"></span><span class="mastery__step"></span><span class="mastery__step"></span><span class="mastery__step"></span></span><span class="mastery__text">1 · learning</span></span>
+          </div>
+          <div class="card">
+            <div class="card__head"><h3 class="card__title">Your own study</h3><span class="chip chip--quiet">No assignment</span></div>
+            <p class="card__meta"><span>last reviewed 2026-08-28</span><span aria-hidden="true">·</span><span>reviewed 6 times</span></p>
+            <span class="mastery mastery--met"><span class="mastery__steps"><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span><span class="mastery__step mastery__step--mastered"></span></span><span class="mastery__text">4 · mastered</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Teacher status<em>Three states, not two. A teacher who loses verification keeps every circle they already run — the rule only blocks opening a new one.</em></p>
+        <div class="bench__set">
+          <span class="chip chip--sound"><span class="chip__dot"></span>Verified</span>
+          <span class="chip chip--warn"><span class="chip__dot"></span>Awaiting verification</span>
+          <span class="chip chip--warn"><span class="chip__dot"></span>Not verified · 2 circles still running</span>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Two counts, two rules<em>Mastered counts distinct hadiths; reviews sum every row. A hadith assigned twice counts once on the left and twice on the right. Presenting them as one kind of number would be wrong, so the rule is printed.</em></p>
+        <div class="bench__set" style="gap:var(--sp-6)">
+          <div><p class="card__meta" style="margin-bottom:4px">MASTERED · distinct hadiths</p><p class="mono" style="font-size:var(--fs-2xl);margin:0">18</p></div>
+          <div><p class="card__meta" style="margin-bottom:4px">REVIEWS · summed over rows</p><p class="mono" style="font-size:var(--fs-2xl);margin:0">124</p></div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Circle overview<em>An enrolled student with no progress row is a real 0 of 0. The percentage column has to refuse to divide rather than print NaN.</em></p>
+        <div class="tablewrap">
+          <table class="table">
+            <thead><tr><th scope="col">Student</th><th scope="col" aria-sort="descending">Mastered</th><th scope="col">Assigned</th><th scope="col">Share</th></tr></thead>
+            <tbody>
+              <tr><td>Ayesha Rahman</td><td class="num">22</td><td class="num">25</td><td class="num">88%</td></tr>
+              <tr><td>Imran Hossain</td><td class="num">9</td><td class="num">25</td><td class="num">36%</td></tr>
+              <tr><td>Nusrat Jahan</td><td class="num">0</td><td class="num">0</td><td class="num" style="color:var(--ink-3)">not started</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Overview vs completion<em>Two queries answer two different questions and will disagree about the same student. Each screen names its own question so the disagreement reads as correct rather than as a bug.</em></p>
+        <div class="bench__stack">
+          <div class="notice"><p class="notice__title">Circle overview asks: how much of the corpus has this student mastered?</p><p class="notice__body">Counts distinct hadiths, so a hadith assigned twice counts once.</p></div>
+          <div class="notice"><p class="notice__title">Assignment completion asks: what does this student still owe?</p><p class="notice__body">Counts what is still owed, so a hadith already mastered under another assignment is still outstanding here.</p></div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Audit trail<em>The trigger records only the mastery change, and the actor is best-effort — a batch job leaves it unset. The design shows the gap rather than guessing a name.</em></p>
+        <div style="width:100%">
+          <div class="audit"><span class="audit__when">2026-09-01 14:22</span><div><p class="audit__what">Mastery raised from <b class="mono">2</b> to <b class="mono">4</b></p><p class="audit__who">by Ustadh Kamrul · progress 8814</p></div></div>
+          <div class="audit"><span class="audit__when">2026-08-30 09:05</span><div><p class="audit__what">Mastery lowered from <b class="mono">3</b> to <b class="mono">1</b></p><p class="audit__who audit__who--unknown">actor not recorded — changed outside the app</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ STATES ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · states</p>
+    <h2 class="chapter__title">Empty, loading, failed</h2>
+    <p class="chapter__note">The seed data deliberately contains an empty circle, an unverified teacher, students with no stats row, and hadiths with no chain — so these are not rare screens, they are screens you will see on the first run. An empty screen states what is missing and offers the next action. An error says what failed and what to try.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Empty circle</p>
+        <div class="empty" style="width:100%">
+          <h3 class="empty__title">No students yet</h3>
+          <p class="empty__body">Enrol students to assign them a study set. You can assign a set to an empty circle, but it will reach nobody.</p>
+          <button class="btn btn--primary btn--sm">Enrol students</button>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Empty set</p>
+        <div class="empty" style="width:100%">
+          <h3 class="empty__title">This set has no hadiths</h3>
+          <p class="empty__body">Browse the corpus and add hadiths from any hadith page. Sets are unordered — the order you add them in is not kept.</p>
+          <button class="btn btn--secondary btn--sm">Browse Sahih al-Bukhari</button>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Blocked action<em>The database raises this rule, so the interface states the same rule in the same words a teacher would use.</em></p>
+        <div class="notice notice--warn" style="width:100%">
+          <p class="notice__title">You cannot open a circle until an admin verifies your account</p>
+          <p class="notice__body">An admin confirms your ijaza or your institution. Until then you can still build study sets, write notes, and review students.</p>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Failed load</p>
+        <div class="notice notice--fault" style="width:100%">
+          <p class="notice__title">The chain could not be loaded</p>
+          <p class="notice__body">The request timed out. The hadith text above is complete. <button class="btn btn--quiet btn--sm" style="padding:0;min-height:auto;text-decoration:underline;text-underline-offset:3px">Try again</button></p>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Loading<em>Skeletons reserve the real height so nothing shifts when the text lands. The Arabic skeleton is taller because Arabic leads at 2.0.</em></p>
+        <div class="bench__stack" style="width:100%;max-width:34rem">
+          <div class="skel skel--ar" style="width:100%"></div>
+          <div class="skel skel--ar" style="width:82%"></div>
+          <div class="skel" style="width:40%"></div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Toast<em>Announced politely, never stealing focus. A destructive action offers undo instead of a confirmation dialog wherever the write can be reversed.</em></p>
+        <div class="bench__stack">
+          <div class="toast" role="status">Set assigned to 16 students<button class="toast__act">View assignment</button></div>
+          <div class="toast" role="status">Student removed from Halaqa al-Fajr<button class="toast__act">Undo</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SHELL ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · shell</p>
+    <h2 class="chapter__title">Navigation</h2>
+    <p class="chapter__note">The sidebar holds the whole product on screens of 1024px and more. Below that it becomes one scrolling strip of the same links in the same order — the placement never changes by page type. Navigation is role-aware: a student never sees the verification queue, and the interface explains a missing destination rather than hiding it in silence.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Teacher, verified<em>Icons carry a label at all times. An icon-only rail saves 8rem and costs discoverability.</em></p>
+        <div class="shell">
+          <div class="topbar">
+            <a class="skiplink" href="#0">Skip to content</a>
+            <span class="brand">Ilham <span dir="rtl">إلهام</span></span>
+            <span class="topbar__spacer"></span>
+            <button class="searchbtn"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>Search the corpus <kbd>⌘K</kbd></button>
+          </div>
+          <div class="shell__body">
+            <nav class="sidenav" aria-label="Main">
+              <span class="sidenav__group">Corpus</span>
+              <a class="navlink" href="#0"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v15H4zM13 5h7v15h-7z"></path></svg>Collections</a>
+              <a class="navlink" href="#0"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"></circle><path d="M6 20a6 6 0 0 1 12 0"></path></svg>Narrators</a>
+              <a class="navlink" href="#0"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V5M16 20v-7M22 20h-20"></path></svg>Analytics</a>
+              <span class="sidenav__group">Teaching</span>
+              <a class="navlink" href="#0" aria-current="page"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 20a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6M18 20a5 5 0 0 0-2-4"></path></svg>Circles</a>
+              <a class="navlink" href="#0"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"></path><path d="M8 11h8M8 15h5"></path></svg>Study sets</a>
+              <a class="navlink" href="#0"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h9"></path></svg>Assignments<span class="navlink__badge">3</span></a>
+            </nav>
+            <div class="shell__main">
+              <nav class="crumbs" aria-label="Breadcrumb" style="margin-bottom:var(--sp-3)"><a href="#0">Circles</a><span class="crumbs__sep" aria-hidden="true">›</span><span>Halaqa al-Fajr</span></nav>
+              <p class="chapter__note" style="margin:0;font-family:var(--font-ui);font-size:var(--fs-sm)">Content area. After a route change, focus moves here so a screen reader announces the new page instead of staying on the link that was clicked.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Unavailable destination<em>The rule lives in the database. Hiding the link would leave a teacher wondering where circles went.</em></p>
+        <div class="bench__stack" style="max-width:16rem">
+          <a class="navlink" href="#0" aria-disabled="true" style="opacity:0.5"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 20a6 6 0 0 1 12 0"></path></svg>Circles</a>
+          <p class="field__hint" style="padding-inline:var(--sp-2)">Available once an admin verifies your account.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ AUTH ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · identity</p>
+    <h2 class="chapter__title">Signing in, and being verified</h2>
+    <p class="chapter__note">Authentication is built in-house. The sign-in form allows paste and works with a password manager — never block either. A new teacher lands in a waiting state, not an error state: the account works, and one capability is held back.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Sign in</p>
+        <form class="auth">
+          <div class="field" style="max-width:none">
+            <label class="field__label" for="a1">Email</label>
+            <input class="input" id="a1" type="email" autocomplete="email" value="kamrul@example.edu">
+          </div>
+          <div class="field" style="max-width:none">
+            <label class="field__label" for="a2">Password</label>
+            <input class="input" id="a2" type="password" autocomplete="current-password" value="············">
+          </div>
+          <button class="btn btn--primary" type="submit">Sign in</button>
+        </form>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Choosing a role<em>The three roles are disjoint in the schema — a user is never both. The choice is made once, at registration.</em></p>
+        <fieldset class="rolepick" style="border:0;padding:0;margin:0;max-width:26rem">
+          <legend class="field__label" style="padding:0 0 var(--sp-2)">How will you use Ilham?</legend>
+          <label class="roleopt"><input type="radio" name="role" checked><span><span class="roleopt__name">Student</span><span class="roleopt__desc">Join circles, build study sets, and record reviews.</span></span></label>
+          <label class="roleopt"><input type="radio" name="role"><span><span class="roleopt__name">Teacher</span><span class="roleopt__desc">Run circles and assign work. An admin verifies your ijaza or institution before you open your first circle.</span></span></label>
+        </fieldset>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Waiting for verification<em>Not an error. The account works and one capability is held back, so the copy lists what does work.</em></p>
+        <div class="notice notice--warn" style="width:100%">
+          <p class="notice__title">Your teaching account is waiting for review</p>
+          <p class="notice__body">An admin confirms your ijaza or your institution, usually within a few days. Meanwhile you can build study sets, write notes, and review students. You cannot open a circle yet.</p>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Verification queue<em>Verifying is not destructive and needs no dialog. Declining is, so it confirms.</em></p>
+        <div style="width:100%">
+          <div class="qrow"><div><p class="qrow__name">Fatima Noor</p><p class="qrow__meta">Darul Uloom Dhaka · hadith sciences · applied 2026-08-29</p></div><div class="qrow__acts"><button class="btn btn--secondary btn--sm">Decline</button><button class="btn btn--primary btn--sm">Verify</button></div></div>
+          <div class="qrow"><div><p class="qrow__name">Abdur Rahman Siddique</p><p class="qrow__meta">No institution recorded · applied 2026-09-02</p></div><div class="qrow__acts"><button class="btn btn--secondary btn--sm">Decline</button><button class="btn btn--primary btn--sm">Verify</button></div></div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Destructive confirm<em>The dialog names the consequence and the exact scope. The confirming button repeats the verb, so nobody presses "OK" without knowing what it does.</em></p>
+        <div class="scrim">
+          <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dt">
+            <h3 class="dialog__title" id="dt">Remove Ayesha Rahman from Halaqa al-Fajr?</h3>
+            <p class="dialog__body">Her review history and her mastery stay. She loses access to this circle's assignments, and 25 outstanding reviews are closed.</p>
+            <div class="dialog__acts"><button class="btn btn--quiet">Cancel</button><button class="btn btn--danger">Remove student</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SEARCH ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · search</p>
+    <h2 class="chapter__title">Search</h2>
+    <p class="chapter__note">Search runs over a normalised Arabic column. It strips diacritics and unifies alif, ta marbuta and ya, so a vocalised query matches an unvocalised hadith. Say so on the results page — a reader who typed <span dir="rtl">إنّما</span> and got <span dir="rtl">إنما</span> back needs to know the match is right, not sloppy.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Results</p>
+        <div style="width:100%">
+          <p class="trans__src" style="margin-bottom:var(--sp-2)"><span>Showing 1–3</span><span aria-hidden="true">·</span><span>diacritics ignored</span></p>
+          <div class="hit"><div class="hit__top"><span>SAHIH AL-BUKHARI 1</span><span aria-hidden="true">·</span><span dir="rtl" style="font-family:var(--font-ar)">بدء الوحي</span><span aria-hidden="true">·</span><span>0.95</span></div><p class="hit__text" dir="rtl"><mark>إِنَّمَا الْأَعْمَالُ</mark> بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى</p></div>
+          <div class="hit"><div class="hit__top"><span>SAHIH MUSLIM 1907</span><span aria-hidden="true">·</span><span class="crumbs__gap">no chapter</span><span aria-hidden="true">·</span><span>0.95</span></div><p class="hit__text" dir="rtl"><mark>إِنَّمَا الْأَعْمَالُ</mark> بِالنِّيَّةِ، وَإِنَّمَا لِامْرِئٍ مَا نَوَى</p></div>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Nothing found<em>The empty state names the two likeliest reasons and offers a way forward, rather than restating the query back at the reader.</em></p>
+        <div class="empty" style="width:100%">
+          <h3 class="empty__title">No hadith matches <span dir="rtl" style="font-family:var(--font-ar)">الزهري</span></h3>
+          <p class="empty__body">Search reads hadith text only. To find a narrator, search narrators instead — al-Zuhri appears in 3,453 chains.</p>
+          <button class="btn btn--secondary btn--sm">Search narrators for <span dir="rtl" style="font-family:var(--font-ar);margin-inline-start:4px">الزهري</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ REVIEW RUNNER ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · review</p>
+    <h2 class="chapter__title">Running a review session</h2>
+    <p class="chapter__note">One review session writes a session row, a result row for each hadith, and a progress update — inside one explicit transaction. Either all of it lands or none of it does. The interface has to say that, because a teacher who marks twelve hadiths and then loses the connection must know whether any of it saved.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Progress<em>The step count comes from the set, so it is known in advance and the bar never guesses.</em></p>
+        <div class="steps" style="width:100%"><span>HADITH 5 OF 12</span><span class="steps__bar"><span class="steps__fill" style="width:41.6%"></span></span><span>Halaqa al-Fajr · Ayesha Rahman</span></div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Verdict<em>Three results, and the schema allows no fourth. Each says what it means for the student, not what it means for the row.</em></p>
+        <div class="verdicts">
+          <button class="verdict verdict--pass" aria-pressed="true"><span class="verdict__k">Passed</span><span class="verdict__d">Recited it correctly</span></button>
+          <button class="verdict verdict--partial" aria-pressed="false"><span class="verdict__k">Partial</span><span class="verdict__d">Needed prompting</span></button>
+          <button class="verdict verdict--fail" aria-pressed="false"><span class="verdict__k">Not yet</span><span class="verdict__d">Could not recite it</span></button>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Saving<em>One transaction, one message. Never a per-hadith tick that implies twelve separate saves.</em></p>
+        <div class="bench__stack">
+          <div class="notice"><p class="notice__title">Nothing is saved until you finish</p><p class="notice__body">All 12 results and the progress updates are written together. If the save fails, none of them are recorded and you can try again.</p></div>
+          <div class="toast" role="status">Session saved · 12 results recorded<button class="toast__act">View student</button></div>
+          <div class="notice notice--fault"><p class="notice__title">The session was not saved</p><p class="notice__body">The connection dropped during the write, so nothing was recorded and your 12 verdicts are still on screen. <button class="btn btn--quiet btn--sm" style="padding:0;min-height:auto;text-decoration:underline;text-underline-offset:3px">Save again</button></p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ ANALYTICS ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Components · analytics</p>
+    <h2 class="chapter__title">The six questions</h2>
+    <p class="chapter__note">Each analytics page answers one written question, and the question is the page title — not "Top Narrators" but what Top Narrators asks. Every chart here carries a sortable table underneath it, because a chart alone is not readable by a screen reader, and the table is the source of truth.</p>
+
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Q1 · Who carries the corpus?<em>The distribution is severe: 178 narrators hold 16.8% of all positions. Bars sorted descending, capped at 15, with the cap stated — a silent top-N reads as "this is everyone".</em></p>
+        <div style="width:100%">
+          <div class="rank">
+            <div class="rank__row"><span class="rank__name" dir="rtl">أبو هريرة</span><span class="rank__track"><span class="rank__fill" style="width:100%"></span></span><span class="rank__val">3,538</span></div>
+            <div class="rank__row"><span class="rank__name" dir="rtl">محمد بن شهاب الزهري</span><span class="rank__track"><span class="rank__fill" style="width:97.6%"></span></span><span class="rank__val">3,453</span></div>
+            <div class="rank__row"><span class="rank__name" dir="rtl">عائشة</span><span class="rank__track"><span class="rank__fill" style="width:45.7%"></span></span><span class="rank__val">1,616</span></div>
+            <div class="rank__row"><span class="rank__name" dir="rtl">مالك بن أنس</span><span class="rank__track"><span class="rank__fill" style="width:29.2%"></span></span><span class="rank__val">1,033</span></div>
+          </div>
+          <p class="plot__ctx">showing the top 4 of 20,957 narrators · placeholders excluded · the other 20,779 carry 83.2% of positions between them</p>
+        </div>
+      </div>
+
+      <div class="bench__row">
+        <p class="bench__label">Q2 · Where do the two scholars disagree?<em>The gap is the ranked quantity, so the gap is what the chart draws. A grouped bar would show two heights and leave the reader to subtract.</em></p>
+        <div style="width:100%">
+          <div class="dumb__head"><span>Narrator</span><span>Grade (weak → strong)</span><span style="text-align:end">Gap</span></div>
+          <div class="dumb">
+            <div class="dumb__row">
+              <span class="dumb__name" dir="rtl">عمر بن هارون البلخي</span>
+              <span class="dumb__track"><span class="dumb__axis"></span><span class="dumb__link dumb__link--wide" style="inset-inline-start:0%;width:60%"></span><span class="dumb__pt dumb__pt--ih" style="inset-inline-start:0%"></span><span class="dumb__pt dumb__pt--dh" style="inset-inline-start:60%"></span></span>
+              <span class="dumb__gap dumb__gap--wide">3</span>
+            </div>
+            <div class="dumb__row">
+              <span class="dumb__name" dir="rtl">محمد بن إسحاق</span>
+              <span class="dumb__track"><span class="dumb__axis"></span><span class="dumb__link dumb__link--wide" style="inset-inline-start:20%;width:60%"></span><span class="dumb__pt dumb__pt--dh" style="inset-inline-start:20%"></span><span class="dumb__pt dumb__pt--ih" style="inset-inline-start:80%"></span></span>
+              <span class="dumb__gap dumb__gap--wide">3</span>
+            </div>
+            <div class="dumb__row">
+              <span class="dumb__name" dir="rtl">سماك بن حرب</span>
+              <span class="dumb__track"><span class="dumb__axis"></span><span class="dumb__link" style="inset-inline-start:40%;width:40%"></span><span class="dumb__pt dumb__pt--dh" style="inset-inline-start:40%"></span><span class="dumb__pt dumb__pt--ih" style="inset-inline-start:80%"></span></span>
+              <span class="dumb__gap">2</span>
+            </div>
+            <div class="dumb__row">
+              <span class="dumb__name" dir="rtl">حماد بن سلمة</span>
+              <span class="dumb__track"><span class="dumb__axis"></span><span class="dumb__link" style="inset-inline-start:80%;width:20%"></span><span class="dumb__pt dumb__pt--dh" style="inset-inline-start:80%"></span><span class="dumb__pt dumb__pt--ih" style="inset-inline-start:100%"></span></span>
+              <span class="dumb__gap">1</span>
+            </div>
+          </div>
+          <div class="dumb__scale" aria-hidden="true"><span></span><span><span dir="rtl">متروك</span><span dir="rtl">ضعيف</span><span dir="rtl">لين</span><span dir="rtl">مقبول</span><span dir="rtl">صدوق</span><span dir="rtl">ثقة</span></span><span></span></div>
+          <p class="keyline">
+            <span class="keyline__i"><span class="dumb__pt dumb__pt--ih" style="position:static;translate:none"></span> Ibn Hajar</span>
+            <span class="keyline__i"><span class="dumb__pt dumb__pt--dh" style="position:static;translate:none"></span> al-Dhahabi</span>
+            <span class="keyline__i"><span style="width:20px;height:3px;background:var(--fault);display:inline-block"></span> gap of 3 or more</span>
+          </p>
+          <p class="plot__ctx">circle and diamond separate the two scholars, so the chart does not depend on colour · illustrative rows</p>
+        </div>
+      </div>
+
+      <div class="bench__row">
+        <p class="bench__label">Q3 · Which narrators do two hadiths share?<em>A set intersection, drawn as two chains side by side with the shared links marked in both. Neither chain is reordered to make them line up — the transmission order is the data.</em></p>
+        <div class="shared" style="width:100%">
+          <div class="sharedcol">
+            <span class="sharedcol__h">Bukhari 1</span>
+            <span class="sharedcol__n" dir="rtl">عمر بن الخطاب</span>
+            <span class="sharedcol__n" dir="rtl">علقمة بن وقاص</span>
+            <span class="sharedcol__n sharedcol__n--hit" dir="rtl">محمد بن إبراهيم التيمي</span>
+            <span class="sharedcol__n sharedcol__n--hit" dir="rtl">يحيى بن سعيد الأنصاري</span>
+            <span class="sharedcol__n" dir="rtl">سفيان بن عيينة</span>
+          </div>
+          <div class="sharedcol">
+            <span class="sharedcol__h">Muslim 1907</span>
+            <span class="sharedcol__n" dir="rtl">عمر بن الخطاب</span>
+            <span class="sharedcol__n sharedcol__n--hit" dir="rtl">محمد بن إبراهيم التيمي</span>
+            <span class="sharedcol__n sharedcol__n--hit" dir="rtl">يحيى بن سعيد الأنصاري</span>
+            <span class="sharedcol__n" dir="rtl">الليث بن سعد</span>
+            <span class="sharedcol__n" dir="rtl">قتيبة بن سعيد</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bench__row">
+        <p class="bench__label">Q5 · Which chains are weakest?<em>Chain strength is computed, not stored, so sorting by it recomputes for every row. The list is capped and the cap is printed.</em></p>
+        <div style="width:100%">
+          <div class="hrow"><span class="hrow__num">2564 a</span><span class="hrow__text" dir="rtl">مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا</span><span class="sc"><span class="sc__bar"><span class="sc__fill sc__fill--low" style="width:10%"></span></span><span class="sc__val">0.10</span></span></div>
+          <div class="hrow"><span class="hrow__num">4021</span><span class="hrow__text" dir="rtl">إِذَا أَتَاكُمْ مَنْ تَرْضَوْنَ دِينَهُ وَخُلُقَهُ</span><span class="sc"><span class="sc__bar"><span class="sc__fill sc__fill--low" style="width:15%"></span></span><span class="sc__val">0.15</span></span></div>
+          <div class="hrow"><span class="hrow__num">1132</span><span class="hrow__text" dir="rtl">أَفْضَلُ الصَّلَاةِ بَعْدَ الْفَرِيضَةِ صَلَاةُ اللَّيْلِ</span><span class="sc"><span class="sc__bar"><span class="sc__fill sc__fill--low" style="width:25%"></span></span><span class="sc__val">0.25</span></span></div>
+          <p class="plot__ctx">weakest 50 of 14,901 · 49 more hadiths carry no chain at all and cannot be scored</p>
+        </div>
+      </div>
+
+      <div class="bench__row">
+        <p class="bench__label">Q6 · What does each student still owe?<em>This disagrees with the circle overview on purpose, so the page says which question it answers.</em></p>
+        <div class="tablewrap">
+          <table class="table">
+            <thead><tr><th scope="col">Student</th><th scope="col">Done</th><th scope="col">Owed</th><th scope="col">Assignment</th></tr></thead>
+            <tbody>
+              <tr><td>Ayesha Rahman</td><td class="num">22</td><td class="num">3</td><td>Nawawi 1–25 · due 2026-09-14</td></tr>
+              <tr><td>Imran Hossain</td><td class="num">9</td><td class="num">16</td><td>Nawawi 1–25 · due 2026-09-14</td></tr>
+              <tr><td>Ayesha Rahman</td><td class="num">0</td><td class="num">25</td><td>Nawawi 1–25 · due 2026-10-02</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="plot__ctx" style="grid-column:1/-1">Ayesha appears twice. The same set assigned again is a second obligation, and mastery earned under the first does not close it.</p>
+      </div>
+
+      <div class="bench__row">
+        <p class="bench__label">The narrator network<em>A force graph of 20,957 narrators is not a chart, it is a hairball — and it fails on mobile and for screen readers. The adjacency table is the primary view. A drawn ego-network is an option on top of it, never instead of it.</em></p>
+        <div class="tablewrap">
+          <table class="table">
+            <caption style="text-align:start;padding:var(--sp-2) var(--sp-3);font-size:var(--fs-xs);color:var(--ink-2)">Who <span dir="rtl">يحيى بن سعيد الأنصاري</span> learned from, and who learned from him. Showing 24 of 812 links.</caption>
+            <thead><tr><th scope="col">Direction</th><th scope="col">Narrator</th><th scope="col">Shared chains</th><th scope="col">Usual word</th></tr></thead>
+            <tbody>
+              <tr><td>Received from</td><td dir="rtl">محمد بن إبراهيم التيمي</td><td class="num">41</td><td dir="rtl">أخبرني</td></tr>
+              <tr><td>Received from</td><td dir="rtl">أنس بن مالك</td><td class="num">18</td><td dir="rtl">عن</td></tr>
+              <tr><td>Passed to</td><td dir="rtl">سفيان بن عيينة</td><td class="num">96</td><td dir="rtl">حدثنا</td></tr>
+              <tr><td>Passed to</td><td dir="rtl">مالك بن أنس</td><td class="num">88</td><td dir="rtl">حدثنا</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ ICONS ══════════ -->
+  <section class="chapter">
+    <p class="chapter__label">Foundations</p>
+    <h2 class="chapter__title">Icons</h2>
+    <p class="chapter__note">Phosphor, regular weight, one stroke width, drawn on a 24px box at three token sizes. Never emoji — they are font-dependent and no design token reaches them. An icon beside a visible label is decorative and takes <code class="mono">aria-hidden="true"</code>. An icon alone in a control gives the control its accessible name.</p>
+    <div class="bench">
+      <div class="bench__row">
+        <p class="bench__label">Sizes<em>16px inline with text · 20px in navigation and buttons · 24px only as a page-level mark.</em></p>
+        <div class="bench__set">
+          <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>
+          <svg class="icon" viewBox="0 0 24 24" style="width:24px;height:24px" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>
+        </div>
+      </div>
+      <div class="bench__row">
+        <p class="bench__label">Never used for<em>Grade, resolution and chain state are carried by the node vocabulary, not by icons. One visual language per idea.</em></p>
+        <div class="bench__set"><span class="chip chip--quiet">No icon for ثقة</span><span class="chip chip--quiet">No icon for anʿana</span><span class="chip chip--quiet">No icon for mastery</span></div>
+      </div>
+    </div>
+  </section>
+
+</main>
