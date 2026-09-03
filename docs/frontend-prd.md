@@ -3,11 +3,14 @@
 **The React application over the Ilham API**
 
 **Companion files:** `docs/prd.md` (the product and the graded requirements),
-`backend/README.md` (the API layer), `docs/database.md` (the schema),
+`docs/backend-prd.md` (the API, on the `docs/backend-prd` branch),
+`docs/database.md` (the schema),
 `docs/design/README.md` (the design rules), `docs/design/specimen.html` (the
 design system), `docs/design/demo.html` (a working prototype).
 
-There is no separate backend PRD. `docs/prd.md` §6 gives the backend flows.
+`docs/backend-prd.md` is the plan of record for the API. It supersedes the
+Hono scaffold in `backend/`. Where this document and that one disagree, that one
+wins.
 
 This document uses ASD-STE100 Simplified Technical English.
 
@@ -15,7 +18,7 @@ This document uses ASD-STE100 Simplified Technical English.
 
 ## 0. Summary
 
-The frontend is a React application over a Hono API and one PostgreSQL
+The frontend is a React application over an Express 5 API and one PostgreSQL
 instance. It shows a finished read-only corpus and a small read-write study
 layer.
 
@@ -101,8 +104,8 @@ only.
 | D6 | English interface, left to right. Arabic sits in `dir="rtl"` islands | The teammate, the grader, and every document here read English. |
 | D7 | Logical CSS properties everywhere | A right-to-left interface stays reachable later without a rewrite. |
 | D8 | A typed API contract, and **no mock layer** | The seed database holds better edge cases than a mock: an empty circle, 11 students with no statistics, 49 hadiths with no chain, 1,633 with no matn. Mocks drift. A database does not. |
-| D9 | JWT in an httpOnly cookie | A token in `localStorage` is readable by any cross-site scripting attack. This application renders corpus text and user notes. |
-| D10 | One origin. Nginx serves the build and proxies `/api` | One origin removes CORS and keeps `SameSite=Strict` usable. |
+| D9 | **A 15-minute JWT access token in memory, and an opaque refresh token in an httpOnly cookie** | `docs/backend-prd.md` §3 specifies it. The access token never touches `localStorage`, so a cross-site scripting attack cannot read it from storage. The refresh token is revocable through `app.refresh_tokens`. |
+| D10 | One origin. Nginx serves the build and proxies `/api` | One origin removes CORS in production and keeps the refresh cookie first-party. The API still configures CORS with `credentials: true`, so a second origin stays possible later. |
 | D11 | Three Docker services: `db`, `api`, `web` | The topology matches the demonstration and a public host. |
 | D12 | Thin tests | See §13. |
 | D13 | **Biome** for lint and format | One tool, one config file, and it is fast. |
@@ -269,7 +272,7 @@ browser
    │ https://<host>/api/…     → nginx proxies to api:3000
    ▼
 ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-│ web  nginx   │──▶│ api  Hono    │──▶│ db  Postgres │
+│ web  nginx   │──▶│ api Express 5│──▶│ db  Postgres │
 │ static build │   │ Node 20      │   │ 16           │
 └──────────────┘   └──────────────┘   └──────────────┘
 ```
@@ -288,8 +291,10 @@ This is deliberate, and §5.3 depends on it.
 route loader  →  TanStack Query  →  api client  →  zod parse  →  typed data
 ```
 
-- One `apiFetch` wrapper sets `credentials: 'include'`, sets the JSON headers,
-  and converts a non-2xx response into a typed error.
+- One `apiFetch` wrapper adds `Authorization: Bearer <access token>`, sets the
+  JSON headers, converts a non-2xx response into a typed error, and owns the
+  refresh-and-retry rule in §5.3. Only `/auth/refresh` and `/auth/logout` send
+  `credentials: 'include'`, because only those two read the cookie.
 - Every response passes through a zod schema. A schema failure is a real
   failure, not a warning. The corpus is stable, so a failure means the contract
   moved.
@@ -300,25 +305,50 @@ route loader  →  TanStack Query  →  api client  →  zod parse  →  typed d
 
 ### 5.3 Authentication
 
-1. The user posts an email and a password to `POST /api/auth/login`.
-2. The API verifies the password and signs a JWT.
-3. The API sets one cookie: `HttpOnly`, `Secure`, `SameSite=Strict`,
-   `Path=/api`.
-4. The browser attaches the cookie to each later request. JavaScript never
-   reads it.
-5. `GET /api/auth/me` returns the current user. The application calls it one
-   time at start, and the result seeds the auth context.
-6. `POST /api/auth/logout` clears the cookie. A client cannot clear it alone.
+`docs/backend-prd.md` §3 owns this design. The frontend builds the client half.
 
-**The cookie creates cross-site request forgery.** A browser attaches a cookie
-to a request that another site starts. Three defences apply together:
+**Two tokens live in two different places.**
 
-- `SameSite=Strict` stops the browser from sending the cookie from another site.
-- The API rejects `POST`, `PATCH`, and `DELETE` when `Origin` does not match.
-- One origin means a legitimate request always carries the correct `Origin`.
+| Token | Form | Where it lives | Lifetime |
+|---|---|---|---|
+| Access | A JWT. Claims are `sub`, `role`, `iat`, `exp`, and nothing else | **In memory only.** A variable behind the auth context | 15 minutes |
+| Refresh | An opaque random string | An `httpOnly` cookie. JavaScript never reads it | 7 days |
 
-A double-submit token is unnecessary while D10 holds. **If the frontend ever
-moves to a second origin, add the token in the same change.**
+**The access token never goes to `localStorage` or `sessionStorage`.** A reload
+loses it, and that is correct. Step 1 mints a new one.
+
+**The flow.**
+
+1. At start, the application calls `POST /api/auth/refresh` with
+   `credentials: 'include'`. A valid cookie returns a new access token, and the
+   user is signed in. A 401 means no session, and the application shows
+   `/login`.
+2. `POST /api/auth/login` returns an access token and sets the refresh cookie.
+3. Every other call adds `Authorization: Bearer <access token>`.
+4. A 401 triggers one refresh and then one retry of the original request. A
+   failed refresh clears the auth context and goes to `/login`.
+5. `POST /api/auth/logout` deletes the stored token and clears the cookie. The
+   client also drops the token it holds in memory.
+
+**Refresh is single-flight.** Ten queries can fail with 401 at the same moment,
+because the access token expires while the page is open. The client keeps **one**
+pending refresh promise, and every waiting request awaits it. Without this rule
+the application fires ten refreshes, and each one invalidates the token the
+others just received.
+
+**Cross-site request forgery is small here. It is not zero.**
+
+- Every state-changing route reads the `Authorization` header. Another site
+  cannot set that header, so those routes are safe by construction. This is the
+  advantage of a Bearer token over a session cookie.
+- `POST /auth/refresh` is the exception. It authenticates with the cookie alone.
+  That one route needs `SameSite` on the cookie and an `Origin` check on the
+  API.
+
+**The token carries no name.** The claims are `sub`, `role`, `iat`, and `exp`.
+The shell shows a name and an email, and a 15-minute token cannot supply them.
+The API needs `GET /auth/me`. `docs/backend-prd.md` §5 does not list it. See
+§8.2.
 
 ### 5.4 Guards
 
@@ -342,8 +372,11 @@ this.
 ### 5.5 The error boundary
 
 Each route has an error boundary. It shows what failed and one way forward. It
-never shows a stack trace. A 401 clears the auth context and sends the user to
-`/login`.
+never shows a stack trace.
+
+A 401 does **not** reach the boundary on the first attempt. §5.3 step 4 refreshes
+and retries first. Only a failed refresh clears the auth context and sends the
+user to `/login`.
 
 ---
 
@@ -729,7 +762,13 @@ bad `limit` falls back to the default silently. **No total count anywhere.**
 ### 8.2 What the frontend needs
 
 **Authentication.** `POST /auth/register`, `POST /auth/login`,
-`POST /auth/logout`, `GET /auth/me`.
+`POST /auth/refresh`, `POST /auth/logout`.
+
+**`GET /auth/me` is missing from `docs/backend-prd.md` §5 and the frontend needs
+it.** The access-token claims are `sub`, `role`, `iat`, and `exp`. They carry no
+name and no email, so the shell cannot render the signed-in user. Add the
+endpoint, or add the two fields to the claims. The endpoint is the better
+answer, because a claim grows the token on every request.
 
 **Corpus.** `GET /chapters?collection_id=`. `GET /narrators?q=&limit=&offset=`.
 `GET /narrators/:id/chains`. `GET /narrators/:id/adjacent`. A `q` parameter on
@@ -756,22 +795,22 @@ on `left(matn_plain, 200)`. It serves equality and prefix on that exact
 expression only. It never serves `LIKE '%…%'`. It stops at 200 characters, and
 it excludes the **1,633 hadiths where `matn_plain` is NULL**.
 
-Add a new file, `db/06_search.sql`. **Do not edit `db/05_post_load.sql`**,
-because that file is destructive and it already ran.
+`docs/backend-prd.md` §8.2 owns the fix. It adds a new file, `db/06_search.sql`,
+with an **expression index** and no new column:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
-ALTER TABLE corpus.hadiths
-    ADD COLUMN text_norm text
-    GENERATED ALWAYS AS (corpus.normalize_arabic(text_plain)) STORED;
-
-CREATE INDEX hadiths_text_norm_trgm_idx
-    ON corpus.hadiths USING gin (text_norm gin_trgm_ops);
+CREATE INDEX hadiths_text_trgm_idx ON corpus.hadiths
+    USING gin (corpus.normalize_arabic(text_plain) gin_trgm_ops);
 ```
 
-`corpus.normalize_arabic` is `IMMUTABLE`, so a stored generated column is legal.
-The two generated columns on `corpus.narrators` prove it.
+`corpus.normalize_arabic` is `IMMUTABLE`, so the expression index is legal.
+
+**Do not edit `db/05_post_load.sql`**, because that file is destructive and it
+already ran. `CREATE EXTENSION` needs the database owner, not `ilham_app`.
+
+**Regenerate `db/ilham.dump` afterwards.** A fresh clone restores the dump, so
+an index that is not in the dump does not exist for anybody else.
 
 ---
 
@@ -954,7 +993,8 @@ Do not write a component test for each screen. Do not add Playwright.
 | Risk | What we do about it |
 |---|---|
 | One person builds everything on a short schedule | §14 puts the graded flows first and search last. |
-| The cookie opens cross-site request forgery | §5.3 applies three defences together. Adding a second origin requires a token in the same change. |
+| Cross-site request forgery on the refresh route | Every other route uses a Bearer header, which another site cannot set. `POST /auth/refresh` uses the cookie alone, so it needs `SameSite` and an `Origin` check. See §5.3. |
+| Several requests refresh at the same time | The refresh is single-flight. One pending promise serves every waiting request. See §5.3. |
 | A reader reads a strength number as a probability | §9.3. The word leads. The number follows. The disclaimer is on screen. |
 | The design system becomes hard to change | §4. Four layers, one token file, and a CI check that fails on a literal. |
 | Requirement 9 asks each member to defend their own work | §12. Agree the split early. |
@@ -970,8 +1010,9 @@ These are reasonable and they are not settled. Change any one.
 
 1. **A hadith URL uses `hadith_id`.** `hadith_num` is text, it is not unique
    across collections, and it can read `2564 a`.
-2. **The CSRF defence is `SameSite=Strict` and an `Origin` check.** No
-   double-submit token, because one origin makes it unnecessary.
+2. **The access token lives in memory, not in `sessionStorage`.** A reload
+   costs one call to `/auth/refresh`. Storage would survive the reload and
+   would also survive a cross-site scripting attack.
 3. **No list virtualisation.** The API caps a page at 100 rows.
 4. **The researcher gets no separate interface.** Analytics is a section every
    signed-in user reaches. Only the verification queue is restricted.
