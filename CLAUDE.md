@@ -199,3 +199,22 @@ validation and English narrator names. LK gives the English hadith text.
 - After you change the schema, keep these consistent with the DDL: the ERD `.dot`
   files and their images in `docs/erd/`, the prose in `docs/`, and `docs/prd.md`.
   They are graded deliverables, and they must not drift from `db/*.sql`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues in `Kamrulhasan12345/ilham`. The skills use the
+`gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical labels keep their default names. See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This repository uses one context. `CONTEXT.md` and `docs/adr/` sit at the root.
+Neither exists yet. The skills continue without them, and `/domain-modeling`
+creates them when a term or a decision needs a home. See
+`docs/agents/domain.md`.
