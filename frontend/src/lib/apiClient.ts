@@ -1,6 +1,8 @@
-import type { ZodSchema } from 'zod';
+import { type ZodSchema, z } from 'zod';
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+
+const refreshResponseSchema = z.object({ accessToken: z.string() });
 
 export class ApiError extends Error {
   status: number;
@@ -43,13 +45,17 @@ export async function refreshAccessToken(): Promise<string> {
       setAccessToken(null);
       throw new ApiError(res.status, 'unauthenticated', 'session expired');
     }
-    const json = (await res.json()) as { data?: { accessToken?: string } };
-    const token = json.data?.accessToken;
-    if (!token) {
-      throw new ApiError(res.status, 'contract_error', 'refresh response carried no access token');
+    const json = await res.json().catch(() => null);
+    const parsed = refreshResponseSchema.safeParse((json as { data?: unknown } | null)?.data);
+    if (!parsed.success) {
+      throw new ApiError(
+        res.status,
+        'contract_error',
+        'refresh response did not match the expected shape',
+      );
     }
-    setAccessToken(token);
-    return token;
+    setAccessToken(parsed.data.accessToken);
+    return parsed.data.accessToken;
   })();
 
   try {

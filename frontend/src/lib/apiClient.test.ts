@@ -114,4 +114,17 @@ describe('apiFetch', () => {
     expect(b.slug).toContain('/two');
     expect(refreshCalls).toBe(1);
   });
+
+  it('throws contract_error when refresh response does not match schema', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        jsonResponse(401, { error: { code: 'unauthenticated', message: 'expired' } }),
+      )
+      .mockResolvedValueOnce(jsonResponse(200, { data: { accessToken: 123 } }));
+
+    await expect(apiFetch('/collections/1', collectionSchema)).rejects.toMatchObject({
+      code: 'contract_error',
+      message: 'refresh response did not match the expected shape',
+    });
+  });
 });
