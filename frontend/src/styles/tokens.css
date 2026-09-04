@@ -51,6 +51,12 @@
   --rail-w: 210px;
   --chain-row: 63px;
 
+  /* A shared floor for a compact control that isn't the full 44px Button —
+     a segmented toggle, a chip, a step button. Matches the WCAG 2.5.8 Target
+     Size minimum; see docs/design/specimen.html's `.seg button` for the same
+     value used the same way. */
+  --h-compact: 32px;
+
   /* Border and radius */
   --bw: 1px;
   --r-chip: 999px;

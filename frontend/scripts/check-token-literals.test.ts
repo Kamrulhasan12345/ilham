@@ -25,6 +25,10 @@ function runAgainst(srcDir: string) {
 }
 
 describe('check-token-literals', () => {
+  it('passes over the real src tree today', () => {
+    expect(() => execFileSync('node', [SCRIPT], { cwd: REPO_ROOT })).not.toThrow();
+  });
+
   it('fails on a raw hex colour outside a border rule', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
     const uiDir = join(tempDir, 'ui');
