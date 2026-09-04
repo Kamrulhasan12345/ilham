@@ -1,7 +1,13 @@
 # Google Stitch prompts — the whole frontend
 
 Use these with Google Stitch (Google Labs). Stitch 2.0 generates more than one
-screen, and it reads a `DESIGN.md`. Load §1 one time, then run the screen
+screen, and it reads a `DESIGN.md`.
+
+**Start at §0.** It gives two tracks. Track A makes Stitch design a system from
+scratch, so you can test ours against it. Track B hands Stitch our system and
+gets screens that match what is built. Run A first.
+
+Then load a `DESIGN.md`, run the master prompt in §2, and run the screen
 prompts in §3.
 
 Read §4 before you start. Stitch does some of this well and some of it badly,
