@@ -1,11 +1,11 @@
 export type Role = 'student' | 'teacher' | 'admin';
 
 export interface AuthUser {
-  userId: number;
+  user_id: number;
   role: Role;
-  name: string;
+  full_name: string;
   email: string;
-  isVerified?: boolean;
+  is_verified?: boolean;
 }
 
 export type AuthState =
@@ -25,14 +25,14 @@ export function evaluateGuard(state: AuthState, requirement: GuardRequirement): 
   if (requirement === 'public') return 'ok';
   if (state.status !== 'signed-in') return 'redirect-login';
 
-  const { role, isVerified } = state.user;
+  const { role, is_verified } = state.user;
   switch (requirement) {
     case 'signedIn':
       return 'ok';
     case 'teacher':
       return role === 'teacher' || role === 'admin' ? 'ok' : 'redirect-forbidden';
     case 'verifiedTeacher':
-      return role === 'admin' || (role === 'teacher' && isVerified === true)
+      return role === 'admin' || (role === 'teacher' && is_verified === true)
         ? 'ok'
         : 'redirect-forbidden';
     case 'admin':

@@ -9,18 +9,19 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import { z } from 'zod';
-import { apiFetch, refreshAccessToken, setAccessToken } from '../lib/apiClient';
+import { apiFetch, onSessionLost, refreshAccessToken, setAccessToken } from '../lib/apiClient';
+import { router } from '../router';
 import type { AuthState } from './guards';
 
 export type { AuthState, AuthUser, Role, GuardRequirement, GuardResult } from './guards';
 export { evaluateGuard } from './guards';
 
 const meSchema = z.object({
-  userId: z.number(),
+  user_id: z.number(),
   role: z.enum(['student', 'teacher', 'admin']),
-  name: z.string(),
+  full_name: z.string(),
   email: z.string(),
-  isVerified: z.boolean().optional(),
+  is_verified: z.boolean().optional(),
 });
 
 export interface AuthContextValue {
@@ -60,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccessToken(accessToken);
         const user = await apiFetch('/auth/me', meSchema);
         finalState = { status: 'signed-in', user };
-        setState(finalState);
       } catch {
         finalState = { status: 'signed-out' };
       }
@@ -70,6 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    onSessionLost(() => {
+      setState({ status: 'signed-out' });
+      router.invalidate();
+    });
   }, []);
 
   const value = useMemo<AuthContextValue>(

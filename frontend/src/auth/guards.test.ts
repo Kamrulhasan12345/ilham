@@ -5,31 +5,31 @@ const signedOut: AuthState = { status: 'signed-out' };
 const loading: AuthState = { status: 'loading' };
 const student: AuthState = {
   status: 'signed-in',
-  user: { userId: 1, role: 'student', name: 'Amina', email: 'amina@example.com' },
+  user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'amina@example.com' },
 };
 const unverifiedTeacher: AuthState = {
   status: 'signed-in',
   user: {
-    userId: 2,
+    user_id: 2,
     role: 'teacher',
-    name: 'Ustadh Kamrul',
+    full_name: 'Ustadh Kamrul',
     email: 'k@example.com',
-    isVerified: false,
+    is_verified: false,
   },
 };
 const verifiedTeacher: AuthState = {
   status: 'signed-in',
   user: {
-    userId: 3,
+    user_id: 3,
     role: 'teacher',
-    name: 'Ustadha Fatima',
+    full_name: 'Ustadha Fatima',
     email: 'f@example.com',
-    isVerified: true,
+    is_verified: true,
   },
 };
 const admin: AuthState = {
   status: 'signed-in',
-  user: { userId: 4, role: 'admin', name: 'Admin', email: 'admin@example.com' },
+  user: { user_id: 4, role: 'admin', full_name: 'Admin', email: 'admin@example.com' },
 };
 
 describe('evaluateGuard', () => {

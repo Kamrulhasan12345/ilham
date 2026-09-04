@@ -348,7 +348,7 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
 | POST | `/auth/login` | — | Returns the access token, sets the refresh cookie |
 | POST | `/auth/refresh` | — | Reads the cookie, returns a new access token |
 | POST | `/auth/logout` | A | Deletes the refresh token |
-| GET | `/auth/me` | A | The caller's own row, including the subtype attributes (`is_verified` for a teacher) |
+| GET | `/auth/me` | A | The caller's own row, including the subtype attributes (`is_verified` for a teacher). The response body uses `user_id`, `role`, `full_name`, `email`, and `is_verified` (teacher only) — snake_case, matching every other endpoint in this document |
 
 ### 5.2 Teachers (admin)
 

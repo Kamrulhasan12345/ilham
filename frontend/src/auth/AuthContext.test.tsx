@@ -8,31 +8,33 @@ vi.mock('../lib/apiClient', async () => {
     ...actual,
     refreshAccessToken: vi.fn(),
     apiFetch: vi.fn(),
+    onSessionLost: vi.fn(),
   };
 });
 
-import { apiFetch, refreshAccessToken } from '../lib/apiClient';
+import { apiFetch, onSessionLost, refreshAccessToken } from '../lib/apiClient';
 
 function Probe() {
   const auth = useAuth();
   if (auth.state.status === 'loading') return <p>loading</p>;
   if (auth.state.status === 'signed-out') return <p>signed out</p>;
-  return <p>signed in as {auth.state.user.name}</p>;
+  return <p>signed in as {auth.state.user.full_name}</p>;
 }
 
 describe('AuthProvider', () => {
   beforeEach(() => {
     vi.mocked(refreshAccessToken).mockReset();
     vi.mocked(apiFetch).mockReset();
+    vi.mocked(onSessionLost).mockReset();
   });
   afterEach(() => vi.restoreAllMocks());
 
   it('becomes signed-in when the startup refresh and /auth/me both succeed', async () => {
     vi.mocked(refreshAccessToken).mockResolvedValue('token-1');
     vi.mocked(apiFetch).mockResolvedValue({
-      userId: 1,
+      user_id: 1,
       role: 'student',
-      name: 'Amina',
+      full_name: 'Amina',
       email: 'amina@example.com',
     });
 
@@ -82,7 +84,7 @@ describe('AuthProvider', () => {
     vi.mocked(refreshAccessToken).mockResolvedValue('token-1');
     vi.mocked(apiFetch).mockImplementation(async (path: string) => {
       if (path === '/auth/me') {
-        return { userId: 1, role: 'student', name: 'Amina', email: 'amina@example.com' };
+        return { user_id: 1, role: 'student', full_name: 'Amina', email: 'amina@example.com' };
       }
       throw new Error('logout endpoint unreachable');
     });
@@ -102,6 +104,51 @@ describe('AuthProvider', () => {
 
     await act(async () => {
       await auth.signOut();
+    });
+
+    expect(screen.getByText('signed out')).toBeInTheDocument();
+  });
+
+  it('registers a session-lost listener on mount', async () => {
+    vi.mocked(refreshAccessToken).mockResolvedValue('token-1');
+    vi.mocked(apiFetch).mockResolvedValue({
+      user_id: 1,
+      role: 'student',
+      full_name: 'Amina',
+      email: 'amina@example.com',
+    });
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText('signed in as Amina')).toBeInTheDocument());
+    expect(onSessionLost).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('signs the user out when the registered session-lost listener fires', async () => {
+    vi.mocked(refreshAccessToken).mockResolvedValue('token-1');
+    vi.mocked(apiFetch).mockResolvedValue({
+      user_id: 1,
+      role: 'student',
+      full_name: 'Amina',
+      email: 'amina@example.com',
+    });
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText('signed in as Amina')).toBeInTheDocument());
+    expect(onSessionLost).toHaveBeenCalledWith(expect.any(Function));
+
+    const listener = vi.mocked(onSessionLost).mock.calls[0][0];
+    await act(async () => {
+      listener();
     });
 
     expect(screen.getByText('signed out')).toBeInTheDocument();
