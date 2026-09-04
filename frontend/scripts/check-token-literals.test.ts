@@ -67,4 +67,43 @@ describe('check-token-literals', () => {
 
     expect(() => runAgainst(tempDir!)).not.toThrow();
   });
+
+  it('fails on a raw border-radius literal (not exempted as a border width)', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
+    const uiDir = join(tempDir, 'ui');
+    mkdirSync(uiDir);
+    writeFileSync(join(uiDir, 'Card.module.css'), '.card {\n  border-radius: 8px;\n}\n');
+
+    expect(() => runAgainst(tempDir!)).toThrow();
+  });
+
+  it('fails on a raw border-top-left-radius literal', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
+    const uiDir = join(tempDir, 'ui');
+    mkdirSync(uiDir);
+    writeFileSync(join(uiDir, 'Card.module.css'), '.card { border-top-left-radius: 4px; }\n');
+
+    expect(() => runAgainst(tempDir!)).toThrow();
+  });
+
+  it('allows a literal border-top-width', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
+    const appDir = join(tempDir, 'app');
+    mkdirSync(appDir);
+    writeFileSync(join(appDir, 'rulebox.module.css'), '.rulebox { border-top-width: 2px; }\n');
+
+    expect(() => runAgainst(tempDir!)).not.toThrow();
+  });
+
+  it('allows a literal border-bottom shorthand', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
+    const appDir = join(tempDir, 'app');
+    mkdirSync(appDir);
+    writeFileSync(
+      join(appDir, 'rulebox.module.css'),
+      '.rulebox { border-bottom: 2px solid var(--index); }\n',
+    );
+
+    expect(() => runAgainst(tempDir!)).not.toThrow();
+  });
 });
