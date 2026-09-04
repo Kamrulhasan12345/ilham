@@ -1,0 +1,97 @@
+/* Layer 0. The only file a new design system replaces.
+   Source of truth: docs/design/specimen.html's :root block.
+   If this file and that block disagree, the block wins and this file is stale. */
+
+:root {
+  /* Colour — seven roles, light ground (1c), the default */
+  --ground: #fcfcfa;
+  --rail: #f1f0ec;
+  --rule: #d8d7d1;
+  --edge: #8b8b85;
+  --ink: #111211;
+  --ink-app: #5c5f5c;
+  --index: #2437c4;
+  --machine: #3b3e42;
+
+  /* Type — three families, three jobs */
+  --font-ar: "Scheherazade New", "Amiri", serif;
+  --font-en: "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Latin scale — ratio 4.0:1 (13 -> 52) */
+  --fs-count: 4.5rem; /* 72 / 0.95  corpus counts only */
+  --fs-title: 3.25rem; /* 52 / 1.0   screen title */
+  --fs-name: 2.375rem; /* 38 / 1.1   narrator name */
+  --fs-sect: 1.75rem; /* 28 / 1.25  section heading */
+  --fs-lead: 1.3125rem; /* 21 / 1.45  lead and pull translation */
+  --fs-body: 1rem; /* 16 / 1.55  translation body, cells */
+  --fs-rail: 0.9375rem; /* 15 / 1.55  rail body, glosses, grades */
+  --fs-label: 0.8125rem; /* 13 / 1.4   every label, sentence case */
+
+  /* Arabic scale — its own ladder */
+  --fs-ar-chapter: 4rem; /* 64 / 1.75 */
+  --fs-ar-matn: 2.75rem; /* 44 / 1.9, 1.95 on dark */
+  --fs-ar-name: 1.75rem; /* 28 / 1.9 */
+  --fs-ar-chain: 1.375rem; /* 22 / 1.25 */
+  --fs-ar-grade: 1.375rem; /* 22 / 2.1 */
+
+  --lh-ar-matn: 1.9;
+  --lh-en-body: 1.55;
+  --track-en: 0;
+  --track-label: 0.005em;
+
+  /* Space — a doubling scale on a 6px base, five steps only */
+  --sp-1: 6px;
+  --sp-2: 12px;
+  --sp-3: 24px;
+  --sp-4: 48px;
+  --sp-5: 96px;
+
+  /* The signature element */
+  --rail-w: 210px;
+  --chain-row: 63px;
+
+  /* Border and radius */
+  --bw: 1px;
+  --r-chip: 999px;
+  --focus-w: 2px;
+  --focus-off: 2px;
+
+  /* Motion — named for the job, not the length */
+  --dur-micro: 120ms;
+  --dur-move: 180ms;
+  --dur-enter: 240ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* Dark ground (2a). Written twice on purpose: CSS cannot alias a set of
+   declarations, so the system preference and the explicit choice each get
+   their own block. Never define a colour inside a media query only. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #16181a;
+    --rail: #1e2124;
+    --rule: #2e3236;
+    --edge: #656b72;
+    --ink: #e4e2dc;
+    --ink-app: #b4b8b3;
+    --index: #93a8f5;
+    --machine: #a9aeb4;
+    --fs-body: 1.0625rem;
+    --lh-ar-matn: 1.95;
+    --track-en: 0.01em;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #16181a;
+  --rail: #1e2124;
+  --rule: #2e3236;
+  --edge: #656b72;
+  --ink: #e4e2dc;
+  --ink-app: #b4b8b3;
+  --index: #93a8f5;
+  --machine: #a9aeb4;
+  --fs-body: 1.0625rem;
+  --lh-ar-matn: 1.95;
+  --track-en: 0.01em;
+}
