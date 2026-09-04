@@ -58,6 +58,11 @@
      value used the same way. */
   --h-compact: 32px;
 
+  /* Button dimensions per DESIGN.md §4 Controls */
+  --h-button: 44px;
+  --p-button-v: 13px;
+  --p-button-small-v: 8px;
+
   /* Border and radius */
   --bw: 1px;
   --r-chip: 999px;
