@@ -33,6 +33,23 @@ assign work and check it. An admin verifies teachers.
 
 One person builds the whole frontend. See §12.
 
+**The design system is settled.** It is **Apparatus**: one system on two
+grounds, with light (`1c`) as the default and dark (`2a`) as a choice the reader
+makes and the app remembers. The Arabic is the object on the table at 44px, and
+the English interface is a quiet apparatus around it — one accent, no serif
+English, and no colour-coded status anywhere.
+
+Three documents carry it, and they do not overlap:
+
+| Document | What it holds |
+|---|---|
+| `docs/design/DESIGN.md` | The build contract. Every token, rule and component behaviour, with no reasoning. Build against this one. |
+| `docs/design/README.md` | The reasons for each rule, and the evidence behind them. |
+| `docs/design/specimen.html` | The `:root` token block, and every component rendering on both grounds. |
+
+`docs/design/index.html` is the hub, and `docs/design/demo.html` is a working
+prototype of four screens.
+
 ---
 
 ## 1. Goals and non-goals
@@ -187,10 +204,12 @@ component skin must touch one layer and no page.
 ```
 Layer 0  tokens        CSS custom properties only. No selectors, no components.
             ▲
-Layer 1  primitives    Button, Input, Field, Chip, Card, Table, Dialog, Toast…
-            ▲          They read tokens. They know nothing about hadiths.
-Layer 2  domain        IsnadLadder, GradeChip, StrengthPlot, VerdictBand,
-            ▲          MasteryMeter, NarratorCard. They know hadiths.
+Layer 1  primitives    Button, Input, Field, Chip, Tag, Table, Dialog, Toast,
+            ▲          Slider… They read tokens and know nothing about hadiths.
+            ▲          There is no Card: Apparatus has no cards.
+Layer 2  domain        Chain, ChainMark, GradeLine, StrengthPlot, VerdictBand,
+            ▲          GenerationFilter, TransmissionWord, Rail. They know
+            ▲          hadiths. There is no GradeChip — a grade is never a chip.
 Layer 3  routes        Pages. They compose. They carry no styling.
 ```
 
@@ -228,6 +247,10 @@ Copy the `:root` block from `docs/design/specimen.html` into `tokens.css`. That
 block is the source of truth today. After the copy, `tokens.css` becomes the
 source of truth and `specimen.html` becomes the illustration.
 
+**Build against `docs/design/DESIGN.md`.** It states every token, rule and
+component behaviour in the form this layer needs. `docs/design/README.md` gives
+the reasons for each one, and the specimen shows them rendering on both grounds.
+
 ### 4.4 Swapping a design system
 
 To change the whole look, replace `tokens.css`. Nothing else changes.
@@ -242,23 +265,38 @@ To support two themes at once, add a second token block under a
 These belong to the system, not to a theme.
 
 1. **Arabic keeps its own scale and leading.** Naskh reads smaller than Latin at
-   the same pixel size. Use `--fs-ar-*` and `--lh-ar`. Never reuse the Latin
-   scale for Arabic.
-2. **Mono means a database value.** Text in `--font-data` came out of the
-   database unchanged: a grade code, a weight, a chain position, a date, an
-   identifier, `hadith_num`. Never use mono for a label.
-3. **Three semantic colours only.** `--sound`, `--fault`, `--warn`. Each carries
-   meaning. None decorates.
-4. **Never colour alone.** Add a shape, an icon, or a word.
-5. **Canvas reads tokens at paint time** and repaints on a theme change. CSS
-   re-themes itself. Canvas does not.
-6. **The isnad ladder is one right-to-left object.** Put `dir="rtl"` on the
-   list, not on each name.
-7. **Give the ladder cells an explicit `grid-column`.** `display: none` on a
-   grid child removes it from the grid, and auto-placement then shifts every
-   later cell across.
-8. **The node cell needs `align-self: stretch`.** The row is `align-items:
-   start`, so without it the spine breaks into disconnected stubs.
+   the same pixel size. Use `--fs-ar-*`. Never reuse the Latin scale for Arabic.
+2. **Mono means a database value, and it is always bracketed.** Text in
+   `--font-mono` came out of the database unchanged: a weight, a chain position,
+   a generation, a date, an identifier, `hadith_num`. The brackets are part of
+   the rule, so the distinction survives a screenshot and a screen reader. Never
+   use mono for a label.
+3. **One accent, and it means position.** `--index` marks links, focus, the
+   current page, and the link that sets a score. There is no second hue, so
+   **there is no colour-coded status anywhere** — no `--sound`, no `--fault`, no
+   `--warn`. A grade, a weight, a mastery level and an overdue date are all
+   words. If a theme adds a status colour, it has broken the system.
+4. **`--rule` and `--edge` are different jobs.** A hairline may sit at 3.2:1
+   because it is structure. A control boundary takes `--edge` and clears 3:1.
+5. **Colour is never the carrier.** Shape and words carry every state. The test
+   is greyscale: if the screen works without hue, it works.
+6. **Put `dir` on each Arabic string, not on the chain list.** The chain row is a
+   left-to-right grid and the Arabic is right-aligned inside its own cell.
+   Direction on the list flips the grid and puts the apparatus on the wrong side
+   of the name.
+7. **Give the chain cells an explicit `grid-column`.** `display: none` on a grid
+   child removes it from the grid, and auto-placement then shifts every later
+   cell across.
+8. **The mark cell needs `align-self: stretch`.** The row is
+   `align-items: start`, so without it the spine breaks into disconnected stubs.
+9. **Motion may offset content. It may never hide it.** Animate the offset, never
+   the opacity. A row hidden until an observer fires is invisible to the eye but
+   still focusable, still matched by find-in-page, and gone for good if the
+   observer never fires.
+10. **No cards, no panels, no shadows.** Grouping is the rail tint and 48px of
+    air. Borders sit on one or two edges, never four.
+11. **The rail is 210px and never changes width.** It sits at the same x on every
+    screen, and it never wraps around the Arabic.
 
 ---
 
@@ -462,7 +500,8 @@ Not a page. A banner that the shell shows.
 **Copy.** "Your teaching account is waiting for review. You can build study
 sets, write notes, and review students. You cannot open a circle yet."
 
-It is a `--warn` notice, not an error. The account works. One capability waits.
+It is a notice, not an error, and it carries no colour — the account works and
+one capability waits. Set it as a tag with a 2px inline-start rule.
 
 ### 7.4 Collections — `/collections`
 
@@ -516,10 +555,15 @@ isnad array, and `chain_strength`. **The array is flat and ordered by
 4. **A plain sentence about the chain.** Strong, mixed, a weak link found, or no
    chain. A word, never a bare number.
 5. **The disclaimer.** Ilham reports grades that classical scholars wrote
-   centuries ago. It does not judge whether a hadith is authentic. A colour or a
-   number is never Ilham's own opinion.
-6. The isnad ladder. The Companion first, the collector last. Each narrator
-   shows a name and one plain English line.
+   centuries ago. It does not judge whether a hadith is authentic. A number is
+   never Ilham's own opinion.
+6. The chain. **The collector first, the Companion last.** Each narrator shows
+   the Arabic name, a transliteration under it, both scholars' verdicts on one
+   plain English line, and the machine values — with the transmission word
+   glossed: `[ḥaddathanā]` "he narrated to us".
+7. **The generation filter.** A slider that hides the later end of the chain.
+   It must say what a generation is, say that filtering scores nothing, and
+   print its readout as text beside ± step buttons.
 
 **Behind "Show grading detail":** the generation numbers, the raw Arabic
 verdicts, the numeric weights, the provenance tiers, the discrete strength plot,
@@ -880,10 +924,14 @@ narrator outranks <span dir="rtl">لين</span>**, and **an unnamed narrator
 outranks <span dir="rtl">متروك</span>**. An unknown narrator is not an abandoned
 one.
 
-**The ring marks the row that sets the score. The colour follows the weight.**
-Most of the corpus has its minimum at <span dir="rtl">ثقة</span>. A red row
-there tells the reader that the strongest chain in the collection is full of
-problems.
+**The row that sets the score takes a 2px `--index` underline and the words
+"sets the score".** Never a ring and never a colour: there is no red in this
+system, and most of the corpus has its minimum at <span dir="rtl">ثقة</span>, so
+marking that row as a problem would tell the reader that the strongest chain in
+the collection is full of them.
+
+When two or more links tie at the minimum, **mark nothing** and say that the
+links tie. Never invent a weakest link.
 
 ---
 
@@ -891,8 +939,9 @@ problems.
 
 Every page meets these. They are not optional and they are not a later pass.
 
-- Text contrast 4.5:1. A control boundary 3:1.
-- A visible focus ring: 2px, ink, offset 2px. Never remove it.
+- Text contrast 4.5:1 on light and **7:1 on dark**. A control boundary 3:1.
+- A visible focus ring: 2px `--index`, offset 2px, outline only — never a
+  `box-shadow`, which disappears in Windows High Contrast Mode. Never remove it.
 - A pointer target of 24px or more. A coarse pointer gets 44px.
 - No horizontal page scroll. Wide content scrolls inside its own box.
 - `prefers-reduced-motion` stops all motion and shows the final state.
@@ -908,11 +957,39 @@ Every page meets these. They are not optional and they are not a later pass.
 
 ### Motion
 
-One animation for each view. **The isnad ladder draws in transmission order**,
-one rung every 45ms, Companion first. This is not decoration. It encodes the
-direction of transmission, which is the fact a new reader gets backwards.
+**Animate the viewpoint. Never animate the data.** Smooth transitions between
+views halve the error rate in controlled tests, but animation *of* data has
+never outperformed a well-made static diagram. So nothing animates a grade, a
+weight, a generation, or a chain position.
 
-Everything else is a 340ms fade at a 10px offset. Reduced motion removes it all.
+Three durations, named for the job, and one easing curve:
+
+| Token | Value | Job |
+|---|---|---|
+| `--dur-micro` | 120ms | Hover, press, fill, a row leaving a filter. |
+| `--dur-move` | 180ms | The route change and disclosures. |
+| `--dur-enter` | 240ms | First arrival. This is the ceiling. |
+| `--ease-out` | `cubic-bezier(.2,.7,.3,1)` | Every transition. |
+
+**Scale before speed.** The trigger for motion sensitivity is how far something
+moves, not how long it takes. **Nothing travels more than 8px.** Nothing scales,
+parallaxes, loops, or moves in the periphery while somebody is reading.
+
+**Motion may offset content. It may never hide it.** Animate the offset, never
+the opacity.
+
+The chain still draws in **transmission order** — the Companion first, the
+collector last, one rung every 45ms, which runs bottom to top because the
+collector prints at the head. It encodes the direction a new reader gets
+backwards. It uses an 8px offset under `--dur-enter`, and no row is ever hidden.
+
+Under `prefers-reduced-motion` every duration collapses to 0.01ms, but the state
+still changes: the route changes, the filtered row disappears, the readout
+updates. Motion is never the only carrier of a change.
+
+One documented exception: the three corpus figures on the hub count up over
+520ms on first load. It runs once per session, it is an entrance rather than a
+response to input, and the final figure is the only one anybody reads.
 
 ---
 
@@ -975,8 +1052,8 @@ Do not write a component test for each screen. Do not add Playwright.
 
 1. **Foundation.** Vite, TypeScript, Biome, TanStack Router, `tokens.css`, the
    shell, the API client, and the guards.
-2. **Layer 1 primitives.** Button, Input, Field, Chip, Card, Table, Dialog,
-   Toast, Pager.
+2. **Layer 1 primitives.** Button, Input, Field, Chip, Tag, Table, Dialog,
+   Toast, Pager, Slider. No Card — Apparatus has no cards.
 3. **Authentication.** Login, register, the waiting banner, and the guards.
 4. **Hadith detail.** The signature page, and the only page with a complete
    endpoint today. If the ladder does not work, nothing after it matters.

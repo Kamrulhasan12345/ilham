@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,400&family=Archivo:wght@400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400..700&family=IBM+Plex+Serif:wght@300;400;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Scheherazade+New:wght@400;500;700&family=Instrument+Sans:wght@400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #1a1a19; }
+  a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+  *:focus-visible { outline: 2px solid #2437C4; outline-offset: 2px; }
+  [id="2a"] *:focus-visible, [id="1b"] *:focus-visible { outline-color: #93A8F5; }
+  @media (forced-colors: active) { *:focus-visible { outline: 2px solid CanvasText; outline-offset: 2px; } }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 40px; padding: 56px 56px 0; font-family: 'Instrument Sans', system-ui, sans-serif;">
+
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 780px; color: #E8E6E1;">
+    <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #8E8B84;">Shipping — Apparatus, both grounds</div>
+    <h2 style="margin: 0; font-size: 40px; font-weight: 500; line-height: 1.05; letter-spacing: -0.025em;">The system: Apparatus, light and dark</h2>
+    <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #A8A59E; text-wrap: pretty;">Apparatus is the shipped direction. <a href="#2a" style="color: #C9CCC7;">2a</a> is its dark calibration — recalculated ink, a desaturated accent, Arabic held at Regular rather than bumped heavier — and <a href="#1c" style="color: #C9CCC7;">1c</a> below is the light default. Both now carry the three finalisation changes: the 12px label floor with 15px rail body (text ratio 4.3:1), a named chain density that fits ten narrators on one screen, and Pine removed so the system is back to a single accent. <a href="#1a" style="color: #8E8B84;">1a</a> and <a href="#1b" style="color: #8E8B84;">1b</a> stay on the board as the rejected alternatives.</p>
+  </div>
+
+  <div id="2a" style="flex: 0 0 1000px; width: 1000px; background: #16181A; color: #E4E2DC; padding: 48px; display: flex; flex-direction: column; gap: 48px; font-family: 'Instrument Sans', sans-serif;">
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; background: #E4E2DC; color: #16181A; padding: 6px;">2A</span>
+        <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Dark ground · Arabic first</span>
+      </div>
+      <h3 style="margin: 0; font-size: 52px; font-weight: 500; line-height: 1.0; letter-spacing: -0.03em;">Apparatus — dark</h3>
+      <p style="margin: 0; max-width: 62ch; font-size: 19px; line-height: 1.5; color: #C9CCC7; text-wrap: pretty;">Same skeleton as 1c: 44px Arabic as the object on the table, a 210px English rail at 12px, one accent, no serif English, ratio 4.3:1. Everything that changes here changes for an optical reason, not a stylistic one.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; background: #1E2124; padding: 24px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">What the evidence says, and where it disagrees</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px;">
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #5F656C; padding-top: 12px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Ground is not black</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">Pure black maximises the luminance delta that triggers halation and eye strain, so accessibility guidance points to a near-black charcoal instead — commonly #121212 to #1E293B on non-OLED screens. Ilham uses <span style="font-family: 'DM Mono', monospace;">#16181A</span>. <a href="https://www.colorcontrast.org/blog/dark-mode-contrast-accessibility-guide/" style="color: #93A8F5;">colorcontrast.org, 2026</a></p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #5F656C; padding-top: 12px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Ink is not white</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">Pure white on dark produces the strongest halation and ghosting, described as actively painful for readers with astigmatism; the standing advice is a softened white and a body target at or above 7:1. <span style="font-family: 'DM Mono', monospace;">#E4E2DC</span> measures 13.7:1 on the ground and 12.5:1 on the panel surface. <a href="https://dubbot.com/dubblog/2023/dark-mode-a11y.html" style="color: #93A8F5;">DubBot</a></p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #5F656C; padding-top: 12px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Accents desaturate</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">Saturated hues both fail contrast and vibrate on dark surfaces; guidance is roughly 20 points less saturation than the light-mode value. The single accent moves #2437C4 → <span style="font-family: 'DM Mono', monospace;">#93A8F5</span>. <a href="https://atmos.style/blog/dark-mode-ui-best-practices" style="color: #93A8F5;">atmos.style</a></p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #5F656C; padding-top: 12px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #93A8F5;">Weight — sources conflict</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">One camp says bump body weight to 450–500 because halation thins light strokes (<a href="https://fontfyi.com/blog/dark-mode-typography/" style="color: #93A8F5;">fontfyi</a>); another says drop to ~350 because light text already reads bolder (<a href="https://kosmoweb.cz/en/blog/dark-mode-design-best-practices/" style="color: #93A8F5;">kosmoweb</a>). My read, not a sourced finding: the thinning argument applies at body size, and Ilham's Arabic is at 44px, where bloom dominates. So Arabic stays Regular; only the 11px rail labels step up to 600.</p>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #B4B8B3;">Worth stating plainly, because it is the strongest evidence on this page and it cuts against dark mode: reading research reports a "positive polarity advantage" — black-on-white measures more legible than white-on-black, attributed to the brighter illumination of positive-polarity displays (<a href="https://www.researchgate.net/publication/373765014_Empirical_assessment_of_the_legibility_of_the_Naskh-style_typeface_used_on_Arabic_road_signs" style="color: #93A8F5;">literature review, Information Design Journal, 2023</a>). Those studies are on Latin text; I found no equivalent controlled study on vocalised Naskh, so this variant should ship as a user-chosen alternative to 1c, not as the default.</p>
+    </div>
+
+    <div style="height: 1px; background: #5F656C;"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Palette — seven roles, mapped from 1c</div>
+      <div style="display: grid; grid-template-columns: 30px 92px 20px 92px 1fr; gap: 0 6px; align-items: center;">
+        <span style="width: 22px; height: 22px; background: #FCFCFA;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#FCFCFA</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#16181A</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Ground. Charcoal, never #000.</span>
+        <span style="width: 22px; height: 22px; background: #F1F0EC;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#F1F0EC</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#1E2124</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Rail. Lighter surface, +2 steps of luminance.</span>
+        <span style="width: 22px; height: 22px; background: #D8D7D1;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#D8D7D1</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#5F656C</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Rule. Hairlines, 3.02:1 on ground — clears the 3:1 UI floor, because rules are the only grouping device here.</span>
+        <span style="width: 22px; height: 22px; background: #111211;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#111211</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#E4E2DC</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Ink. Arabic and headings. 13.7:1 on ground, 12.5:1 on panel.</span>
+        <span style="width: 22px; height: 22px; background: #5C5F5C;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#5C5F5C</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#B4B8B3</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Apparatus ink. Rail body and labels. 8.9:1 on ground, 8.0:1 on panel.</span>
+        <span style="width: 22px; height: 22px; background: #2437C4;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#2437C4</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#93A8F5</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Index blue. Links, focus, anchor. 7.8:1 on ground, 7.1:1 on panel.</span>
+        <span style="width: 22px; height: 22px; background: #3B3E42;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">#3B3E42</span><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #B4B8B3;">→</span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#A9AEB4</span><span style="font-size: 14px; line-height: 2.1; color: #C9CCC7;">Machine ink. Values stay quieter than the ink, as in 1c.</span>
+      </div>
+      <p style="margin: 0; max-width: 88ch; font-size: 14px; line-height: 1.6; color: #B4B8B3;">One accent survives the reversal, which is the whole safety argument: with a single hue there is nothing to pair the blue against, so the system cannot build a good/bad scale even by accident. Green was tried here and removed. Beyond the approval risk, green carries direct religious weight in this material, and near-black plus green is a banner before it is an interface — a combination this system can no longer make.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Type — what changes from 1c</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #1E2124;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">Arabic 44 / 1.95</div>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">Same 44px, same Scheherazade New Regular, line-height 1.9 → 1.95. Vowel marks bloom on dark, and the extra 0.05 buys the clearance back without touching the size.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #1E2124;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">English 16 → 17</div>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">Body English up one pixel and tracking +0.01em, the standard optical-scaling correction for small text on dark. The 12px label floor holds, at weight 600.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #1E2124;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">Ratio 4.3:1 unchanged</div>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C9CCC7;">The whole ladder is the same, so a screen can switch ground without reflowing. Only colour, the weight of the 12px labels, and two line-height values differ.</p>
+        </div>
+      </div>
+      <p style="margin: 0; max-width: 88ch; font-size: 14px; line-height: 1.6; color: #B4B8B3;">One caveat on the typeface itself: SIL notes that in Scheherazade New only Regular has a real Bold counterpart, so a "bold" applied over Medium or SemiBold can be synthesised by the app rather than drawn (<a href="https://software.sil.org/scheherazade/" style="color: #93A8F5;">SIL, 2024</a>). This variant therefore stays on Regular for Arabic and never emphasises Arabic by weight — emphasis is an underline in Index blue.</p>
+    </div>
+
+    <div style="height: 1px; background: #5F656C;"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Specimen — the same chain, dark</div>
+      <div style="display: grid; grid-template-columns: 210px 1fr; gap: 48px; border-top: 1px solid #5F656C; padding-top: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Source</span>
+            <span style="font-size: 15px; line-height: 1.5; color: #C9CCC7;">Ṣaḥīḥ al-Bukhārī, Book of Faith</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Identifier</span>
+            <span style="font-family: 'DM Mono', monospace; font-size: 15px; color: #A9AEB4;">[BUK-0001]</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Translation</span>
+            <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #B4B8B3;">Actions are only by intention, and every person has only what he intended. Whoever migrated for God and His messenger, his migration was for God and His messenger.</p>
+          </div>
+        </div>
+        <p dir="rtl" style="margin: 0; font-family: 'Scheherazade New', serif; font-size: 44px; line-height: 1.95; text-align: right;">إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 210px 1fr; gap: 48px; border-top: 1px solid #5F656C; padding-top: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Chain of transmission</span>
+          <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #B4B8B3;">Grades in the rail, as apparatus. Rank is still a hanging bracketed value; no chip, no colour. <strong style="font-weight: 600;">Chain density:</strong> names at 22px, one line per entry, 63px per row — ten narrators in about 630px.</p>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #5F656C;">
+            <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">الحميدي عبد الله بن الزبير</span>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+              <span style="font-size: 14px; line-height: 1.5; color: #C9CCC7;">thiqa ḥāfiẓ <span style="font-family: 'DM Mono', monospace; color: #B4B8B3;">/</span> ḥāfiẓ imām</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">[gen 10] [wt 0.94] [ḥaddathanā]</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #5F656C;">
+            <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">سفيان بن عيينة</span>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+              <span style="font-size: 14px; line-height: 1.5; color: #C9CCC7;">thiqa ḥāfiẓ faqīh <span style="font-family: 'DM Mono', monospace; color: #B4B8B3;">/</span> imām</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">[gen 08] [wt 0.91] [ʿan]</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #5F656C;">
+            <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">يحيى بن سعيد الأنصاري</span>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+              <span style="font-size: 14px; line-height: 1.5; color: #C9CCC7;">thiqa thabt <span style="font-family: 'DM Mono', monospace; color: #B4B8B3;">/</span> thiqa</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">[gen 05] [wt 0.88] [akhbaranā]</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #5F656C; border-left: 2px solid #93A8F5; padding-left: 12px; margin-left: -12px;">
+            <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">محمد بن إبراهيم التيمي</span>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+              <span style="font-size: 14px; line-height: 1.5; color: #C9CCC7;">thiqa, has awhām <span style="font-family: 'DM Mono', monospace; color: #B4B8B3;">/</span> ṣadūq</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">[gen 04] [wt 0.72] [ʿan]</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #5F656C;">
+            <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">علقمة بن وقاص الليثي</span>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+              <span style="font-size: 14px; line-height: 1.5; color: #C9CCC7;">thiqa <span style="font-family: 'DM Mono', monospace; color: #B4B8B3;">/</span> <span style="color: #B4B8B3;">no entry</span></span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">[gen 02] [wt 0.81] [ʿan]</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #5F656C;">
+            <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">عمر بن الخطاب</span>
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+              <span style="font-size: 14px; line-height: 1.5; color: #B4B8B3;">companion — not graded</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #A9AEB4;">[gen 01] [qāla]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #1E2124;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Signature element — the fixed rail, dark</div>
+      <p style="margin: 0; max-width: 78ch; font-size: 17px; line-height: 1.55; color: #C9CCC7;">The rail keeps its 210px and its x position. On dark it is the lighter surface rather than the tinted one, which is the only elevation cue the system uses — no shadows, since they do not read on a dark ground.</p>
+      <div style="display: grid; grid-template-columns: 210px 1fr; gap: 48px; background: #16181A; padding: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Assigned</span>
+            <span style="font-size: 15px; color: #C9CCC7;">Week 4 · close reading</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Submitted</span>
+            <span style="font-family: 'DM Mono', monospace; font-size: 15px; color: #A9AEB4;">[17 / 22]</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Term to learn</span>
+            <span style="font-size: 15px; line-height: 1.5; color: #C9CCC7;"><em>niyya</em> — the intention a person holds while acting.</span>
+          </div>
+          <a href="#2a" style="font-size: 15px; font-weight: 600; color: #93A8F5;">Open the chain</a>
+        </div>
+        <p dir="rtl" style="margin: 0; font-family: 'Scheherazade New', serif; font-size: 44px; line-height: 1.95; text-align: right;">إنما الأعمال <span style="border-bottom: 2px solid #93A8F5;">بالنيات</span>، وإنما لكل امرئ ما نوى.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #B4B8B3;">Deliberately left out</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 48px; font-size: 14px; line-height: 1.55; color: #C9CCC7;">
+        <div style="border-top: 1px solid #5F656C; padding-top: 6px;">Pure black and pure white, at either end.</div>
+        <div style="border-top: 1px solid #5F656C; padding-top: 6px;">Heavier Arabic. Emphasis is an underline, never a weight.</div>
+        <div style="border-top: 1px solid #5F656C; padding-top: 6px;">Shadows and glows. Elevation is the lighter rail surface, nothing else.</div>
+        <div style="border-top: 1px solid #5F656C; padding-top: 6px;">Auto-switching by time of day. The student chooses the ground and it persists.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: 0 0 1000px; width: 1000px; background: #FCFCFA; color: #111211; padding: 48px; display: flex; flex-direction: column; gap: 24px; font-family: 'Instrument Sans', sans-serif;">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Implementation rules — both grounds</div>
+      <h3 style="margin: 0; font-size: 34px; font-weight: 500; line-height: 1.08; letter-spacing: -0.025em;">Nine rules the research settled</h3>
+      <p style="margin: 0; max-width: 76ch; font-size: 16px; line-height: 1.55; color: #2A2C2A;">These apply to Apparatus light and dark alike and are not stylistic preferences — each one traces to a source in <a href="Ilham Evidence.dc.html">Ilham Evidence</a>. Where the reasoning is mine rather than a source's, the report says so.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px;">
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">01 · Bidi isolation</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Every Arabic string carries an explicit <span style="font-family: 'DM Mono', monospace; font-size: 14px;">dir</span>; database-sourced strings use <span style="font-family: 'DM Mono', monospace; font-size: 14px;">dir="auto"</span> or <span style="font-family: 'DM Mono', monospace; font-size: 14px;">&lt;bdi&gt;</span>. HTML markup, not the CSS property — it works without CSS, and the attribute isolates as well as directs. The rail's Latin transmission word inside an Arabic name is the case that breaks without it.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">02 · No tracking on Arabic</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Letter-spacing is zero on every Arabic element, at every size. Arabic is a joined script; tracking pulls the joins apart. The +0.12em tracking in this system belongs to 12px Latin labels only.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">03 · No italic, no synthetic bold</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Arabic is never slanted and never emphasised by weight — only Scheherazade New's Regular has a truly drawn Bold, so anything else risks a synthesised face. Emphasis on Arabic is a 2px underline in the accent. Italics are for English glosses.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">04 · Ragged, never justified</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Arabic is right-aligned and ragged everywhere. Inter-word justification produces rivers and uneven colour, letter-level adjustment carries Arabic-specific problems, and there is no hyphenation to fall back on.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">05 · Numerals, on the record</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Machine values use Western digits, because they sit inside an English apparatus rather than inside Arabic prose. Stated as a decision, not a default: the i18n libraries treat Arabic-Indic digits as the set for Arabic-language text, and web products diverge from that widely.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">06 · Contrast floors</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Light ground: 4.5:1 body, 3:1 for UI and hairlines; every figure quoted against the background it actually sits on. Dark ground: 7:1 for body, because the AAA threshold is a real readability gain once halation is in play — and measured on the panel surface, not just the ground, since that is where the rail text sits. Shipped: ink 12.5:1, apparatus ink 8.0:1, accent 7.1:1, hairlines 3.02:1 on ground.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">07 · Focus, outline only</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">A 2px solid outline at 2px offset, on <span style="font-family: 'DM Mono', monospace; font-size: 14px;">:focus-visible</span>, with a <span style="font-family: 'DM Mono', monospace; font-size: 14px;">forced-colors</span> fallback. Never box-shadow — it disappears in Windows High Contrast Mode. 2px is the published minimum, not the old 1px.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">08 · Colour, fenced</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">One accent, blue, meaning position only. No green, no gold, no red anywhere. Grade and weight are never coloured. Near-black and green never appear together. If the screen works in greyscale, it works.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">09 · QA, off the desk</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">Two checks no contrast tool performs: read the dark ground in a dim room on an OLED panel at low brightness, and proof fully vowelled Arabic at final size, where stacked marks fail first. Also verify mark placement in the shipping font — kasra with shadda moves.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #D8D7D1; padding-top: 12px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #2437C4;">Open — needs the teacher</span>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55;">The pairing test. Build the chain viewer twice, the second on IBM Plex Sans with IBM Plex Sans Arabic, and choose in front of the class. The sources favour one drawn family; Apparatus mixes deliberately. That trade is not mine to settle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 40px; padding: 56px; font-family: 'Archivo', system-ui, sans-serif;">
+
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 780px; color: #E8E6E1;">
+    <div style="font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #8E8B84;">Ilham — design system proposals</div>
+    <h1 style="margin: 0; font-family: 'Newsreader', serif; font-weight: 400; font-size: 44px; line-height: 1.1; letter-spacing: -0.015em;">Three directions for a bilingual hadith instrument</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #A8A59E; text-wrap: pretty;">Each column below is rendered in its own system: its own ground, type, palette and density rules, with the same dense specimen — one hadith, a six-narrator chain, two grades per narrator, machine values — so the three can be compared on the hardest screen rather than on a swatch strip. Reference them in chat as <a href="#1a">1a</a>, <a href="#1b">1b</a>, <a href="#1c">1c</a>.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
+
+    <!-- ============ 1a  CODEX ============ -->
+    <div id="1a" style="flex: 0 0 1000px; width: 1000px; background: #F7F3EC; color: #1B1815; padding: 44px 48px 52px; display: flex; flex-direction: column; gap: 40px; border-radius: 2px; box-shadow: 0 1px 0 #E3DACB inset;">
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.005em; background: #1B1815; color: #F7F3EC; padding: 4px 8px; border-radius: 2px;">1A</span>
+          <span style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Light ground · warm paper</span>
+        </div>
+        <h2 style="margin: 0; font-family: 'Newsreader', serif; font-weight: 400; font-size: 40px; line-height: 1.05; letter-spacing: -0.015em;">Codex</h2>
+        <p style="margin: 0; max-width: 62ch; font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.65; color: #3A342D; text-wrap: pretty;">The corpus is a printed book and the study layer is a set of notes in its margins. Warm paper, one text column, hairline rules, no boxes around anything that isn't interactive. Beginners are reassured by something that looks like a well-set edition rather than a database console.</p>
+        <p style="margin: 0; max-width: 62ch; font-size: 13px; line-height: 1.6; color: #6B6055;"><strong style="font-weight: 600;">Why light:</strong> sessions run an hour in daylit libraries and classrooms, and Naskh at reading size has fine joins that thicken and blur on a dark ground. Paper-warm rather than white keeps a page of black Arabic from vibrating.</p>
+      </div>
+
+      <div style="height: 1px; background: #E3DACB;"></div>
+
+      <!-- palette -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Palette — eight roles</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px;">
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #F7F3EC; border: 1px solid #D8CDBA; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#F7F3EC</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Ground. The page itself.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #FFFFFF; border: 1px solid #D8CDBA; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#FFFFFF</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Raised surface. Inputs, popovers, the hadith slip.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #E3DACB; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#E3DACB</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Rule. Every border in the system, 1px.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #1B1815; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#1B1815</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Ink. All body text, Arabic and English. 13.9:1.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #6B6055; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#6B6055</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Muted ink. Labels, column heads, counts. 4.9:1.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #3C5A6E; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#3C5A6E</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Slate. Links, selection, focus ring. 6.4:1.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #8A6A3B; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#8A6A3B</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Ochre. Marks attributed speech only — never rank.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; gap: 0; align-items: center;">
+            <span style="width: 22px; height: 22px; background: #EDE6D9; border-radius: 2px;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">#EDE6D9</span>
+            <span style="font-size: 13px; line-height: 2.1; color: #3A342D;">Machine tint. Ground behind database values.</span>
+          </div>
+        </div>
+        <p style="margin: 0; max-width: 84ch; font-size: 13px; line-height: 1.6; color: #6B6055;">Two hues total, both desaturated and both at the same lightness band, so neither can be read as better than the other. Grade rank is never coloured: it is carried by the grade word itself plus a hanging count.</p>
+      </div>
+
+      <div style="height: 1px; background: #E3DACB;"></div>
+
+      <!-- type -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Typefaces</div>
+        <div style="display: flex; flex-direction: column; gap: 0;">
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #E3DACB;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Arabic content</span>
+            <span style="font-family: 'Amiri', serif; font-size: 26px;">أميري نسخ</span>
+            <span style="font-size: 13px; line-height: 1.6; color: #3A342D;">Amiri. A revival of the Būlāq Naskh the printed hadith editions were set in, so the corpus looks like the books the class also owns. Generous ascenders, real dot spacing at 20px.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #E3DACB;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">English reading</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 26px;">Newsreader</span>
+            <span style="font-size: 13px; line-height: 1.6; color: #3A342D;">A low-contrast text serif with an optical-size axis, so a 44px chapter head and a 15px translation come from one family. Its calm horizontal stress sits beside Naskh without competing.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #E3DACB;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Interface chrome</span>
+            <span style="font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 600;">Archivo</span>
+            <span style="font-size: 13px; line-height: 1.6; color: #3A342D;">Grotesque, slightly narrow, holds 11px uppercase labels without smearing. Sans in the chrome and serif in the content means you always know whether you are reading the product or the corpus.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Machine values</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 26px;">0.86 · h1</span>
+            <span style="font-size: 13px; line-height: 1.6; color: #3A342D;">IBM Plex Mono, tabular by construction. Anything monospaced in Ilham came out of the database untouched; anything proportional was written by a person.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- scale -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Type scale — Latin, 1.22 steps, ratio 3.67:1</div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">44 / 1.05</span><span style="font-family: 'Newsreader', serif; font-size: 44px; line-height: 1.05; letter-spacing: -0.015em;">Book of Faith</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">34 / 1.1</span><span style="font-family: 'Newsreader', serif; font-size: 34px; line-height: 1.1;">Chapter heading</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">26 / 1.2</span><span style="font-family: 'Newsreader', serif; font-size: 26px; line-height: 1.2;">Narrator name, English</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">20 / 1.4</span><span style="font-family: 'Newsreader', serif; font-size: 20px; line-height: 1.4;">Lead paragraph and pull quotes</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">17 / 1.65</span><span style="font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.65;">Translation and commentary body</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">15 / 1.6</span><span style="font-family: 'Archivo', sans-serif; font-size: 15px; line-height: 1.6;">Interface body, table cells</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">13 / 1.5</span><span style="font-family: 'Archivo', sans-serif; font-size: 13px; line-height: 1.5;">Secondary metadata, help text</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">12 / 1.4</span><span style="font-family: 'Archivo', sans-serif; font-size: 12px; line-height: 1.4; letter-spacing: 0.005em; text-transform: none;">Column heads, eyebrows</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; background: #EDE6D9; border-radius: 2px;">
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Arabic scale — separate, +3px offset, line-height +0.35</div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">40 / 1.5</span><span dir="rtl" style="font-family: 'Amiri', serif; font-size: 40px; line-height: 1.5;">كتاب الإيمان</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">26 / 2.0</span><span dir="rtl" style="font-family: 'Amiri', serif; font-size: 26px; line-height: 2.0;">إنما الأعمال بالنيات</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">20 / 1.9</span><span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.9;">عبد الله بن الزبير الحميدي</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">18 / 1.8</span><span dir="rtl" style="font-family: 'Amiri', serif; font-size: 18px; line-height: 1.8;">ثقة ثبت، من رجال الجماعة</span></div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6B6055;">Arabic never inherits a Latin size. Body Arabic is 20/1.9 where English body is 17/1.65: same apparent weight on the page, room for the dots and the sublinear marks.</p>
+        </div>
+      </div>
+
+      <!-- space -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Space, radius, border</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #FFFFFF; border: 1px solid #E3DACB; border-radius: 2px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">4 · 8 · 12 · 20 · 32 · 52 · 84</div>
+            <p style="margin: 0; font-size: 13px; line-height: 1.6;">A 4px base rising on a rough 1.6. Inside a row, 8 and 12 only. Between blocks, 32 and up — the jump is what separates one hadith from the next, not a card.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #FFFFFF; border: 1px solid #E3DACB; border-radius: 2px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">radius 2 / 2 / 0</div>
+            <p style="margin: 0; font-size: 13px; line-height: 1.6;">2px on controls and popovers, 2px on machine chips, 0 everywhere else. Nothing is pill-shaped; nothing is a rounded content container.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #FFFFFF; border: 1px solid #E3DACB; border-radius: 2px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">1px #E3DACB, no shadow</div>
+            <p style="margin: 0; font-size: 13px; line-height: 1.6;">One border weight in the whole system. Elevation is expressed by white against paper, never by a shadow. Focus is a 2px slate ring at 2px offset.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #E3DACB;"></div>
+
+      <!-- specimen -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Specimen — hadith and chain at full density</div>
+        <div style="background: #FFFFFF; border: 1px solid #E3DACB; border-radius: 2px; padding: 32px 36px; display: flex; flex-direction: column; gap: 24px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px;">
+            <div style="font-family: 'Newsreader', serif; font-size: 26px; line-height: 1.2;">Ṣaḥīḥ al-Bukhārī, Book of Faith</div>
+            <div style="display: flex; gap: 8px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #EDE6D9; padding: 4px 7px; border-radius: 2px;">BUK·0001</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #EDE6D9; padding: 4px 7px; border-radius: 2px;">isnād 6</span>
+            </div>
+          </div>
+          <p dir="rtl" style="margin: 0; font-family: 'Amiri', serif; font-size: 26px; line-height: 2.0; text-align: right;">إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله، ومن كانت هجرته إلى دنيا يصيبها أو امرأة يتزوجها فهجرته إلى ما هاجر إليه.</p>
+          <p style="margin: 0; font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.65; color: #3A342D; max-width: 68ch;">Actions are only by intention, and every person has only what he intended. Whoever migrated for God and His messenger, his migration was for God and His messenger.</p>
+
+          <div style="height: 1px; background: #E3DACB;"></div>
+
+          <div style="display: grid; grid-template-columns: 26px 1fr 118px 118px 62px 74px; gap: 0; align-items: center;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055; padding-bottom: 8px;">#</span>
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055; padding-bottom: 8px;">Narrator</span>
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055; padding-bottom: 8px;">Ibn Ḥajar</span>
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055; padding-bottom: 8px;">al-Dhahabī</span>
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055; padding-bottom: 8px;">Gen.</span>
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055; padding-bottom: 8px; text-align: right;">Weight</span>
+
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055; padding: 10px 0; border-top: 1px solid #E3DACB;">1</span>
+            <span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.6; padding: 10px 16px 10px 0; border-top: 1px solid #E3DACB; text-align: right;">الحميدي عبد الله بن الزبير <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">حدثنا</span></span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">thiqa ḥāfiẓ</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">ḥāfiẓ imām</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB;">10</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; text-align: right;">0.94</span>
+
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055; padding: 10px 0; border-top: 1px solid #E3DACB;">2</span>
+            <span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.6; padding: 10px 16px 10px 0; border-top: 1px solid #E3DACB; text-align: right;">سفيان بن عيينة <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">عن</span></span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">thiqa ḥāfiẓ faqīh</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">imām</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB;">8</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; text-align: right;">0.91</span>
+
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055; padding: 10px 0; border-top: 1px solid #E3DACB;">3</span>
+            <span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.6; padding: 10px 16px 10px 0; border-top: 1px solid #E3DACB; text-align: right;">يحيى بن سعيد الأنصاري <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">أخبرنا</span></span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">thiqa thabt</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">thiqa</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB;">5</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; text-align: right;">0.88</span>
+
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055; padding: 10px 0; border-top: 1px solid #E3DACB;">4</span>
+            <span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.6; padding: 10px 16px 10px 0; border-top: 1px solid #E3DACB; text-align: right;">محمد بن إبراهيم التيمي <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">عن</span></span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">thiqa, has awhām</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">ṣadūq</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB;">4</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; text-align: right;">0.72</span>
+
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055; padding: 10px 0; border-top: 1px solid #E3DACB;">5</span>
+            <span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.6; padding: 10px 16px 10px 0; border-top: 1px solid #E3DACB; text-align: right;">علقمة بن وقاص الليثي <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">عن</span></span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">thiqa</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; color: #8A6A3B;">—</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB;">2</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; text-align: right;">0.81</span>
+
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055; padding: 10px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB;">6</span>
+            <span dir="rtl" style="font-family: 'Amiri', serif; font-size: 20px; line-height: 1.6; padding: 10px 16px 10px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB; text-align: right;">عمر بن الخطاب <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">قال</span></span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB; color: #6B6055;">companion</span>
+            <span style="font-family: 'Newsreader', serif; font-size: 17px; padding: 10px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB; color: #6B6055;">companion</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB;">1</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 0; border-top: 1px solid #E3DACB; border-bottom: 1px solid #E3DACB; text-align: right;">—</span>
+          </div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6B6055;">Grade words are set in the reading serif and tinted ochre because a scholar wrote them. Generation, weight and identifier are monospaced because the database holds them. Nothing in the table ranks a narrator by colour.</p>
+        </div>
+      </div>
+
+      <!-- signature -->
+      <div style="display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; background: #EDE6D9; border-radius: 2px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Signature element — the marginal apparatus</div>
+        <p style="margin: 0; max-width: 76ch; font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.65;">Every Arabic text keeps a 220px left margin holding numbered glosses. A student hovers or taps a classical term and the gloss lights in the margin instead of covering the text — the way a printed edition carries its own commentary. It is the one place beginners are taught vocabulary, and it never moves.</p>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 28px; background: #FFFFFF; border: 1px solid #E3DACB; border-radius: 2px; padding: 22px 24px;">
+          <div style="display: flex; flex-direction: column; gap: 14px; border-right: 1px solid #E3DACB; padding-right: 24px;">
+            <div style="display: grid; grid-template-columns: 18px 1fr; gap: 8px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">1</span><span style="font-size: 13px; line-height: 1.55;"><em style="font-family: 'Newsreader', serif;">hijra</em> — leaving one place for another for a religious purpose.</span></div>
+            <div style="display: grid; grid-template-columns: 18px 1fr; gap: 8px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">2</span><span style="font-size: 13px; line-height: 1.55; padding: 4px 6px; margin: -4px -6px; background: #EDE6D9; border-radius: 2px;"><em style="font-family: 'Newsreader', serif;">niyya</em> — the intention a person holds while acting; the subject of this hadith.</span></div>
+            <div style="display: grid; grid-template-columns: 18px 1fr; gap: 8px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6B6055;">3</span><span style="font-size: 13px; line-height: 1.55;"><em style="font-family: 'Newsreader', serif;">ḥaddathanā</em> — "he narrated to us", direct oral transmission.</span></div>
+          </div>
+          <p dir="rtl" style="margin: 0; font-family: 'Amiri', serif; font-size: 24px; line-height: 2.0; text-align: right;">إنما الأعمال <span style="border-bottom: 1px solid #8A6A3B;">بالنيات<sup style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A6A3B;">2</sup></span>، وإنما لكل امرئ ما نوى، فمن كانت <span style="border-bottom: 1px solid #E3DACB;">هجرته<sup style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6B6055;">1</sup></span> إلى الله ورسوله.</p>
+        </div>
+      </div>
+
+      <!-- omissions -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #6B6055;">Deliberately left out</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 40px; font-size: 13px; line-height: 1.6;">
+          <div style="border-top: 1px solid #E3DACB; padding-top: 8px;">Shadows and elevation layers. Depth would imply a stack of panels; this is one page.</div>
+          <div style="border-top: 1px solid #E3DACB; padding-top: 8px;">A dark mode. Two grounds means two Naskh calibrations and twice the contrast audit.</div>
+          <div style="border-top: 1px solid #E3DACB; padding-top: 8px;">Any graph or force-directed chain diagram. Chains are read as lists of people, in order.</div>
+          <div style="border-top: 1px solid #E3DACB; padding-top: 8px;">Icons beyond a handful of chrome affordances. Labels are words.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1b  REGISTER ============ -->
+    <div id="1b" style="flex: 0 0 1000px; width: 1000px; background: #14161A; color: #E7E9EC; padding: 44px 48px 52px; display: flex; flex-direction: column; gap: 40px; font-family: 'IBM Plex Sans Condensed', sans-serif;">
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.005em; background: #E7E9EC; color: #14161A; padding: 4px 8px;">1B</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Dark ground · instrument</span>
+        </div>
+        <h2 style="margin: 0; font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 40px; line-height: 1.05; letter-spacing: -0.01em;">Register</h2>
+        <p style="margin: 0; max-width: 64ch; font-family: 'IBM Plex Serif', serif; font-size: 17px; line-height: 1.6; color: #C4C9D0; text-wrap: pretty;">Not a book — an instrument for reading 139,629 links. The whole interface is a ruled grid, values are aligned to the character cell, and Arabic sits in the one place the grid gives way. Made for the student who is comparing four chains at once and the teacher watching a class list.</p>
+        <p style="margin: 0; max-width: 64ch; font-size: 13px; line-height: 1.6; color: #9AA1AB;"><strong style="font-weight: 600;">Why dark:</strong> at this density the page is 80% rules, numbers and chips, and on white that reads as glare. Ink-on-dark lets a hairline grid sit at 15% strength and still organise the screen, so density comes from structure and not from heavier borders. Arabic is set 2px larger and one weight heavier than its light-ground equivalent to pay for the reversal.</p>
+      </div>
+
+      <div style="height: 1px; background: #262B33;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Palette — eight roles</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px;">
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #14161A; border: 1px solid #333941;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#14161A</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Ground. The workspace.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #1C1F25; border: 1px solid #333941;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#1C1F25</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Panel. Tables, rails, the chain viewer.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #262B33;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#262B33</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Grid line. Every rule and cell edge.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #E7E9EC;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#E7E9EC</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Ink. Names and body. 13.4:1.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #9AA1AB;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#9AA1AB</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Muted ink. Heads, units, secondary. 6.6:1.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #8FB3D9;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#8FB3D9</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Signal blue. Focus, links, current row. 8.2:1.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #C9AC76;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#C9AC76</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Brass. Machine values only. 8.9:1.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #3A4048;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">#3A4048</span><span style="font-size: 14px; line-height: 2.1; color: #C4C9D0;">Chip fill. All grade chips, one colour.</span></div>
+        </div>
+        <p style="margin: 0; max-width: 88ch; font-size: 14px; line-height: 1.6; color: #9AA1AB;">Grade chips are all the same grey. Rank is carried by a leading glyph — <span style="font-family: 'JetBrains Mono', monospace; color: #E7E9EC;">▮▮▮ ▮▮· ▮·· ···</span> — which survives greyscale, colour blindness and print. Blue means "you are here"; brass means "a machine said this". Neither ever touches a scholar's word.</p>
+      </div>
+
+      <div style="height: 1px; background: #262B33;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Typefaces</div>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #262B33;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Arabic content</span>
+            <span style="font-family: 'Noto Naskh Arabic', serif; font-size: 26px;">نسخ نوتو</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #C4C9D0;">Noto Naskh Arabic. Sturdier strokes and shallower contrast than a Būlāq revival, which is what a dark ground demands — thin joins would disappear. Hinted, and covers every diacritic in the corpus.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #262B33;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">English reading</span>
+            <span style="font-family: 'IBM Plex Serif', serif; font-size: 26px; font-weight: 300;">Plex Serif</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #C4C9D0;">Set at 300 for long translations: on dark, a 400 serif blooms. Sharing a skeleton with the sans and the mono keeps three scripts in one voice.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #262B33;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Interface chrome</span>
+            <span style="font-family: 'IBM Plex Sans Condensed', sans-serif; font-size: 26px; font-weight: 500;">Plex Condensed</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #C4C9D0;">Condensed buys about four characters per column, which is the difference between a chain table that fits and one that scrolls sideways.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Machine values</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 26px; color: #C9AC76;">0.86 h1</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #C4C9D0;">JetBrains Mono, in brass, always. Large aperture and disambiguated 0/O/1/l — identifiers get read aloud in class.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Type scale — Latin, 1.14 steps, ratio 2.55:1</div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">28 / 1.15</span><span style="font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 28px;">Screen title</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">23 / 1.2</span><span style="font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 23px;">Section, narrator name</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">19 / 1.35</span><span style="font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 19px;">Panel head</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">16 / 1.6</span><span style="font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 16px;">Translation and commentary body</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">14 / 1.5</span><span style="font-size: 14px;">Interface body and table cells</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">13 / 1.45</span><span style="font-size: 13px;">Dense table cells, chips</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">12 / 1.4</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">Machine values, units</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">11 / 1.3</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none;">Column heads only</span></div>
+        </div>
+        <p style="margin: 0; max-width: 88ch; font-size: 14px; line-height: 1.6; color: #9AA1AB;">A deliberately compressed ratio: nothing shouts, because on a comparison screen there is no single hero. Hierarchy comes from rules and position instead of from size.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; background: #1C1F25; border-left: 2px solid #C9AC76;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Arabic scale — +4px offset, line-height +0.45, weight 500 on dark</div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">32 / 1.6</span><span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 32px; line-height: 1.6;">كتاب الإيمان</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">24 / 2.05</span><span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-size: 24px; line-height: 2.05;">إنما الأعمال بالنيات</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">18 / 1.95</span><span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.95;">عبد الله بن الزبير الحميدي</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 20px; align-items: baseline;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB;">16 / 1.85</span><span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-size: 16px; line-height: 1.85;">ثقة ثبت، من رجال الجماعة</span></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Space, radius, border</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #1C1F25; border: 1px solid #262B33;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76;">2 · 4 · 8 · 16 · 24 · 40 · 64</div>
+            <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C4C9D0;">Strict 8px grid with a 2px and 4px sub-step for cell padding. Table rows are 32px tall; the 4px step is what makes ten narrators fit above the fold.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #1C1F25; border: 1px solid #262B33;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76;">radius 0</div>
+            <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C4C9D0;">Zero, everywhere, including chips and buttons. Square corners let cells butt against each other and share a single 1px line.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; background: #1C1F25; border: 1px solid #262B33;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76;">border = structure</div>
+            <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #C4C9D0;">1px #262B33 for the grid, 2px #C9AC76 left rule for machine-derived panels, 2px #8FB3D9 for focus and current row. No shadows at all.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #262B33;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Specimen — hadith and chain at full density</div>
+        <div style="background: #1C1F25; border: 1px solid #262B33; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px;">
+            <div style="font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 23px;">Ṣaḥīḥ al-Bukhārī · Book of Faith</div>
+            <div style="display: flex; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76;"><span>BUK·0001</span><span>ISNĀD·6</span><span>LINKS·5</span></div>
+          </div>
+          <p dir="rtl" style="margin: 0; font-family: 'Noto Naskh Arabic', serif; font-size: 24px; line-height: 2.05; text-align: right;">إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله، ومن كانت هجرته إلى دنيا يصيبها أو امرأة يتزوجها فهجرته إلى ما هاجر إليه.</p>
+          <p style="margin: 0; font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 16px; line-height: 1.6; color: #C4C9D0; max-width: 70ch;">Actions are only by intention, and every person has only what he intended. Whoever migrated for God and His messenger, his migration was for God and His messenger.</p>
+
+          <div style="display: grid; grid-template-columns: 24px 1fr 150px 150px 44px 62px; border-top: 1px solid #262B33;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; color: #9AA1AB; padding: 8px 0;">#</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB; padding: 8px 0;">Narrator · tahwīl</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB; padding: 8px 0;">Ibn Ḥajar</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB; padding: 8px 0;">al-Dhahabī</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB; padding: 8px 0;">Gen</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB; padding: 8px 0; text-align: right;">Wt</span>
+
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA1AB; padding: 7px 0; border-top: 1px solid #262B33;">01</span>
+            <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.5; padding: 7px 16px 7px 0; border-top: 1px solid #262B33; text-align: right;">الحميدي عبد الله بن الزبير <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #C9AC76;">ḥ</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮▮</span>thiqa ḥāfiẓ</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮▮</span>ḥāfiẓ imām</span></span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33;">10</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33; text-align: right;">0.94</span>
+
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA1AB; padding: 7px 0; border-top: 1px solid #262B33;">02</span>
+            <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.5; padding: 7px 16px 7px 0; border-top: 1px solid #262B33; text-align: right;">سفيان بن عيينة <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #C9AC76;">ʿan</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮▮</span>thiqa faqīh</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮▮</span>imām</span></span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33;">08</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33; text-align: right;">0.91</span>
+
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA1AB; padding: 7px 0; border-top: 1px solid #262B33;">03</span>
+            <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.5; padding: 7px 16px 7px 0; border-top: 1px solid #262B33; text-align: right;">يحيى بن سعيد الأنصاري <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #C9AC76;">akh</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮▮</span>thiqa thabt</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮·</span>thiqa</span></span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33;">05</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33; text-align: right;">0.88</span>
+
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8FB3D9; padding: 7px 0; border-top: 2px solid #8FB3D9;">04</span>
+            <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.5; padding: 7px 16px 7px 0; border-top: 2px solid #8FB3D9; text-align: right;">محمد بن إبراهيم التيمي <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #C9AC76;">ʿan</span></span>
+            <span style="padding: 7px 0; border-top: 2px solid #8FB3D9;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮·</span>thiqa, awhām</span></span>
+            <span style="padding: 7px 0; border-top: 2px solid #8FB3D9;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮··</span>ṣadūq</span></span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 2px solid #8FB3D9;">04</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 2px solid #8FB3D9; text-align: right;">0.72</span>
+
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA1AB; padding: 7px 0; border-top: 1px solid #262B33;">05</span>
+            <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.5; padding: 7px 16px 7px 0; border-top: 1px solid #262B33; text-align: right;">علقمة بن وقاص الليثي <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #C9AC76;">ʿan</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33;"><span style="display: inline-flex; align-items: baseline; gap: 6px; background: #3A4048; padding: 2px 6px; font-size: 13px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #E7E9EC;">▮▮·</span>thiqa</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA1AB;">no entry</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33;">02</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33; text-align: right;">0.81</span>
+
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA1AB; padding: 7px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">06</span>
+            <span dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-weight: 500; font-size: 18px; line-height: 1.5; padding: 7px 16px 7px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33; text-align: right;">عمر بن الخطاب <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #C9AC76;">qāla</span></span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33; font-size: 13px; color: #9AA1AB;">companion</span>
+            <span style="padding: 7px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33; font-size: 13px; color: #9AA1AB;">companion</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">01</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #C9AC76; padding: 7px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33; text-align: right;">—</span>
+          </div>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #9AA1AB;">Row 04 is the current row: 2px blue rule, top and bottom, plus the row number turning blue. Selection is never a fill, because a fill behind Arabic on dark costs legibility.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; background: #1C1F25; border-left: 2px solid #C9AC76;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Signature element — the grade matrix</div>
+        <p style="margin: 0; max-width: 78ch; font-family: 'IBM Plex Serif', serif; font-weight: 300; font-size: 16px; line-height: 1.6; color: #C4C9D0;">One narrator, every critic who spoke about him, laid out as a fixed-cell strip. All cells are the same grey; the block glyph carries strength and the word carries the actual judgement. Disagreement between critics shows up as an uneven glyph column, which is the thing a student is meant to notice — and no cell ever looks like a pass or a fail.</p>
+        <div style="display: grid; grid-template-columns: 130px repeat(5, 1fr); border-top: 1px solid #262B33;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: none; letter-spacing: 0.005em; color: #9AA1AB; padding: 8px 0;">Critic</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB; padding: 8px 0;">Ibn Ḥajar</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB; padding: 8px 0;">Dhahabī</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB; padding: 8px 0;">Ibn Maʿīn</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB; padding: 8px 0;">Abū Ḥātim</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA1AB; padding: 8px 0;">al-Nasāʾī</span>
+          <span style="font-size: 13px; color: #9AA1AB; padding: 8px 0; border-top: 1px solid #262B33;">glyph</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33;">▮▮·</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33;">▮··</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33;">▮▮▮</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33;">▮▮·</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33;">···</span>
+          <span style="font-size: 13px; color: #9AA1AB; padding: 8px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">word</span>
+          <span style="font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">thiqa, awhām</span>
+          <span style="font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">ṣadūq</span>
+          <span style="font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">thiqa</span>
+          <span style="font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33;">lā baʾsa bih</span>
+          <span style="font-size: 13px; padding: 8px 0; border-top: 1px solid #262B33; border-bottom: 1px solid #262B33; color: #9AA1AB;">no entry</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.005em; text-transform: none; color: #9AA1AB;">Deliberately left out</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 40px; font-size: 14px; line-height: 1.55; color: #C4C9D0;">
+          <div style="border-top: 1px solid #262B33; padding-top: 8px;">Rounded corners and any shadow. Both fight a shared-edge grid.</div>
+          <div style="border-top: 1px solid #262B33; padding-top: 8px;">A light mode. The whole contrast model is built on ink-on-dark.</div>
+          <div style="border-top: 1px solid #262B33; padding-top: 8px;">Coloured status. Rank is a glyph; colour is only place and provenance.</div>
+          <div style="border-top: 1px solid #262B33; padding-top: 8px;">Serif chrome and decorative headings. Nothing above 28px exists.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1c  APPARATUS ============ -->
+    <div id="1c" style="flex: 0 0 1000px; width: 1000px; background: #FCFCFA; color: #111211; padding: 48px; display: flex; flex-direction: column; gap: 48px; font-family: 'Instrument Sans', sans-serif;">
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; background: #111211; color: #FCFCFA; padding: 6px;">1C</span>
+          <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Light ground · Arabic first</span>
+        </div>
+        <h2 style="margin: 0; font-size: 52px; font-weight: 500; line-height: 1.0; letter-spacing: -0.03em;">Apparatus — light</h2>
+        <p style="margin: 0; max-width: 62ch; font-size: 19px; line-height: 1.5; color: #2A2C2A; text-wrap: pretty;">The other two directions treat Arabic as content inside an English product. This one inverts it: the Arabic is the object on the table, set very large, and the entire English interface shrinks to a quiet apparatus around it — labels at 12px, one accent, no serifs anywhere.</p>
+        <p style="margin: 0; max-width: 62ch; font-size: 14px; line-height: 1.6; color: #5C5F5C;"><strong style="font-weight: 600;">Why light:</strong> when Arabic is set at 44px it becomes the largest mass on the screen, and a large dark mass on a dark ground turns the page into a poster. Near-white paper keeps the text a text. The ground is cool rather than warm so the Arabic reads as a specimen under glass, not as a facsimile of a book.</p>
+      </div>
+
+      <div style="height: 1px; background: #D8D7D1;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Palette — seven roles</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px;">
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #FCFCFA; border: 1px solid #D8D7D1;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#FCFCFA</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Ground. Where the Arabic lives.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #F1F0EC; border: 1px solid #D8D7D1;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#F1F0EC</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Rail. The apparatus column and all chrome.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #D8D7D1;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#D8D7D1</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Rule. Hairlines and cell edges.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #111211;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#111211</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Ink. Arabic and headings. 18.3:1 on ground.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #5C5F5C;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#5C5F5C</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Apparatus ink. Rail body and labels. 6.3:1 on ground, 5.7:1 on rail tint.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #2437C4;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#2437C4</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Index blue. The only accent: links, focus, anchor.</span></div>
+          <div style="display: grid; grid-template-columns: 30px 92px 1fr; align-items: center;"><span style="width: 22px; height: 22px; background: #3B3E42;"></span><span style="font-family: 'DM Mono', monospace; font-size: 12px;">#3B3E42</span><span style="font-size: 14px; line-height: 2.1; color: #2A2C2A;">Graphite. Machine values, in brackets.</span></div>
+        </div>
+        <p style="margin: 0; max-width: 88ch; font-size: 14px; line-height: 1.6; color: #5C5F5C;">One hue, one job. A system with a single accent cannot build a good/bad scale: there is nothing to pair the blue against. Blue means "you are here" and nothing else. Grade rank is a hanging bracketed count in the rail — never a colour, never a chip. A green was tried in this slot and cut, on two grounds: a system whose thesis is one accent loses that thesis the moment a second hue can mean status, and in this subject green is the colour of Paradise and of the Prophet’s garments — weight no rail label should carry. Blue, by contrast, reads in Islamic art as heaven, protection and knowledge, is the link colour of the Arabic web, and is the one hue that survives colour-vision deficiency. Never green, never gold, never red.</p>
+      </div>
+
+      <div style="height: 1px; background: #D8D7D1;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Typefaces</div>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 12px 0; border-top: 1px solid #D8D7D1;">
+            <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Arabic content</span>
+            <span style="font-family: 'Scheherazade New', serif; font-size: 32px;">شهرزاد</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #2A2C2A;">Scheherazade New. A tall, open Naskh built for scholarly editions with full vowelling — it holds ḥarakāt without collision, which is what lets this direction set the text at 44px and mean it. It is also the one Naskh here that stays readable when a student zooms further.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 12px 0; border-top: 1px solid #D8D7D1;">
+            <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">English reading</span>
+            <span style="font-family: 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 400;">Instrument Sans</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #2A2C2A;">A neutral grotesque with a large x-height, used at 16–19px for translation. Sans for English is a deliberate demotion: the serif voice belongs to the Arabic alone, so the eye never mistakes a translation for the source.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 12px 0; border-top: 1px solid #D8D7D1;">
+            <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Interface chrome</span>
+            <span style="font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: 0.005em; text-transform: none;">Instrument 600</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #2A2C2A;">The same family at 600, sentence case, 13px — the floor of the system — tracked +0.005em. Capitals were the original label voice and were removed: the reading-speed penalty is 10–20% and the tracking that fixes crowding also breaks word cohesion. One family for both English roles keeps the apparatus recessive; weight and case do the separating, not a second typeface.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 150px 210px 1fr; gap: 24px; align-items: baseline; padding: 12px 0; border-top: 1px solid #D8D7D1; border-bottom: 1px solid #D8D7D1;">
+            <span style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Machine values</span>
+            <span style="font-family: 'DM Mono', monospace; font-size: 24px; color: #3B3E42;">[0.86]</span>
+            <span style="font-size: 14px; line-height: 1.6; color: #2A2C2A;">DM Mono at 400 — light, narrow, almost quiet enough to be a footnote. Every database value is bracketed as well as monospaced, so the distinction survives a screenshot, a printout and a screen reader.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Type scale — Latin, ratio 4.3:1 · 72px reserved for corpus counts</div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">72 / 0.95</span><span style="font-size: 72px; font-weight: 500; line-height: 0.95; letter-spacing: -0.035em;">14,901</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">52 / 1.0</span><span style="font-size: 52px; font-weight: 500; line-height: 1.0; letter-spacing: -0.03em;">Screen title</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">38 / 1.1</span><span style="font-size: 38px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em;">Narrator name</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">28 / 1.25</span><span style="font-size: 28px; font-weight: 500; line-height: 1.25;">Section heading</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">21 / 1.45</span><span style="font-size: 21px; line-height: 1.45;">Lead and pull translation</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">16 / 1.55</span><span style="font-size: 16px; line-height: 1.55;">Translation body, table cells</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">15 / 1.55</span><span style="font-size: 15px; line-height: 1.55;">Rail body, glosses, grade words</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">12 / 1.4</span><span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; line-height: 1.4;">Every label in the product</span></div>
+        </div>
+        <p style="margin: 0; max-width: 88ch; font-size: 14px; line-height: 1.6; color: #5C5F5C;">The floor was raised, not the ceiling: 12px is now the smallest size in the system and it is used for labels only, with 15px carrying every word a beginner actually has to read. That puts the text ratio at 4.3:1 (12→52), with 72px held back for corpus counts on the dashboard. The direction survives — only one thing on a screen is ever large — without setting the teaching material at the smallest size in the product.</p>
+        <div style="display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #F1F0EC;">
+          <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Arabic scale — its own ladder, line-height 1.75–2.1</div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">64 / 1.75</span><span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 64px; line-height: 1.75;">كتاب الإيمان</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">44 / 1.9</span><span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 44px; line-height: 1.9;">إنما الأعمال بالنيات</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">28 / 1.9</span><span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 28px; line-height: 1.9;">عبد الله بن الزبير الحميدي</span></div>
+          <div style="display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: baseline;"><span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #5C5F5C;">22 / 2.1</span><span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 2.1;">ثقة ثبت، من رجال الجماعة</span></div>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #5C5F5C;">The Arabic ladder overlaps the Latin one only at the bottom. Body Arabic at 44px sits against body English at 16px — a 2.75× ratio between the two scripts, which is what it takes for Scheherazade with vowels to feel the same weight as a 16px grotesque.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Space, radius, border</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #F1F0EC;">
+            <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">6 · 12 · 24 · 48 · 96 — enforced</div>
+            <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #2A2C2A;">A doubling scale on a 6px base, five steps, and no value off it anywhere in the system. Dense areas use 6 and 12; the rail gutter is always 48; panel padding is always 48. Fewer steps means the rhythm survives a full screen — and makes an off-scale value a bug you can see.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #F1F0EC;">
+            <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">radius 0 / 999 on chips</div>
+            <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #2A2C2A;">Square everywhere, except interactive chips and filters, which are fully round. Roundness in this system means only one thing: you can click it.</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #F1F0EC;">
+            <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">rules, not boxes</div>
+            <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #2A2C2A;">Borders exist on one or two edges, never four; grouping is done by the rail tint and by 48px of air. Focus is a 2px #2437C4 ring at 2px offset. No shadows.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #D8D7D1;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Specimen — hadith and chain at full density</div>
+        <div style="display: grid; grid-template-columns: 210px 1fr; gap: 48px; border-top: 1px solid #D8D7D1; padding-top: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Source</span>
+              <span style="font-size: 15px; line-height: 1.5;">Ṣaḥīḥ al-Bukhārī, Book of Faith</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Identifier</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 15px; color: #3B3E42;">[BUK-0001]</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Chain length</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 15px; color: #3B3E42;">[6]</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Translation</span>
+              <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #2A2C2A;">Actions are only by intention, and every person has only what he intended. Whoever migrated for God and His messenger, his migration was for God and His messenger.</p>
+            </div>
+          </div>
+          <p dir="rtl" style="margin: 0; font-family: 'Scheherazade New', serif; font-size: 44px; line-height: 1.9; text-align: right;">إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 210px 1fr; gap: 48px; border-top: 1px solid #D8D7D1; padding-top: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Chain of transmission</span>
+            <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #5C5F5C;">Read top to bottom: the collector first, the companion last. Grades sit in the rail beside each name, as apparatus. <strong style="font-weight: 600;">Chain density:</strong> names drop to 22px and each rail entry collapses to one line, so each row is 63px and a ten-narrator chain fits in about 630px — one screen, no scroll.</p>
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #D8D7D1;">
+              <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">الحميدي عبد الله بن الزبير</span>
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+                <span style="font-size: 15px; line-height: 1.5;">thiqa ḥāfiẓ <span style="font-family: 'DM Mono', monospace; color: #5C5F5C;">/</span> ḥāfiẓ imām</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">[gen 10] [wt 0.94] [ḥaddathanā]</span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #D8D7D1;">
+              <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">سفيان بن عيينة</span>
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+                <span style="font-size: 15px; line-height: 1.5;">thiqa ḥāfiẓ faqīh <span style="font-family: 'DM Mono', monospace; color: #5C5F5C;">/</span> imām</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">[gen 08] [wt 0.91] [ʿan]</span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #D8D7D1;">
+              <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">يحيى بن سعيد الأنصاري</span>
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+                <span style="font-size: 15px; line-height: 1.5;">thiqa thabt <span style="font-family: 'DM Mono', monospace; color: #5C5F5C;">/</span> thiqa</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">[gen 05] [wt 0.88] [akhbaranā]</span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #D8D7D1; border-left: 2px solid #2437C4; padding-left: 12px; margin-left: -12px;">
+              <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">محمد بن إبراهيم التيمي</span>
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+                <span style="font-size: 15px; line-height: 1.5;">thiqa, has awhām <span style="font-family: 'DM Mono', monospace; color: #5C5F5C;">/</span> ṣadūq</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">[gen 04] [wt 0.72] [ʿan]</span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #D8D7D1;">
+              <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">علقمة بن وقاص الليثي</span>
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+                <span style="font-size: 15px; line-height: 1.5;">thiqa <span style="font-family: 'DM Mono', monospace; color: #5C5F5C;">/</span> <span style="color: #5C5F5C;">no entry</span></span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">[gen 02] [wt 0.81] [ʿan]</span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #D8D7D1;">
+              <span dir="rtl" style="font-family: 'Scheherazade New', serif; font-size: 22px; line-height: 1.75; text-align: right;">عمر بن الخطاب</span>
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;">
+                <span style="font-size: 15px; line-height: 1.5; color: #5C5F5C;">companion — not graded</span>
+                <span style="font-family: 'DM Mono', monospace; font-size: 12px; color: #3B3E42;">[gen 01] [qāla]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #F1F0EC;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Signature element — the fixed rail</div>
+        <p style="margin: 0; max-width: 78ch; font-size: 16px; line-height: 1.55; color: #2A2C2A;">A 210px left rail runs down every screen in the product, at the same x position, holding whatever English the current object needs: labels, identifiers, grades, glosses, the teacher's note on a student. The rail never changes width and never wraps around the Arabic. Learning the product means learning one rail — and because it is a fixed column, a teacher can point at it in class.</p>
+        <div style="display: grid; grid-template-columns: 210px 1fr; gap: 48px; background: #FCFCFA; padding: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Assigned</span>
+              <span style="font-size: 15px;">Week 4 · close reading</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Submitted</span>
+              <span style="font-family: 'DM Mono', monospace; font-size: 15px; color: #3B3E42;">[17 / 22]</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Term to learn</span>
+              <span style="font-size: 15px; line-height: 1.5;"><em>niyya</em> — the intention a person holds while acting.</span>
+            </div>
+            <a href="#1c" style="font-size: 15px; font-weight: 600; color: #2437C4;">Open the chain</a>
+          </div>
+          <p dir="rtl" style="margin: 0; font-family: 'Scheherazade New', serif; font-size: 44px; line-height: 1.9; text-align: right;">إنما الأعمال <span style="border-bottom: 2px solid #2437C4;">بالنيات</span>، وإنما لكل امرئ ما نوى.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.005em; text-transform: none; color: #5C5F5C;">Deliberately left out</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 48px; font-size: 14px; line-height: 1.55; color: #2A2C2A;">
+          <div style="border-top: 1px solid #D8D7D1; padding-top: 6px;">Serif English. The serif voice is reserved for the Arabic, with no exceptions.</div>
+          <div style="border-top: 1px solid #D8D7D1; padding-top: 6px;">A second accent colour, and therefore any colour-coded status at all.</div>
+          <div style="border-top: 1px solid #D8D7D1; padding-top: 6px;">Cards and panels. Only the rail tint and 48px of air group anything.</div>
+          <div style="border-top: 1px solid #D8D7D1; padding-top: 6px;">Mid-size type. Between 21px and 28px the system has nothing.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+</body>
+</html>
