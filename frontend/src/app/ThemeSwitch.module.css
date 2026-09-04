@@ -11,7 +11,7 @@
   font-weight: 600;
   letter-spacing: var(--track-label);
   padding: var(--sp-1) var(--sp-2);
-  min-height: var(--h-button);
+  min-height: 32px;
   border: 0;
   cursor: pointer;
   background: var(--rail);

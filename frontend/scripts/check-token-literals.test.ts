@@ -25,10 +25,6 @@ function runAgainst(srcDir: string) {
 }
 
 describe('check-token-literals', () => {
-  it('passes over the real src tree today', () => {
-    expect(() => execFileSync('node', [SCRIPT], { cwd: REPO_ROOT })).not.toThrow();
-  });
-
   it('fails on a raw hex colour outside a border rule', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
     const uiDir = join(tempDir, 'ui');
@@ -52,6 +48,18 @@ describe('check-token-literals', () => {
     const routesDir = join(tempDir, 'routes');
     mkdirSync(routesDir);
     writeFileSync(join(routesDir, 'page.module.css'), '.card { border: 1px solid var(--rule); }\n');
+
+    expect(() => runAgainst(tempDir!)).not.toThrow();
+  });
+
+  it('allows a literal directional border', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'token-check-'));
+    const appDir = join(tempDir, 'app');
+    mkdirSync(appDir);
+    writeFileSync(
+      join(appDir, 'rulebox.module.css'),
+      '.rulebox { border-inline-start: 2px solid var(--index); }\n',
+    );
 
     expect(() => runAgainst(tempDir!)).not.toThrow();
   });

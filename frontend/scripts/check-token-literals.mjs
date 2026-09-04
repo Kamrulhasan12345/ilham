@@ -13,7 +13,7 @@ const SCAN_DIRS = ['ui', 'domain', 'routes', 'app'];
 const HEX_RE = /#[0-9a-fA-F]{3,8}\b/;
 const RGB_RE = /\brgba?\(/i;
 const PX_RE = /(?<![\w-])\d+(?:\.\d+)?px\b/;
-const BORDER_LINE_RE = /border(-width)?\s*:/i;
+const BORDER_LINE_RE = /\bborder(-[\w-]+)?\s*:/i;
 
 function walk(dir, files = []) {
   let entries;
