@@ -12,7 +12,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <header className={styles.topbar}>
           <span className={styles.brand}>
             Ilham{' '}
-            <span className="ar" dir="rtl">
+            <span className={`ar ${styles.brandAr}`} dir="rtl">
               إلهام
             </span>
           </span>

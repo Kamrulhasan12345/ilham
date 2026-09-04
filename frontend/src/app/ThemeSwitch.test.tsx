@@ -27,4 +27,10 @@ describe('ThemeSwitch', () => {
     render(<ThemeSwitch />);
     expect(screen.getByRole('group', { name: 'Ground' })).toBeInTheDocument();
   });
+
+  it('restores a stored dark preference on mount, without a click', () => {
+    window.localStorage.setItem('ilham-theme', 'dark');
+    render(<ThemeSwitch />);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
 });

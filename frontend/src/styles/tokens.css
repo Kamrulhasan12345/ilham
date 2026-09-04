@@ -50,6 +50,7 @@
   /* The signature element */
   --rail-w: 210px;
   --chain-row: 63px;
+  --measure-app: 76rem; /* the app content column's max width */
 
   /* A shared floor for a compact control that isn't the full 44px Button —
      a segmented toggle, a chip, a step button. Matches the WCAG 2.5.8 Target

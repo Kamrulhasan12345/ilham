@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './ThemeSwitch.module.css';
 import { type Theme, applyTheme, detectSystemTheme, getStoredTheme, setStoredTheme } from './theme';
 
 export function ThemeSwitch() {
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme() ?? detectSystemTheme());
+
+  useEffect(() => {
+    const stored = getStoredTheme();
+    if (stored) applyTheme(stored);
+  }, []);
 
   function choose(next: Theme) {
     setTheme(next);

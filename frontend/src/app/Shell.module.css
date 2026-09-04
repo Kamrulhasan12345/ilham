@@ -33,10 +33,8 @@
   align-items: baseline;
   gap: var(--sp-1);
 }
-.brand .ar {
-  font-family: var(--font-ar);
+.brandAr {
   font-size: 1.25rem;
-  font-weight: 400;
 }
 
 .spacer {
@@ -45,7 +43,7 @@
 
 .main {
   padding: var(--sp-4) var(--sp-3) var(--sp-5);
-  max-width: 76rem;
+  max-width: var(--measure-app);
   margin-inline: auto;
 }
 .main:focus {
