@@ -17,7 +17,109 @@ so you do not spend redesigns fixing the palette.
 
 ---
 
-## 1. Paste this as `DESIGN.md` first
+## 0. Two tracks. Choose one before you start.
+
+**Track A — let Stitch design the system.** Give it the brief and no style.
+Use this to get an independent direction and to test whether ours is any good.
+Start at §0.1.
+
+**Track B — give Stitch our system.** Paste `DESIGN.md` from §1 and get screens
+that match what is already built. Start at §1.
+
+Run **A first**. Compare with §0.3. Then run B for the screens you keep.
+
+---
+
+### 0.1 Track A — the brief, with no style in it
+
+Everything below is a fact about the product. None of it is a style choice.
+Paste it whole, and do not add a palette or a typeface.
+
+```
+Design a design system for a web application called Ilham.
+
+WHAT IT IS
+A hadith study platform. Two halves. First, a read-only reference corpus of
+14,901 Arabic hadiths, 20,957 narrator biographies and 139,629 links in chains
+of transmission. Second, a small study layer where a teacher runs a class,
+assigns reading and records how students are doing.
+
+WHO USES IT
+University students and one teacher. Most of them have no training in the
+subject and cannot read the classical vocabulary. They use it for an hour at a
+time, not for thirty seconds. It is a working tool, not a landing page.
+
+HARD CONSTRAINTS. These are not preferences.
+1. The product contains no photography, no illustration and no video, and it
+   never will. There is nothing but text and numbers. Every bit of visual
+   interest must come from typography, colour, scale and structure.
+2. Every screen mixes two scripts. The interface is English and reads left to
+   right. All content is Arabic and reads right to left, inside the same page.
+   Arabic needs its own size scale and its own line-height, because Naskh reads
+   smaller than Latin at the same pixel size.
+3. Some values come from a database unchanged: grade codes, weights, chain
+   positions, dates, identifiers. The system needs a way to mark those as
+   machine values, distinct from words a person wrote.
+4. The product shows judgements that scholars made centuries ago. It must never
+   look like it is passing judgement itself. A colour that reads as approval or
+   condemnation is a failure.
+5. Screens are dense. A chain has up to about ten narrators, each with two
+   grades, a generation and a transmission word. It must stay readable at that
+   density.
+6. Text contrast 4.5 to 1. Visible keyboard focus. Nothing carried by colour
+   alone.
+
+WHAT I WANT FROM YOU
+Propose THREE distinct directions. For each one give:
+- 6 to 8 colours as hex, each with the job it does
+- the typefaces, one for Arabic content, one for English reading, one for
+  interface chrome, one for machine values, and say why each was chosen
+- a type scale, and the ratio between the largest and the smallest size
+- whether the ground is dark or light, and why
+- spacing, radius and border rules
+- ONE signature element this system would be remembered by
+- what you deliberately left out
+
+Make the three genuinely different from each other. Do not give me three
+versions of the same idea.
+```
+
+### 0.2 Then ask for the counter-argument
+
+Run this straight after, in the same conversation. It is the useful part.
+
+```
+Now argue against your own three directions.
+
+For each one, name the screen in this product where it would fail, and say why.
+Then tell me which single direction you would ship and what you would change
+about it first.
+
+Do not be even-handed. Pick one.
+```
+
+### 0.3 Score what comes back against what we have
+
+Our system is dark, four typefaces, a 16:1 scale, three meaning colours and two
+collection colours. Judge Stitch's directions on these, not on how they look in
+a thumbnail.
+
+| Question | Why it matters |
+|---|---|
+| Does it survive with no images at all? | Every award-winning reference site leans on photography. This product has none. A direction that needs an image is dead. |
+| Does it give Arabic its own scale? | One shared scale makes Arabic look wrong. This is the fastest way to tell a real proposal from a generic one. |
+| Does the largest size beat the smallest by 8:1 or more? | Our first draft ran 3.3:1 and looked flat. That was the whole fault. |
+| Can a weak grade be shown without it reading as an accusation? | Constraint 4. A red-to-green ramp fails this. |
+| Does it have a fourth role for machine values? | Three roles is the common answer and it is one short. |
+| Does it stay readable with ten narrators and twenty grades on screen? | Constraint 5. Most generated systems are built for landing pages. |
+
+**Take what beats ours and leave the rest.** A direction does not have to win
+whole. If Stitch finds a better ground colour or a better mono, take that one
+thing.
+
+---
+
+## 1. Track B — paste this as `DESIGN.md`
 
 ```markdown
 # Ilham — design system
