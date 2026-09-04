@@ -16,6 +16,13 @@ export class ApiError extends Error {
   }
 }
 
+type SessionLostListener = () => void;
+let sessionLostListener: SessionLostListener | null = null;
+
+export function onSessionLost(listener: SessionLostListener): void {
+  sessionLostListener = listener;
+}
+
 let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null): void {
@@ -43,11 +50,14 @@ export async function refreshAccessToken(): Promise<string> {
     });
     if (!res.ok) {
       setAccessToken(null);
+      sessionLostListener?.();
       throw new ApiError(res.status, 'unauthenticated', 'session expired');
     }
     const json = await res.json().catch(() => null);
     const parsed = refreshResponseSchema.safeParse((json as { data?: unknown } | null)?.data);
     if (!parsed.success) {
+      setAccessToken(null);
+      sessionLostListener?.();
       throw new ApiError(
         res.status,
         'contract_error',
@@ -71,9 +81,11 @@ export interface ApiFetchOptions {
   credentials?: 'include';
 }
 
-// Only these two routes read the refresh cookie; retrying them on a 401
-// would either loop forever or paper over a genuine login failure.
-const NO_RETRY_PATHS = new Set(['/auth/refresh', '/auth/login']);
+// /auth/refresh and /auth/login are excluded because retrying them on a 401
+// would either loop forever (refresh retrying itself) or paper over a
+// genuine login failure. /auth/logout is excluded because there is nothing
+// useful to retry it into — the session is ending either way.
+const NO_RETRY_PATHS = new Set(['/auth/refresh', '/auth/login', '/auth/logout']);
 
 export async function apiFetch<T>(
   path: string,
