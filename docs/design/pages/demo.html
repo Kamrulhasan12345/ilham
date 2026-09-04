@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Ilham Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<style>
+/* Tokens are copied from specimen.html, which stays the source of truth.
+   Both collapse into frontend/src/styles/tokens.css at scaffold time. */
+/* ═══ DARK-FIRST TOKENS ═══════════════════════════════════════════════
+   The bare :root is the DARK palette. Light is the alternate. Ilham holds
+   no photography at all, so type, colour and scale carry the whole visual
+   load — which is why the scale below runs 16:1, not 3:1.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* ground → ink, dark */
+  --bone-100:#12150F;  /* page ground        */
+  --bone-50: #1A1E15;  /* raised surface     */
+  --bone-200:#0B0D07;  /* sunken well        */
+  --bone-300:#2C3126;  /* rules, spine       */
+  --bone-400:#454B3D;  /* stronger rule      */
+  --bone-500:#767C6D;  /* large text only · 4.3:1 */
+  --bone-700:#A9AF9F;  /* secondary text · 8.3:1  */
+  --bone-900:#E8EBE0;  /* body text · 15.4:1      */
+
+  /* three semantic hues, saturated for a dark ground */
+  --sound:#4FBF9F;  --sound-bg:#12352C;   /* graded strong · 8.2:1 */
+  --fault:#F2795E;  --fault-bg:#3A1C15;   /* the minimum, anʿana · 6.8:1 */
+  --warn: #E0B24B;  --warn-bg:#332711;    /* unmapped, unverified · 9.4:1 */
+
+  /* categorical, and only for collections. Carries no judgement. */
+  --col-bukhari:#5B92F5;
+  --col-muslim:#9B7BF0;
+
+  --paper:var(--bone-100); --surface:var(--bone-50); --ink:var(--bone-900);
+  --ink-2:var(--bone-700); --ink-3:var(--bone-500); --rule:var(--bone-300);
+  --rule-strong:var(--bone-400); --focus:var(--bone-900);
+
+  --font-ar:'Scheherazade New','Noto Naskh Arabic',serif;
+  --font-read:'Newsreader',Georgia,serif;
+  --font-ui:'Atkinson Hyperlegible',system-ui,sans-serif;
+  --font-data:'IBM Plex Mono',ui-monospace,monospace;
+
+  /* Latin scale. 11px → 176px is 16:1. The old system was 3.3:1. */
+  --fs-2xs:.6875rem; --fs-xs:.78125rem; --fs-sm:.875rem; --fs-md:1rem;
+  --fs-lg:1.1875rem; --fs-xl:1.5rem; --fs-2xl:2.125rem; --fs-3xl:3rem;
+  --fs-4xl:4.5rem;
+  --fs-hero:clamp(4rem, 13vw, 11rem);
+
+  /* Arabic keeps its own scale. Naskh reads smaller at equal px. */
+  --fs-ar-sm:1.0625rem; --fs-ar-md:1.25rem; --fs-ar-lg:1.875rem;
+  --fs-ar-xl:2.75rem;
+  --lh-ar:1.95; --lh-body:1.6;
+
+  --sp-1:.25rem; --sp-2:.5rem; --sp-3:.75rem; --sp-4:1rem; --sp-5:1.25rem;
+  --sp-6:1.5rem; --sp-8:2rem; --sp-10:2.5rem; --sp-12:3rem; --sp-16:4rem;
+
+  --r-xs:2px; --r-sm:3px; --r-md:6px; --r-pill:999px;
+  --shadow-overlay:0 6px 24px rgba(0,0,0,.55);
+
+  --dur-fast:120ms; --dur:180ms; --dur-slow:340ms;
+  --ease:cubic-bezier(.2,.7,.3,1);
+  --ease-out:cubic-bezier(.25,.46,.45,.94);
+  --z-header:20;
+}
+
+/* Light is the alternate. Same token names, same roles. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bone-100:#EDEFE8; --bone-50:#F6F7F3; --bone-200:#E2E5DA;
+    --bone-300:#C6CAC0; --bone-400:#A3A89C; --bone-500:#7A7F79;
+    --bone-700:#4A5049; --bone-900:#171C19;
+    --sound:#1F5E52; --sound-bg:#DCE8E3;
+    --fault:#B33A2B; --fault-bg:#F2DED9;
+    --warn:#7A5C13;  --warn-bg:#EFE6CE;
+    --col-bukhari:#2A5BC4; --col-muslim:#5B3FB8;
+    --shadow-overlay:0 6px 24px rgba(23,28,25,.14);
+  }
+}
+:root[data-theme="light"] {
+  --bone-100:#EDEFE8; --bone-50:#F6F7F3; --bone-200:#E2E5DA;
+  --bone-300:#C6CAC0; --bone-400:#A3A89C; --bone-500:#7A7F79;
+  --bone-700:#4A5049; --bone-900:#171C19;
+  --sound:#1F5E52; --sound-bg:#DCE8E3;
+  --fault:#B33A2B; --fault-bg:#F2DED9;
+  --warn:#7A5C13;  --warn-bg:#EFE6CE;
+  --col-bukhari:#2A5BC4; --col-muslim:#5B3FB8;
+  --shadow-overlay:0 6px 24px rgba(23,28,25,.14);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-ui);
+     font-size:var(--fs-md);line-height:var(--lh-body);-webkit-font-smoothing:antialiased}
+:where(a){color:inherit;text-decoration-color:var(--rule-strong);text-underline-offset:3px}
+:where(a:hover){text-decoration-color:var(--fault)}
+:where(a,button,input,select,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--r-xs)}
+.mono{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+[dir="rtl"]{font-family:var(--font-ar);line-height:var(--lh-ar)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ── Shell ─────────────────────────────────────────────────────────── */
+.topbar{position:sticky;top:0;z-index:var(--z-header);display:flex;align-items:center;
+  gap:var(--sp-4);padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--rule);
+  background:var(--paper)}
+.brand{font-family:var(--font-read);font-size:var(--fs-lg);font-weight:500;letter-spacing:-.01em}
+.brand span{font-family:var(--font-ar);font-size:var(--fs-ar-sm);color:var(--ink-3);margin-inline-start:6px}
+.spacer{flex:1 1 auto}
+.searchbtn{display:inline-flex;align-items:center;gap:var(--sp-2);min-height:2.25rem;
+  padding:0 var(--sp-3);border:1px solid var(--rule-strong);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-3);font-family:var(--font-ui);font-size:var(--fs-xs);cursor:pointer}
+.searchbtn kbd{font-family:var(--font-data);font-size:var(--fs-2xs);border:1px solid var(--rule);
+  border-radius:var(--r-xs);padding:1px 4px}
+.who{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-xs);color:var(--ink-2)}
+.who__dot{width:26px;height:26px;border-radius:50%;background:var(--sound);color:var(--bone-50);
+  display:grid;place-items:center;font-size:var(--fs-2xs);font-weight:700}
+
+.layout{display:grid;grid-template-columns:13.5rem minmax(0,1fr);align-items:start}
+.sidenav{position:sticky;top:3.5rem;border-inline-end:1px solid var(--rule);
+  padding:var(--sp-4) var(--sp-3);display:grid;gap:2px;align-content:start;min-height:calc(100dvh - 3.5rem)}
+.sidenav__group{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);padding:var(--sp-4) var(--sp-2) var(--sp-1)}
+.navlink{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2);border-radius:var(--r-sm);
+  color:var(--ink-2);font-size:var(--fs-sm);text-decoration:none;min-height:2.25rem;cursor:pointer}
+.navlink:hover{background:var(--bone-200);color:var(--ink)}
+.navlink[aria-current="page"]{background:var(--ink);color:var(--paper);font-weight:700}
+.icon{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.75;
+  stroke-linecap:round;stroke-linejoin:round}
+.icon--sm{width:16px;height:16px}
+.main{padding:var(--sp-6) var(--sp-8);max-width:64rem}
+
+.crumbs{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;font-size:var(--fs-xs);
+  color:var(--ink-2);margin-bottom:var(--sp-4)}
+.crumbs__sep{color:var(--ink-3)}
+.crumbs__gap{color:var(--ink-3);font-style:italic}
+.h1{font-family:var(--font-read);font-size:var(--fs-2xl);font-weight:500;margin:0 0 var(--sp-2);
+  letter-spacing:-.01em;text-wrap:balance}
+.lede{font-family:var(--font-read);color:var(--ink-2);max-width:62ch;margin:0 0 var(--sp-6)}
+.eyebrow{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 var(--sp-2)}
+
+/* ── Screens ───────────────────────────────────────────────────────── */
+/* ── The Folio hero ─────────────────────────────────────────────────
+   This project holds no photography, so the hadith's own number carries
+   the scale that an image carries on a site that has one. */
+.folio{display:grid;grid-template-columns:auto auto;justify-content:start;gap:var(--sp-8);
+  align-items:end;padding-block:var(--sp-6) var(--sp-5);
+  border-bottom:1px solid var(--rule);margin-bottom:var(--sp-6)}
+.folio__num{font-family:var(--font-data);font-size:var(--fs-hero);font-weight:600;
+  line-height:.76;letter-spacing:-.045em;color:var(--ink);margin:0;
+  font-variant-numeric:tabular-nums}
+.folio__meta{display:grid;gap:var(--sp-3);padding-bottom:var(--sp-3);min-width:0}
+.folio__coll{display:inline-flex;align-items:center;gap:var(--sp-2);
+  font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink-3)}
+.folio__coll::before{content:'';width:9px;height:9px;border-radius:2px;
+  background:var(--col-bukhari);flex:none}
+.folio__ar{font-family:var(--font-ar);font-size:var(--fs-ar-xl);line-height:1.2;
+  color:var(--ink);text-align:start;justify-self:start}
+.folio__sub{font-family:var(--font-read);font-size:var(--fs-lg);color:var(--ink-2);
+  margin:0;max-width:52ch}
+
+@media (max-width:52rem){
+  .folio{grid-template-columns:minmax(0,1fr);gap:var(--sp-3);align-items:start}
+  .folio__meta{padding-bottom:0}
+}
+
+.screen{display:none}
+.screen.is-on{display:block}
+
+/* ── Scroll reveal · Subtle tier: 340ms, y 10px, power1.out ────────── */
+.rv{opacity:0;transform:translateY(10px);
+    transition:opacity var(--dur-slow) var(--ease-out),transform var(--dur-slow) var(--ease-out)}
+.rv.is-in{opacity:1;transform:none}
+
+/* ── Hadith document ───────────────────────────────────────────────── */
+.doc{display:grid;grid-template-columns:12rem minmax(0,1fr);gap:var(--sp-8);
+  background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-md);padding:var(--sp-8)}
+.rail{border-inline-end:1px solid var(--rule);padding-inline-end:var(--sp-5)}
+.rail__row{display:grid;gap:2px;padding-block:var(--sp-3);border-top:1px solid var(--rule)}
+.rail__row:first-child{border-top:0;padding-top:0}
+.rail__k{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3)}
+.rail__v{font-family:var(--font-data);font-size:var(--fs-sm)}
+.rail__v--ar{font-family:var(--font-ar);font-size:var(--fs-ar-sm);line-height:1.7}
+.matn{font-family:var(--font-ar);font-size:var(--fs-ar-lg);line-height:var(--lh-ar);
+  text-align:right;margin:0 0 var(--sp-6)}
+.trans{border-top:1px solid var(--rule);padding-top:var(--sp-5);margin-bottom:var(--sp-8)}
+.trans p:not(.srcline){font-family:var(--font-read);font-size:var(--fs-lg);line-height:1.65;margin:0 0 var(--sp-3);max-width:68ch}
+.srcline{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);display:flex;gap:var(--sp-3);flex-wrap:wrap;margin:0}
+.apphead{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-4);
+  flex-wrap:wrap;border-top:2px solid var(--ink);padding-top:var(--sp-3);margin-bottom:var(--sp-5)}
+.apphead h2{font-family:var(--font-data);font-size:var(--fs-xs);letter-spacing:.14em;
+  text-transform:uppercase;margin:0}
+.seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:var(--r-sm);
+  overflow:hidden;background:var(--surface)}
+.seg button{font-family:var(--font-data);font-size:var(--fs-xs);padding:0 var(--sp-3);
+  min-height:2.1rem;border:0;border-inline-start:1px solid var(--rule);background:none;
+  color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg button:first-child{border-inline-start:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* ── Isnad ladder + the draw-in ────────────────────────────────────── */
+.isnad{list-style:none;margin:0;padding:0}
+.rung,.edge{display:grid;grid-template-columns:4.25rem 1.75rem minmax(0,1fr)}
+.rung{align-items:start}
+.edge{align-items:center}
+/* Explicit column placement. Without it, display:none on .gen drops that cell
+   out of the grid and auto-placement shifts .rbody into the 1.75rem node
+   column, crushing every narrator name to one word per line. */
+.gen{grid-column:1;font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-3);
+  padding-top:.35rem;direction:ltr}
+.nodecell,.spine{grid-column:2}
+.rbody,.ecell{grid-column:3}
+.gen b{color:var(--ink-2);font-weight:500}
+.gen--none{color:var(--bone-400)}
+/* align-self:stretch is load-bearing. The row is align-items:start, so without
+   it the cell is only as tall as the dot and the spine breaks into stubs. */
+.nodecell{position:relative;display:flex;justify-content:center;padding-top:.4rem;align-self:stretch}
+.nodecell::before{content:'';position:absolute;inset-block:0;inset-inline-start:50%;
+  translate:50% 0;width:2px;background:var(--rule)}
+.rung:first-child .nodecell::before{inset-block-start:.8rem}
+.rung:last-of-type .nodecell::before{inset-block-end:calc(100% - .8rem)}
+.node{position:relative;z-index:1;width:13px;height:13px;border-radius:50%;
+  background:var(--paper);border:2.5px solid var(--ink-3);flex:none}
+.node--sound{background:var(--sound);border-color:var(--sound)}
+.node--weak{background:var(--fault);border-color:var(--fault)}
+.node--ungraded{background:var(--ink-3);border-color:var(--ink-3)}
+.node--ambiguous{background:var(--surface);border-color:var(--ink-3)}
+.node--unresolved{background:var(--surface);border-style:dashed;border-color:var(--rule-strong)}
+.node--placeholder{background:var(--surface);border-style:dashed;border-color:var(--rule-strong);border-radius:1px}
+.node--compiler{background:var(--ink);border-color:var(--ink);border-radius:1px}
+.node--min{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px var(--fault)}
+.spine{position:relative;display:flex;justify-content:center;min-height:2.4rem}
+.spine::before{content:'';position:absolute;inset-block:0;inset-inline-start:50%;
+  translate:50% 0;width:2px;background:var(--rule)}
+.edge[data-sigha="anana"] .spine::before{background:none;border-inline-start:2px dashed var(--fault);width:0}
+.edge[data-sigha="none"] .spine::before{background:none;border-inline-start:2px dotted var(--rule-strong);width:0}
+.ecell{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;padding-inline-start:var(--sp-3)}
+.eword{font-family:var(--font-ar);font-size:var(--fs-ar-sm);line-height:1;color:var(--ink-2)}
+.edge[data-sigha="anana"] .eword{color:var(--fault)}
+.etag{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);direction:ltr}
+.etag--fault{color:var(--fault)}
+.etag--absent{font-style:italic}
+.rbody{padding-inline-start:var(--sp-3);min-width:0;padding-bottom:var(--sp-1)}
+.rname{font-family:var(--font-ar);font-size:var(--fs-ar-md);line-height:1.5}
+.rname--raw{color:var(--ink-2)}
+.grades{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-2)}
+.flag{display:inline-flex;gap:5px;margin:var(--sp-2) 0 0;font-family:var(--font-data);
+  font-size:var(--fs-2xs);letter-spacing:.1em;text-transform:uppercase;color:var(--fault);direction:ltr}
+.flag--quiet{color:var(--ink-3)}
+.grade{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);
+  border-radius:var(--r-xs);padding:2px var(--sp-2) 3px;background:var(--paper);max-width:100%}
+.gwho{font-family:var(--font-data);font-size:var(--fs-2xs);font-weight:600;color:var(--ink-3);
+  letter-spacing:.06em;direction:ltr;flex:none}
+.graw{font-family:var(--font-ar);font-size:var(--fs-ar-sm);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gen-en{font-family:var(--font-ui);font-size:var(--fs-xs);color:var(--ink-3);direction:ltr}
+.gw{font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-3);direction:ltr;flex:none}
+.grade--sound{border-color:var(--sound);background:var(--sound-bg)}
+.grade--sound .gwho,.grade--sound .gw{color:var(--sound)}
+.grade--weak{border-color:var(--fault);background:var(--fault-bg)}
+.grade--weak .gwho,.grade--weak .gw{color:var(--fault)}
+.grade--absent{border-style:dashed}
+.grade--unmapped{border-color:var(--warn);background:var(--warn-bg)}
+.grade--unmapped .gwho,.grade--unmapped .gw{color:var(--warn)}
+
+/* the one motion moment: the chain arrives in transmission order */
+.isnad[data-draw] .rung,.isnad[data-draw] .edge{opacity:0}
+.isnad[data-draw].is-drawn .rung,.isnad[data-draw].is-drawn .edge{
+  opacity:1;animation:rung 320ms var(--ease-out) both;
+  animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes rung{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── Plain-language verdict band ────────────────────────────────────
+   The first thing a reader meets above the chain. A bare 0.95 reads as
+   "95% likely true", which is a claim this platform must never make. */
+.vb{border:1px solid var(--rule);border-inline-start:3px solid var(--sound);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  background:var(--paper);padding:var(--sp-4);display:grid;gap:var(--sp-2);margin-bottom:var(--sp-5)}
+.vb--mixed{border-inline-start-color:var(--warn)}
+.vb--weak{border-inline-start-color:var(--fault)}
+.vb__head{font-family:var(--font-ui);font-size:var(--fs-lg);font-weight:700;margin:0}
+.vb__head b{color:var(--sound)}
+.vb--mixed .vb__head b{color:var(--warn)}
+.vb--weak .vb__head b{color:var(--fault)}
+.vb__body{font-family:var(--font-read);font-size:var(--fs-md);color:var(--ink);margin:0;max-width:64ch}
+.vb__note{font-size:var(--fs-xs);color:var(--ink-2);margin:0;max-width:64ch;
+  border-top:1px dashed var(--rule);padding-top:var(--sp-2)}
+
+/* ── Progressive disclosure ─────────────────────────────────────────
+   Nothing is deleted. The apparatus stops being the default. */
+.disclose{margin:var(--sp-5) 0 0;border-top:1px solid var(--rule);padding-top:var(--sp-4)}
+.disclose>summary{display:inline-flex;align-items:center;gap:var(--sp-2);cursor:pointer;
+  font-family:var(--font-ui);font-size:var(--fs-sm);font-weight:700;color:var(--ink);
+  min-height:2.5rem;padding:0 var(--sp-3);border:1px solid var(--rule-strong);
+  border-radius:var(--r-sm);background:var(--surface);list-style:none;width:fit-content}
+.disclose>summary::-webkit-details-marker{display:none}
+.disclose>summary::after{content:'▾';font-size:var(--fs-xs);color:var(--ink-3)}
+.disclose[open]>summary::after{content:'▴'}
+.disclose>summary:hover{background:var(--bone-200)}
+.disclose__body{padding-top:var(--sp-5)}
+
+/* Plain mode hides the apparatus inside the ladder without removing it. */
+.isnad--plain .gen,
+.isnad--plain .grades,
+.isnad--plain .flag{display:none}
+.isnad:not(.isnad--plain) .rplain{display:none}
+/* An English sentence inside the RTL ladder needs its own direction, or the
+   trailing full stop is placed at the left-hand end of the line. */
+.rplain{direction:ltr;text-align:right;font-family:var(--font-ui);font-size:var(--fs-xs);
+  color:var(--ink-2);margin:var(--sp-1) 0 0}
+.rplain b{font-weight:700;color:var(--ink)}
+.isnad--plain .rung,.isnad--plain .edge{grid-template-columns:0 1.75rem minmax(0,1fr)}
+
+/* Legend that decodes the six classical grade words. */
+.glegend{display:flex;flex-wrap:wrap;gap:var(--sp-1) var(--sp-3);align-items:baseline;
+  font-size:var(--fs-xs);color:var(--ink-2);margin:0 0 var(--sp-4);padding:var(--sp-3);
+  background:var(--bone-200);border-radius:var(--r-sm)}
+.glegend__t{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);width:100%;margin:0}
+.glegend span b{font-family:var(--font-ar);font-size:var(--fs-ar-sm);font-weight:400;color:var(--ink)}
+
+/* ── Strength ──────────────────────────────────────────────────────── */
+.strength{margin-top:var(--sp-8);border-top:1px solid var(--rule);padding-top:var(--sp-5)}
+.stop{display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-4)}
+.slabel{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3)}
+.sval{font-family:var(--font-data);font-size:var(--fs-2xl);font-weight:500;line-height:1;
+  font-variant-numeric:tabular-nums}
+.sval--low{color:var(--fault)}
+.sband{font-size:var(--fs-sm);color:var(--ink-2)}
+.plot{display:grid;border:1px solid var(--rule);border-radius:var(--r-sm);overflow:hidden;background:var(--paper)}
+.prow{display:grid;grid-template-columns:3rem 7rem minmax(0,1fr);align-items:center;
+  border-top:1px solid var(--rule);min-height:1.85rem}
+.prow:first-child{border-top:0}
+/* The ring marks the row that SETS the score. Its colour follows the weight,
+   so a chain whose minimum is ثقة is never drawn in fault red. */
+.prow--min{background:var(--fault-bg)}
+.prow--set{background:var(--sound-bg)}
+.prow--unk{background:var(--bone-200)}
+.pw{font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-2);text-align:center;
+  font-variant-numeric:tabular-nums}
+.pn{font-family:var(--font-ar);font-size:var(--fs-ar-sm);line-height:1;text-align:right;
+  padding-inline-end:var(--sp-2)}
+.pn--en{font-family:var(--font-ui);font-size:var(--fs-xs);color:var(--ink-2);text-align:left;
+  direction:ltr;padding-inline-start:var(--sp-2)}
+.pcells{display:flex;direction:rtl;height:100%;align-items:center;border-inline-start:1px solid var(--rule)}
+.pcell{flex:1 1 0;display:flex;justify-content:center;align-items:center;min-width:1.5rem;height:100%}
+.pdot{width:9px;height:9px;border-radius:50%;background:var(--ink-3)}
+.pdot--min{background:var(--fault);box-shadow:0 0 0 3px var(--fault-bg),0 0 0 4.5px var(--fault)}
+.pdot--set{background:var(--sound);box-shadow:0 0 0 3px var(--sound-bg),0 0 0 4.5px var(--sound)}
+.pdot--excl{width:9px;height:9px;border-radius:1px;background:none;border:1.5px dashed var(--rule-strong)}
+.pfoot{display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:center;font-family:var(--font-data);
+  font-size:var(--fs-xs);color:var(--ink-2);margin:var(--sp-4) 0 0}
+.pfoot b{font-weight:600;color:var(--ink)}
+.pctx{font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-3);margin:var(--sp-2) 0 0}
+
+/* ── Distribution strip (canvas) ───────────────────────────────────── */
+.dist{margin-top:var(--sp-6);border-top:1px dashed var(--rule);padding-top:var(--sp-4)}
+.dist__c{width:100%;height:88px;display:block}
+.dist__cap{font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-3);margin:var(--sp-2) 0 0}
+
+/* ── Generic bits ──────────────────────────────────────────────────── */
+.card{border:1px solid var(--rule);border-radius:var(--r-md);background:var(--surface);
+  padding:var(--sp-5);display:grid;gap:var(--sp-3)}
+.cardhead{display:flex;justify-content:space-between;align-items:start;gap:var(--sp-3)}
+.cardtitle{font-family:var(--font-ui);font-size:var(--fs-md);font-weight:700;margin:0}
+.cardmeta{font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-3);margin:0;
+  display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:var(--sp-4)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-ui);font-size:var(--fs-xs);
+  font-weight:700;line-height:1;padding:5px var(--sp-2) 6px;border-radius:var(--r-xs);
+  border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink-2)}
+.chip--sound{border-color:var(--sound);background:var(--sound-bg);color:var(--sound)}
+.chip--fault{border-color:var(--fault);background:var(--fault-bg);color:var(--fault)}
+.chip--warn{border-color:var(--warn);background:var(--warn-bg);color:var(--warn)}
+.chip--quiet{border-style:dashed;color:var(--ink-3)}
+.chipdot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);
+  font-family:var(--font-ui);font-size:var(--fs-sm);font-weight:700;line-height:1;min-height:2.5rem;
+  padding:0 var(--sp-4);border-radius:var(--r-sm);border:1px solid transparent;background:none;
+  color:var(--ink);cursor:pointer;transition:background var(--dur-fast) var(--ease)}
+.btn--sm{min-height:2rem;padding:0 var(--sp-3);font-size:var(--fs-xs)}
+.btn--primary{background:var(--ink);color:var(--paper)}
+.btn--secondary{border-color:var(--rule-strong);background:var(--surface)}
+.btn--secondary:hover{background:var(--bone-200)}
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);border-radius:var(--r-sm)}
+.table{border-collapse:collapse;width:100%;min-width:32rem;font-size:var(--fs-sm)}
+.table th,.table td{text-align:start;padding:var(--sp-2) var(--sp-3);border-top:1px solid var(--rule)}
+.table thead th{border-top:0;background:var(--bone-200);font-family:var(--font-data);
+  font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);
+  font-weight:600;white-space:nowrap}
+.table td.num{font-family:var(--font-data);font-variant-numeric:tabular-nums;text-align:end}
+.dl{display:grid;grid-template-columns:8rem minmax(0,1fr);gap:var(--sp-2) var(--sp-4);margin:0}
+.dl dt{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+.dl dd{margin:0;font-size:var(--fs-sm)}
+.dl dd[data-absent]{color:var(--ink-3);font-style:italic}
+.mastery{display:inline-flex;align-items:center;gap:var(--sp-3)}
+.msteps{display:inline-flex;gap:3px}
+.mstep{width:1.4rem;height:.5rem;border-radius:1px;background:var(--bone-300)}
+.mstep--on{background:var(--ink-3)}
+.mstep--met{background:var(--sound)}
+.mtext{font-family:var(--font-data);font-size:var(--fs-2xs);color:var(--ink-2)}
+.notice{display:grid;gap:var(--sp-2);border-inline-start:3px solid var(--rule-strong);
+  padding:var(--sp-3) var(--sp-4);background:var(--surface);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.notice--warn{border-inline-start-color:var(--warn);background:var(--warn-bg)}
+.notice h3{font-size:var(--fs-sm);font-weight:700;margin:0}
+.notice p{font-size:var(--fs-xs);color:var(--ink-2);margin:0}
+.sect{margin-top:var(--sp-10)}
+.secthead{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--rule);
+  padding-bottom:var(--sp-2);margin:0 0 var(--sp-4)}
+
+/* dumbbell */
+.dhead,.drow,.dscale{display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr) 3.5rem;
+  gap:var(--sp-3)}
+.dhead{font-family:var(--font-data);font-size:var(--fs-2xs);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);padding-bottom:var(--sp-2)}
+.drow{align-items:center;padding:var(--sp-3) 0;border-top:1px solid var(--rule)}
+.dname{font-family:var(--font-ar);font-size:var(--fs-ar-sm);line-height:1.4;text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dtrack{position:relative;height:1.25rem}
+.daxis{position:absolute;inset-inline:0;top:50%;height:1px;background:var(--rule)}
+.dlink{position:absolute;top:50%;height:3px;translate:0 -50%;background:var(--ink-3);border-radius:2px}
+.dlink--wide{background:var(--fault)}
+.dpt{position:absolute;top:50%;width:12px;height:12px;translate:-50% -50%;
+  background:var(--surface);border:2.5px solid var(--ink)}
+.dpt--ih{border-radius:50%}
+.dpt--dh{border-radius:1px;rotate:45deg}
+.dgap{font-family:var(--font-data);font-size:var(--fs-xs);text-align:end;font-variant-numeric:tabular-nums}
+.dgap--wide{color:var(--fault);font-weight:600}
+.dscale>span:nth-child(2){display:flex;justify-content:space-between;font-family:var(--font-ar);
+  font-size:var(--fs-2xs);color:var(--ink-3)}
+.keyline{display:flex;gap:var(--sp-4);flex-wrap:wrap;font-size:var(--fs-xs);color:var(--ink-2);
+  align-items:center;margin:var(--sp-3) 0 0}
+.keyline span.k{display:inline-flex;align-items:center;gap:6px}
+
+/* At phone widths the top bar has more labels than room. Collapse the labels
+   to their icons — the text stays in the DOM for screen readers — rather than
+   letting the brand stack and the status chip clip off the edge. */
+@media (max-width:48rem){
+  .topbar{gap:var(--sp-2);padding-inline:var(--sp-3)}
+  .brand{white-space:nowrap;font-size:var(--fs-md)}
+  .searchbtn__label,.who__name{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+  .searchbtn{padding-inline:var(--sp-2)}
+  .searchbtn kbd{display:none}
+  .who .chip{display:none}
+}
+
+@media (max-width:64rem){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .sidenav{position:static;min-height:0;border-inline-end:0;border-bottom:1px solid var(--rule);
+    grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;gap:var(--sp-2)}
+  .sidenav__group{display:none}
+  .main{padding:var(--sp-5) var(--sp-4)}
+  .doc{grid-template-columns:minmax(0,1fr);gap:var(--sp-5);padding:var(--sp-5)}
+  /* The reader came for the hadith, not for six rows of metadata. When the
+     grid collapses, the text must still come first. */
+  .doc>div{order:1}
+  .rail{order:2;border-inline-end:0;border-top:1px solid var(--rule);border-bottom:0;
+    padding-inline-end:0;padding-top:var(--sp-4);display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:var(--sp-4) var(--sp-5)}
+  .rail__row{border-top:0;padding-block:0}
+  .rung,.edge{grid-template-columns:3rem 1.5rem minmax(0,1fr)}
+  .matn{font-size:var(--fs-ar-md)}
+  .prow{grid-template-columns:2.75rem 5rem minmax(0,1fr)}
+  .dhead,.drow,.dscale{grid-template-columns:minmax(5rem,8rem) minmax(0,1fr) 3rem}
+  .dl{grid-template-columns:minmax(0,1fr);gap:var(--sp-1) 0}
+  .dl dd{margin-bottom:var(--sp-2)}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  .rv{opacity:1;transform:none}
+  .isnad[data-draw] .rung,.isnad[data-draw] .edge{opacity:1;animation:none}
+}
+</style>
+
+<header class="topbar">
+  <span class="brand">Ilham <span dir="rtl">إلهام</span></span>
+  <span class="spacer"></span>
+  <button class="searchbtn" type="button"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg><span class="searchbtn__label">Search the corpus</span> <kbd>⌘K</kbd></button>
+  <span class="who"><span class="who__dot" aria-hidden="true">K</span><span class="who__name">Ustadh Kamrul</span> <span class="chip chip--sound" style="margin-inline-start:4px"><span class="chipdot"></span>Verified</span></span>
+</header>
+
+<div class="layout">
+  <nav class="sidenav" aria-label="Main">
+    <span class="sidenav__group">Corpus</span>
+    <a class="navlink" href="#/hadith" data-nav="hadith"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v15H4zM13 5h7v15h-7z"></path></svg>Collections</a>
+    <a class="navlink" href="#/narrator" data-nav="narrator"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"></circle><path d="M6 20a6 6 0 0 1 12 0"></path></svg>Narrators</a>
+    <a class="navlink" href="#/contested" data-nav="contested"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V5M16 20v-7M22 20h-20"></path></svg>Analytics</a>
+    <span class="sidenav__group">Teaching</span>
+    <a class="navlink" href="#/circle" data-nav="circle"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 20a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6M18 20a5 5 0 0 0-2-4"></path></svg>Circles</a>
+  </nav>
+
+  <main class="main" id="main" tabindex="-1">
+
+    <!-- ══════════ HADITH ══════════ -->
+    <section class="screen" data-screen="hadith" aria-labelledby="h-hadith">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#/hadith">Sahih al-Bukhari</a><span class="crumbs__sep" aria-hidden="true">›</span><a href="#/hadith"><span dir="rtl">بدء الوحي</span> · seq 1</a><span class="crumbs__sep" aria-hidden="true">›</span><span>1</span></nav>
+      <header class="folio">
+        <p class="folio__num" aria-hidden="true">1</p>
+        <div class="folio__meta">
+          <span class="folio__coll">Sahih al-Bukhari · hadith 1</span>
+          <span class="folio__ar" dir="rtl">بَدْء الوَحْي</span>
+        </div>
+      </header>
+      <h1 class="vh" id="h-hadith">Sahih al-Bukhari, hadith 1</h1>
+      <p class="folio__sub">The hadith of intentions. One chain of narrators, all seven identified.</p>
+
+      <article class="doc rv">
+        <aside class="rail">
+          <div class="rail__row"><span class="rail__k">Collection</span><span class="rail__v">sahih-al-bukhari</span><span class="rail__v rail__v--ar" dir="rtl">صحيح البخاري</span></div>
+          <div class="rail__row"><span class="rail__k">Number</span><span class="rail__v">1</span></div>
+          <div class="rail__row"><span class="rail__k">Chapter</span><span class="rail__v">seq 1</span><span class="rail__v rail__v--ar" dir="rtl">بدء الوحي</span></div>
+          <div class="rail__row"><span class="rail__k">Chains recorded</span><span class="rail__v">1</span></div>
+          <div class="rail__row"><span class="rail__k">Narrators</span><span class="rail__v">6 + the collector</span></div>
+          <div class="rail__row"><span class="rail__k">Translation</span><span class="rail__v">English</span></div>
+        </aside>
+
+        <div>
+          <p class="matn" dir="rtl">إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوْ إِلَى امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ.</p>
+          <div class="trans">
+            <p>Actions are judged by intentions, and every person will have only what they intended. Whoever migrated for worldly gain, or to marry a woman, their migration counts for whatever they migrated toward.</p>
+            <p class="srcline"><span>LK-Hadith-Corpus</span><span aria-hidden="true">·</span><span>this translation matched the Arabic exactly</span></p>
+          </div>
+
+          <div class="apphead">
+            <h2>Chain of narrators</h2>
+            <div class="seg" role="group" aria-label="Arabic script"><button type="button" aria-pressed="true">With vowels</button><button type="button" aria-pressed="false">Plain</button></div>
+          </div>
+
+          <div class="vb">
+            <p class="vb__head">This chain is <b>strong</b></p>
+            <p class="vb__body">Every one of the six narrators has been identified, and the classical scholar Ibn Hajar graded all of them trustworthy. No weak link was found.</p>
+            <p class="vb__note">Ilham reports grades that classical scholars wrote centuries ago. It does not judge whether a hadith is authentic, and a colour or a number here is never Ilham's own opinion.</p>
+          </div>
+
+          <p class="pctx" style="margin:0 0 var(--sp-4)">Read from the top down to follow the hadith as it was passed on — the Companion who heard it first, then each person who passed it to the next, and the collector last.</p>
+
+          <ol class="isnad isnad--plain" data-draw dir="rtl">
+            <li class="rung" style="--i:0"><div class="gen">TAB <b>1</b></div><div class="nodecell"><span class="node node--sound"></span></div><div class="rbody"><div class="rname" dir="rtl">عُمَر بن الخَطَّاب</div><p class="rplain"><b>Ibn Hajar:</b> a Companion of the Prophet, counted trustworthy. <b>al-Dhahabi:</b> no grade recorded.</p><div class="grades"><span class="grade grade--sound"><span class="gwho">IH</span><span class="gen-en">Companion → thiqa</span><span class="gw">0.95</span></span><span class="grade grade--absent"><span class="gwho">DH</span><span class="gen-en">not graded</span></span></div></div></li>
+            <li class="edge" data-sigha="direct" style="--i:1"><div></div><div class="spine"></div><div class="ecell"><span class="eword" dir="rtl">سَمِعْتُ</span><span class="etag">direct hearing</span></div></li>
+            <li class="rung" style="--i:2"><div class="gen">TAB <b>2</b></div><div class="nodecell"><span class="node node--sound"></span></div><div class="rbody"><div class="rname" dir="rtl">عَلْقَمة بن وَقَّاص اللَّيْثي</div><p class="rplain"><b>Ibn Hajar:</b> trustworthy. <b>al-Dhahabi:</b> no grade recorded.</p><div class="grades"><span class="grade grade--sound"><span class="gwho">IH</span><span class="graw" dir="rtl">ثقة</span><span class="gw">0.95</span></span><span class="grade grade--absent"><span class="gwho">DH</span><span class="gen-en">not graded</span></span></div></div></li>
+            <li class="edge" data-sigha="direct" style="--i:3"><div></div><div class="spine"></div><div class="ecell"><span class="eword" dir="rtl">سَمِعَ</span><span class="etag">direct hearing</span></div></li>
+            <li class="rung" style="--i:4"><div class="gen">TAB <b>4</b></div><div class="nodecell"><span class="node node--sound"></span></div><div class="rbody"><div class="rname" dir="rtl">محمد بن إبراهيم التَّيْمي</div><p class="rplain"><b>Ibn Hajar:</b> trustworthy. <b>al-Dhahabi:</b> no grade recorded.</p><div class="grades"><span class="grade grade--sound"><span class="gwho">IH</span><span class="graw" dir="rtl">ثقة له أفراد</span><span class="gw">0.95</span></span><span class="grade grade--absent"><span class="gwho">DH</span><span class="gen-en">not graded</span></span></div></div></li>
+            <li class="edge" data-sigha="direct" style="--i:5"><div></div><div class="spine"></div><div class="ecell"><span class="eword" dir="rtl">أَخْبَرَني</span><span class="etag">direct hearing</span></div></li>
+            <li class="rung" style="--i:6"><div class="gen">TAB <b>5</b></div><div class="nodecell"><span class="node node--sound"></span></div><div class="rbody"><div class="rname" dir="rtl">يحيى بن سعيد الأنصاري</div><p class="rplain"><b>Ibn Hajar:</b> trustworthy. <b>al-Dhahabi:</b> praised him, in words this scoring does not cover.</p><div class="grades"><span class="grade grade--sound"><span class="gwho">IH</span><span class="graw" dir="rtl">ثقة ثبت</span><span class="gw">0.95</span></span><span class="grade grade--unmapped"><span class="gwho">DH</span><span class="graw" dir="rtl">الحافظ</span><span class="gw">no code</span></span></div><p class="flag flag--quiet">A verdict the map does not cover — it does not change the weight</p></div></li>
+            <li class="edge" data-sigha="direct" style="--i:7"><div></div><div class="spine"></div><div class="ecell"><span class="eword" dir="rtl">حَدَّثَنا</span><span class="etag">direct hearing</span></div></li>
+            <li class="rung" style="--i:8"><div class="gen">TAB <b>8</b></div><div class="nodecell"><span class="node node--sound"></span></div><div class="rbody"><div class="rname" dir="rtl">سُفْيان بن عُيَيْنة</div><p class="rplain"><b>Ibn Hajar:</b> trustworthy. <b>al-Dhahabi:</b> praised him, in words this scoring does not cover.</p><div class="grades"><span class="grade grade--sound" title="ثقة حافظ فقيه إمام حجة إلا أنه تغير حفظه بأخرة"><span class="gwho">IH</span><span class="graw" dir="rtl">ثقة حافظ فقيه إمام حجة إلا أنه تغير حفظه بأخرة</span><span class="gw">0.95</span></span><span class="grade grade--unmapped"><span class="gwho">DH</span><span class="graw" dir="rtl">الإمام</span><span class="gw">no code</span></span></div></div></li>
+            <li class="edge" data-sigha="direct" style="--i:9"><div></div><div class="spine"></div><div class="ecell"><span class="eword" dir="rtl">حَدَّثَنا</span><span class="etag">direct hearing</span></div></li>
+            <li class="rung" style="--i:10"><div class="gen">TAB <b>10</b></div><div class="nodecell"><span class="node node--sound"></span></div><div class="rbody"><div class="rname" dir="rtl">الحُمَيْدي عبد الله بن الزُّبَيْر</div><p class="rplain"><b>Ibn Hajar:</b> trustworthy. <b>al-Dhahabi:</b> no grade recorded.</p><div class="grades"><span class="grade grade--sound"><span class="gwho">IH</span><span class="graw" dir="rtl">ثقة حافظ فقيه</span><span class="gw">0.95</span></span><span class="grade grade--absent"><span class="gwho">DH</span><span class="gen-en">not graded</span></span></div></div></li>
+            <li class="edge" data-sigha="direct" style="--i:11"><div></div><div class="spine"></div><div class="ecell"><span class="eword" dir="rtl">حَدَّثَنا</span><span class="etag">direct hearing</span></div></li>
+            <li class="rung" style="--i:12"><div class="gen gen--none">TAB <b>—</b></div><div class="nodecell"><span class="node node--compiler"></span></div><div class="rbody"><div class="rname" dir="rtl">البُخاري</div><p class="rplain">The collector who wrote this hadith down. He is not part of the scoring.</p><div class="grades"><span class="grade"><span class="gwho">ROLE</span><span class="gen-en">compiler — excluded from the computation</span></span></div></div></li>
+          </ol>
+
+          <details class="disclose" id="detail">
+            <summary>Show grading detail</summary>
+            <div class="disclose__body">
+
+            <p class="glegend"><span class="glegend__t">The six classical grades, weakest to strongest</span>
+              <span><b>متروك</b> abandoned</span><span><b>ضعيف</b> weak</span><span><b>لين</b> soft</span><span><b>مقبول</b> acceptable</span><span><b>صدوق</b> truthful</span><span><b>ثقة</b> trustworthy</span></p>
+
+            <div class="strength">
+            <div class="stop"><span class="slabel">Chain strength</span><span class="sval">Strong</span><span class="sband"><b class="mono">0.95</b> out of 1 — the highest this measure gives. It scores the chain of narrators, not whether the hadith is true.</span></div>
+            <div class="plot">
+              <div class="prow prow--set"><span class="pw">0.95</span><span class="pn" dir="rtl">ثقة</span><div class="pcells"><span class="pcell"><span class="pdot pdot--set"></span></span><span class="pcell"><span class="pdot pdot--set"></span></span><span class="pcell"><span class="pdot pdot--set"></span></span><span class="pcell"><span class="pdot pdot--set"></span></span><span class="pcell"><span class="pdot pdot--set"></span></span><span class="pcell"><span class="pdot pdot--set"></span></span><span class="pcell"><span class="pdot pdot--excl"></span></span></div></div>
+              <div class="prow"><span class="pw">0.80</span><span class="pn" dir="rtl">صدوق</span><div class="pcells"></div></div>
+              <div class="prow"><span class="pw">0.60</span><span class="pn" dir="rtl">مقبول</span><div class="pcells"></div></div>
+              <div class="prow prow--unk"><span class="pw">0.50</span><span class="pn pn--en">known, but never graded</span><div class="pcells"></div></div>
+              <div class="prow"><span class="pw">0.40</span><span class="pn" dir="rtl">لين</span><div class="pcells"></div></div>
+              <div class="prow"><span class="pw">0.25</span><span class="pn" dir="rtl">ضعيف</span><div class="pcells"></div></div>
+              <div class="prow prow--unk"><span class="pw">0.15</span><span class="pn pn--en">we could not identify them</span><div class="pcells"></div></div>
+              <div class="prow"><span class="pw">0.10</span><span class="pn" dir="rtl">متروك</span><div class="pcells"></div></div>
+            </div>
+            <p class="pfoot"><span>lowest weight <b>0.95</b></span><span aria-hidden="true">−</span><span>anʿana <b>0.00</b></span><span aria-hidden="true">=</span><span><b>0.95</b></span><span aria-hidden="true">·</span><span>all six narrators tie at the top of the scale, so no single one sets this score</span></p>
+
+            <div class="dist rv">
+              <canvas class="dist__c" id="distCanvas" role="img" aria-label="Distribution of chain strength across the corpus. Most hadiths score 0.90 or 0.95. This hadith sits at the top of the range."></canvas>
+              <p class="dist__cap">where this hadith sits among all others · corpus average 0.836 · range 0.10–0.95 · 14,852 scored, 49 unscorable<br>the shape of this chart is illustrative — the average, range and totals are exact</p>
+            </div>
+          </div>
+            </div>
+          </details>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══════════ NARRATOR ══════════ -->
+    <section class="screen" data-screen="narrator" aria-labelledby="h-narr">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#/narrator">Narrators</a><span class="crumbs__sep" aria-hidden="true">›</span><span dir="rtl">محمد بن شهاب الزهري</span></nav>
+      <h1 class="h1" id="h-narr" dir="rtl" style="font-family:var(--font-ar);font-size:var(--fs-ar-lg)">محمد بن مُسلم بن شهاب الزُّهْري</h1>
+      <p class="lede">Al-Zuhri. He appears in 3,453 chains — more than anyone except Abu Hurayra, and in roughly one link out of every forty in the whole collection.</p>
+
+      <div class="grid2 rv">
+        <div class="card">
+          <p class="eyebrow">Profile</p>
+          <dl class="dl">
+            <dt>English</dt><dd>Muhammad ibn Shihab al-Zuhri</dd>
+            <dt>Kunya</dt><dd dir="rtl">أبو بكر</dd>
+            <dt>Generation</dt><dd dir="rtl">الطبقة الرابعة</dd>
+            <dt>Died</dt><dd dir="rtl">124 هـ</dd>
+            <dt>School</dt><dd data-absent>not recorded</dd>
+            <dt>Relation</dt><dd data-absent>not recorded</dd>
+          </dl>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Rijal grades</p>
+          <div class="grades" style="margin:0">
+            <span class="grade grade--sound"><span class="gwho">IBN HAJAR</span><span class="graw" dir="rtl">الفقيه الحافظ متفق على جلالته وإتقانه</span><span class="gw">0.95</span></span>
+          </div>
+          <div class="grades" style="margin:0">
+            <span class="grade grade--unmapped"><span class="gwho">AL-DHAHABI</span><span class="graw" dir="rtl">أحد الأعلام</span><span class="gw">no code</span></span>
+          </div>
+          <p class="pctx" style="margin-top:var(--sp-2)">Ibn Hajar called him trustworthy (<span dir="rtl">ثقة</span>). Al-Dhahabi praised him too, but in words this scoring does not cover, so only Ibn Hajar's grade counts here.</p>
+          <p class="cardmeta"><span>Scored on the stricter of the two grades</span></p>
+        </div>
+      </div>
+
+      <div class="sect rv">
+        <h2 class="secthead">Who he received from, and who received from him</h2>
+        <div class="tablewrap">
+          <table class="table">
+            <caption style="text-align:start;padding:var(--sp-2) var(--sp-3);font-size:var(--fs-xs);color:var(--ink-2)">The 6 narrators he appears with most often, out of 1,204 in total.</caption>
+            <thead><tr><th scope="col">Direction</th><th scope="col">Narrator</th><th scope="col">Shared chains</th><th scope="col">Usual word</th></tr></thead>
+            <tbody>
+              <tr><td>Received from</td><td dir="rtl">أنس بن مالك</td><td class="num">212</td><td dir="rtl">عن</td></tr>
+              <tr><td>Received from</td><td dir="rtl">سعيد بن المسيب</td><td class="num">188</td><td dir="rtl">عن</td></tr>
+              <tr><td>Received from</td><td dir="rtl">عروة بن الزبير</td><td class="num">164</td><td dir="rtl">أخبرني</td></tr>
+              <tr><td>Passed to</td><td dir="rtl">مالك بن أنس</td><td class="num">341</td><td dir="rtl">عن</td></tr>
+              <tr><td>Passed to</td><td dir="rtl">سفيان بن عيينة</td><td class="num">217</td><td dir="rtl">حدثنا</td></tr>
+              <tr><td>Passed to</td><td dir="rtl">شعيب بن أبي حمزة</td><td class="num">143</td><td dir="rtl">حدثنا</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sect rv">
+        <h2 class="secthead">Chains he appears in</h2>
+        <div class="grid2">
+          <div class="card"><div class="cardhead"><h3 class="cardtitle">Sahih al-Bukhari 2</h3><span class="chip chip--sound">0.95</span></div><p class="cardmeta"><span>position 4 of 6</span><span aria-hidden="true">·</span><span dir="rtl" style="font-family:var(--font-ar)">أخبرني</span></p></div>
+          <div class="card"><div class="cardhead"><h3 class="cardtitle">Sahih Muslim 160</h3><span class="chip chip--sound">0.90</span></div><p class="cardmeta"><span>position 3 of 5</span><span aria-hidden="true">·</span><span dir="rtl" style="font-family:var(--font-ar)">عن</span><span aria-hidden="true">·</span><span>anʿana</span></p></div>
+        </div>
+        <p class="pctx">Showing 2 of 3,453 chains.</p>
+      </div>
+    </section>
+
+    <!-- ══════════ CIRCLE ══════════ -->
+    <section class="screen" data-screen="circle" aria-labelledby="h-circle">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#/circle">Circles</a><span class="crumbs__sep" aria-hidden="true">›</span><span>Halaqa al-Fajr</span></nav>
+      <h1 class="h1" id="h-circle">Halaqa al-Fajr</h1>
+      <p class="lede">16 students. Two assignments open. This page answers one question: how much of the corpus has each student mastered?</p>
+
+      <div class="grid2 rv" style="margin-bottom:var(--sp-8)">
+        <div class="card"><p class="eyebrow">Mastered · distinct hadiths</p><p class="mono" style="font-size:var(--fs-3xl);margin:0;line-height:1">248</p><p class="cardmeta"><span>across 16 students</span></p></div>
+        <div class="card"><p class="eyebrow">Reviews · summed over rows</p><p class="mono" style="font-size:var(--fs-3xl);margin:0;line-height:1">1,914</p><p class="cardmeta"><span>A hadith assigned twice is counted twice in Reviews, but only once in Mastered</span></p></div>
+      </div>
+
+      <div class="sect rv" style="margin-top:0">
+        <h2 class="secthead">Students</h2>
+        <div class="tablewrap">
+          <table class="table">
+            <thead><tr><th scope="col">Student</th><th scope="col" aria-sort="descending">Mastered</th><th scope="col">Assigned</th><th scope="col">Share</th><th scope="col">Last review</th></tr></thead>
+            <tbody>
+              <tr><td>Ayesha Rahman</td><td class="num">22</td><td class="num">25</td><td class="num">88%</td><td class="num">2026-09-01</td></tr>
+              <tr><td>Imran Hossain</td><td class="num">9</td><td class="num">25</td><td class="num">36%</td><td class="num">2026-08-24</td></tr>
+              <tr><td>Nusrat Jahan</td><td class="num">0</td><td class="num">0</td><td class="num" style="color:var(--ink-3)">not started</td><td class="num" style="color:var(--ink-3)">never</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="pctx">Nusrat is enrolled but has not started any reviews. That is a genuine 0 of 0, not a rounding error.</p>
+      </div>
+
+      <div class="sect rv">
+        <h2 class="secthead">Assignments</h2>
+        <div class="grid2">
+          <div class="card">
+            <div class="cardhead"><h3 class="cardtitle">Nawawi 1–25</h3><span class="chip chip--fault"><span class="chipdot"></span>Overdue by 3 days</span></div>
+            <p class="cardmeta"><span>due 2026-09-01</span><span aria-hidden="true">·</span><span>updates automatically as the date passes</span></p>
+            <p class="cardmeta"><span>316 of 400 reviews completed</span></p>
+            <div><button class="btn btn--secondary btn--sm">See who still owes</button></div>
+          </div>
+          <div class="card">
+            <div class="cardhead"><h3 class="cardtitle">Nawawi 1–25</h3><span class="chip chip--quiet">Due in 28 days</span></div>
+            <p class="cardmeta"><span>due 2026-10-02</span><span aria-hidden="true">·</span><span>the same set, assigned again</span></p>
+            <p class="cardmeta"><span>0 of 400 reviews completed</span></p>
+            <div><button class="btn btn--secondary btn--sm">See who still owes</button></div>
+          </div>
+        </div>
+        <div class="notice" style="margin-top:var(--sp-4)"><h3>Assigning the same set again starts a separate requirement</h3><p>Work done for the first assignment does not count towards the second. Students who finished in September start again from zero here. That is deliberate.</p></div>
+      </div>
+
+      <div class="sect rv">
+        <h2 class="secthead">Recent overrides</h2>
+        <div style="border-top:1px solid var(--rule)">
+          <div style="padding:var(--sp-3) 0;border-bottom:1px solid var(--rule);display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-3);align-items:baseline">
+            <span class="mono" style="font-size:var(--fs-2xs);color:var(--ink-3);white-space:nowrap">2026-09-01 14:22</span>
+            <div><p style="font-size:var(--fs-sm);margin:0">Mastery raised from <b class="mono">2</b> to <b class="mono">4</b> · Ayesha Rahman</p><p style="font-size:var(--fs-xs);color:var(--ink-2);margin:2px 0 0">by Ustadh Kamrul · progress 8814</p></div>
+          </div>
+          <div style="padding:var(--sp-3) 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-3);align-items:baseline">
+            <span class="mono" style="font-size:var(--fs-2xs);color:var(--ink-3);white-space:nowrap">2026-08-30 09:05</span>
+            <div><p style="font-size:var(--fs-sm);margin:0">Mastery lowered from <b class="mono">3</b> to <b class="mono">1</b> · Imran Hossain</p><p style="font-size:var(--fs-xs);color:var(--ink-3);font-style:italic;margin:2px 0 0">actor not recorded — changed outside the app</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ CONTESTED ══════════ -->
+    <section class="screen" data-screen="contested" aria-labelledby="h-cont">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#/contested">Analytics</a><span class="crumbs__sep" aria-hidden="true">›</span><span>Disagreement</span></nav>
+      <h1 class="h1" id="h-cont">Where do the two scholars disagree?</h1>
+      <p class="lede">Ibn Hajar graded 41.5% of the profiles and al-Dhahabi 25.7%. Where both wrote a verdict, they usually agree. These are the narrators where they do not — ranked by the distance between the two rulings, not by either ruling alone.</p>
+
+      <div class="rv">
+        <div class="dhead"><span>Narrator</span><span>Grade (weak → strong)</span><span style="text-align:end">Gap</span></div>
+        <div>
+          <div class="drow"><span class="dname" dir="rtl">عمر بن هارون البلخي</span><span class="dtrack"><span class="daxis"></span><span class="dlink dlink--wide" style="inset-inline-start:0%;width:60%"></span><span class="dpt dpt--ih" style="inset-inline-start:0%"></span><span class="dpt dpt--dh" style="inset-inline-start:60%"></span></span><span class="dgap dgap--wide">3</span></div>
+          <div class="drow"><span class="dname" dir="rtl">محمد بن إسحاق</span><span class="dtrack"><span class="daxis"></span><span class="dlink dlink--wide" style="inset-inline-start:20%;width:60%"></span><span class="dpt dpt--dh" style="inset-inline-start:20%"></span><span class="dpt dpt--ih" style="inset-inline-start:80%"></span></span><span class="dgap dgap--wide">3</span></div>
+          <div class="drow"><span class="dname" dir="rtl">سماك بن حرب</span><span class="dtrack"><span class="daxis"></span><span class="dlink" style="inset-inline-start:40%;width:40%"></span><span class="dpt dpt--dh" style="inset-inline-start:40%"></span><span class="dpt dpt--ih" style="inset-inline-start:80%"></span></span><span class="dgap">2</span></div>
+          <div class="drow"><span class="dname" dir="rtl">حماد بن سلمة</span><span class="dtrack"><span class="daxis"></span><span class="dlink" style="inset-inline-start:80%;width:20%"></span><span class="dpt dpt--dh" style="inset-inline-start:80%"></span><span class="dpt dpt--ih" style="inset-inline-start:100%"></span></span><span class="dgap">1</span></div>
+        </div>
+        <div class="dscale" aria-hidden="true"><span></span><span><span dir="rtl">متروك</span><span dir="rtl">ضعيف</span><span dir="rtl">لين</span><span dir="rtl">مقبول</span><span dir="rtl">صدوق</span><span dir="rtl">ثقة</span></span><span></span></div>
+        <p class="keyline"><span class="k"><span class="dpt dpt--ih" style="position:static;translate:none"></span> Ibn Hajar</span><span class="k"><span class="dpt dpt--dh" style="position:static;translate:none"></span> al-Dhahabi</span><span class="k"><span style="width:20px;height:3px;background:var(--fault);display:inline-block"></span> gap of 3 or more</span></p>
+        <p class="pctx">The circle and the diamond tell the two scholars apart, so the chart never relies on colour alone. Example rows.</p>
+      </div>
+
+      <div class="sect rv">
+        <h2 class="secthead">The same data, as a table</h2>
+        <div class="tablewrap">
+          <table class="table">
+            <thead><tr><th scope="col">Narrator</th><th scope="col">Ibn Hajar</th><th scope="col">al-Dhahabi</th><th scope="col" aria-sort="descending">Gap</th><th scope="col">Weight used</th></tr></thead>
+            <tbody>
+              <tr><td dir="rtl">عمر بن هارون البلخي</td><td dir="rtl">متروك</td><td dir="rtl">مقبول</td><td class="num">3</td><td class="num">0.10</td></tr>
+              <tr><td dir="rtl">محمد بن إسحاق</td><td dir="rtl">صدوق</td><td dir="rtl">ضعيف</td><td class="num">3</td><td class="num">0.25</td></tr>
+              <tr><td dir="rtl">سماك بن حرب</td><td dir="rtl">صدوق</td><td dir="rtl">لين</td><td class="num">2</td><td class="num">0.40</td></tr>
+              <tr><td dir="rtl">حماد بن سلمة</td><td dir="rtl">ثقة</td><td dir="rtl">صدوق</td><td class="num">1</td><td class="num">0.80</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="pctx">Where the two disagree, Ilham always uses the stricter grade. A disagreement can only lower a chain, never raise it.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var SCREENS = ['hadith', 'narrator', 'circle', 'contested'];
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function route() {
+    var name = (location.hash || '').replace('#/', '');
+    if (SCREENS.indexOf(name) === -1) name = 'hadith';
+
+    document.querySelectorAll('[data-screen]').forEach(function (s) {
+      s.classList.toggle('is-on', s.dataset.screen === name);
+    });
+    document.querySelectorAll('[data-nav]').forEach(function (a) {
+      if (a.dataset.nav === name) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+
+    // Reveal + replay the chain draw for whichever screen is now showing.
+    reveal();
+    drawChain();
+    // The canvas measures 0 while its screen is display:none, so it has to
+    // repaint once the screen is actually on.
+    paint();
+
+    // Move focus to main so a screen reader announces the new page.
+    var main = document.getElementById('main');
+    if (main) main.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+
+  // Scroll reveal — Subtle tier: 340ms, 10px, power1.out.
+  var io = null;
+  function reveal() {
+    var items = document.querySelectorAll('.screen.is-on .rv');
+    if (reduce.matches || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('is-in'); });
+      return;
+    }
+    if (io) io.disconnect();
+    io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('is-in'); });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    items.forEach(function (el) { el.classList.remove('is-in'); io.observe(el); });
+  }
+
+  // The one motion moment: the chain arrives Companion → compiler, in
+  // transmission order. It encodes the direction, so it is not decoration.
+  var chainIO = null;
+  function drawChain() {
+    var chain = document.querySelector('.screen.is-on .isnad[data-draw]');
+    if (!chain) return;
+    if (reduce.matches || !('IntersectionObserver' in window)) {
+      chain.classList.add('is-drawn');
+      return;
+    }
+    chain.classList.remove('is-drawn');
+    if (chainIO) chainIO.disconnect();
+    chainIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('is-drawn'); chainIO.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -15% 0px' });
+    chainIO.observe(chain);
+  }
+
+  // Corpus strength distribution. Modelled shape; the average, range and
+  // counts are measured. Canvas rather than 14 hand-authored DOM bars.
+  var BUCKETS = [
+    { w: 0.95, n: 4197 }, { w: 0.90, n: 4000 }, { w: 0.80, n: 3800 },
+    { w: 0.75, n: 1200 }, { w: 0.60, n: 700 },  { w: 0.55, n: 350 },
+    { w: 0.50, n: 300 },  { w: 0.45, n: 150 },  { w: 0.40, n: 90 },
+    { w: 0.35, n: 40 },   { w: 0.25, n: 15 },   { w: 0.20, n: 5 },
+    { w: 0.15, n: 3 },    { w: 0.10, n: 2 }
+  ];
+  var HERE = 0.95;
+
+  function paint() {
+    var c = document.getElementById('distCanvas');
+    if (!c || !c.getContext) return;
+    var wrap = c.parentElement;
+    var cssW = Math.max(240, wrap.clientWidth);
+    var cssH = 88;
+    var dpr = window.devicePixelRatio || 1;
+    c.width = Math.round(cssW * dpr);
+    c.height = Math.round(cssH * dpr);
+    c.style.height = cssH + 'px';
+
+    var ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    var cs = getComputedStyle(document.documentElement);
+    var bar = cs.getPropertyValue('--bone-300').trim() || '#C6CAC0';
+    var hit = cs.getPropertyValue('--fault').trim() || '#B33A2B';
+    var ink3 = cs.getPropertyValue('--bone-500').trim() || '#7A7F79';
+
+    // padT reserves a marker lane above the bars. Without it the tallest bar
+    // reaches the top and the marker lands on top of a same-coloured bar.
+    var padB = 18, padT = 18;
+    var plotH = cssH - padB - padT;
+    // sqrt scale: a linear one hides every bucket below 0.80 entirely.
+    var max = Math.sqrt(BUCKETS[0].n);
+    var slot = cssW / BUCKETS.length;
+    var bw = Math.max(6, slot - 6);
+
+    ctx.font = '10px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center';
+
+    BUCKETS.forEach(function (b, i) {
+      // drawn right-to-left so the strong end sits where the ladder's top is
+      var x = cssW - (i + 1) * slot + (slot - bw) / 2;
+      var h = Math.max(2, (Math.sqrt(b.n) / max) * plotH);
+      var isHere = Math.abs(b.w - HERE) < 0.001;
+      ctx.fillStyle = isHere ? hit : bar;
+      ctx.fillRect(x, padT + plotH - h, bw, h);
+      if (b.w === 0.95 || b.w === 0.50 || b.w === 0.10) {
+        ctx.fillStyle = ink3;
+        ctx.fillText(b.w.toFixed(2), x + bw / 2, cssH - 5);
+      }
+    });
+
+    // Mark where this hadith sits: a triangle in the reserved lane, plus a
+    // label on the left where the bars are shortest. Shape and text, so the
+    // mark never depends on colour alone.
+    var hx = cssW - slot / 2;
+    ctx.fillStyle = hit;
+    ctx.beginPath();
+    ctx.moveTo(hx - 5, 3);
+    ctx.lineTo(hx + 5, 3);
+    ctx.lineTo(hx, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.textAlign = 'left';
+    ctx.fillText('this hadith', 2, 11);
+  }
+
+  // Progressive disclosure. The apparatus is never removed — it stops being
+  // the default. A researcher who opens it once keeps it open.
+  var KEY = 'ilham.detail';
+  function syncDetail(d) {
+    var chain = document.querySelector('.isnad');
+    if (chain) chain.classList.toggle('isnad--plain', !d.open);
+    // The canvas measures 0 inside a closed <details>, so repaint on open.
+    if (d.open) paint();
+  }
+  function wireDetail() {
+    var d = document.getElementById('detail');
+    if (!d) return;
+    try { if (localStorage.getItem(KEY) === 'open') d.open = true; } catch (e) {}
+    syncDetail(d);
+    d.addEventListener('toggle', function () {
+      syncDetail(d);
+      try { localStorage.setItem(KEY, d.open ? 'open' : 'closed'); } catch (e) {}
+    });
+  }
+
+  var rt;
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(paint, 120); });
+  window.addEventListener('hashchange', route);
+  if (reduce.addEventListener) reduce.addEventListener('change', function () { reveal(); drawChain(); });
+  // Canvas samples the theme tokens at paint time, so it must repaint when
+  // the viewer's theme flips. CSS handles this for free; canvas does not.
+  var dark = window.matchMedia('(prefers-color-scheme: dark)');
+  if (dark.addEventListener) dark.addEventListener('change', paint);
+
+  document.fonts && document.fonts.ready.then(paint);
+  route();
+  wireDetail();
+  paint();
+})();
+</script>
+</body>
+</html>

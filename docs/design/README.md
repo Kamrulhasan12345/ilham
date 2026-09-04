@@ -16,6 +16,34 @@ This document uses ASD-STE100 Simplified Technical English.
   It routes on the hash, so the navigation works. Open it to see the system
   assembled rather than in parts.
 - `README.md` — this file. It gives the rules. The specimen shows them.
+- `build-pages.sh` — builds `pages/` from the two sources.
+- `pages/` — **generated. Never edit it by hand.** It holds standalone HTML
+  documents built from the sources above, plus an index that links them.
+
+## Why `pages/` exists
+
+`specimen.html` and `demo.html` are **fragments**. They carry no `<!doctype>`,
+no `<html>`, no `<head>`, and no `<body>`, because the Artifact publisher wraps
+them in its own skeleton and refuses a file that brings its own.
+
+A fragment opens in a browser, and on a desktop it looks correct. On a phone it
+does not. Without `<meta name="viewport">` a mobile browser lays the page out at
+980px and then zooms out, so **none of the responsive CSS applies**. A narrow
+desktop window does not show this, because it sets the layout viewport directly.
+
+Run the build after any change to a source:
+
+```bash
+./docs/design/build-pages.sh
+```
+
+The build adds the doctype, `lang="en"`, the character set, the viewport, and
+`color-scheme: dark light`, which tells the browser to paint the scrollbars and
+the form controls for a dark ground.
+
+To publish them, open the repository settings on GitHub, then Pages, then set
+the source to the `master` branch and the `/docs` folder. The index then serves
+at `/design/pages/`.
 
 ## Motion
 
