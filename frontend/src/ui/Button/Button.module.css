@@ -1,0 +1,40 @@
+.button {
+  font-family: var(--font-en);
+  font-size: var(--fs-rail);
+  font-weight: 600;
+  line-height: 1;
+  padding: var(--p-button-v) var(--sp-2);
+  min-height: var(--h-button);
+  border: var(--bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--ground);
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  color: var(--ink-app);
+  border-color: var(--edge);
+}
+
+.primary {
+  background: var(--ink);
+  color: var(--ground);
+}
+
+.primary:disabled {
+  background: var(--rail);
+  color: var(--ink-app);
+  border-color: var(--edge);
+}
+
+.small {
+  min-height: var(--h-compact);
+  padding: var(--p-button-small-v) var(--sp-1);
+  font-size: var(--fs-label);
+  letter-spacing: var(--track-label);
+}

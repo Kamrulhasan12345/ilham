@@ -27,9 +27,15 @@ export interface IsnadLinkRow {
   narrator_id: number | null;
   raw_name: string;
   display_name: string | null;
+  name_en: string | null;
   transmission_word: string | null;
   is_compiler: boolean;
   resolution: string;
+  is_placeholder: boolean;
+  rank_ibn_hajar: string | null;
+  rank_ibn_hajar_weight: number | null;
+  rank_dhahabi: string | null;
+  rank_dhahabi_weight: number | null;
 }
 
 export interface HadithDetail {

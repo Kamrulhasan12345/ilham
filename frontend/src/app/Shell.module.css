@@ -1,0 +1,51 @@
+.skip {
+  position: absolute;
+  inset-inline-start: -9999px;
+}
+.skip:focus {
+  inset-inline-start: var(--sp-2);
+  top: var(--sp-2);
+  z-index: 9;
+  background: var(--ground);
+  border: 2px solid var(--ink);
+  padding: var(--sp-1) var(--sp-2);
+}
+
+.shell {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--ground);
+  border-bottom: var(--bw) solid var(--rule);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+}
+
+.brand {
+  font-size: var(--fs-rail);
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+}
+.brandAr {
+  font-size: 1.25rem;
+}
+
+.spacer {
+  margin-inline-start: auto;
+}
+
+.main {
+  padding: var(--sp-4) var(--sp-3) var(--sp-5);
+  max-width: var(--measure-app);
+  margin-inline: auto;
+}
+.main:focus {
+  outline: none;
+}

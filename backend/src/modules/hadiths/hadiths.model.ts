@@ -60,9 +60,14 @@ export async function getHadithDetail(
 
   const { rows: isnadRows } = await pool.query<IsnadLinkRow>(
     `SELECT l.sanad_no, l.position, l.narrator_id, l.raw_name, n.display_name,
-            l.transmission_word, l.is_compiler, l.resolution
+            n.name_en, l.transmission_word, l.is_compiler, l.resolution,
+            coalesce(n.is_placeholder, false) AS is_placeholder,
+            n.rank_ibn_hajar, rlh.weight AS rank_ibn_hajar_weight,
+            n.rank_dhahabi, rld.weight AS rank_dhahabi_weight
        FROM corpus.isnad_links l
        LEFT JOIN corpus.narrators n ON n.narrator_id = l.narrator_id
+       LEFT JOIN corpus.rank_levels rlh ON rlh.rank_code = n.rank_ibn_hajar
+       LEFT JOIN corpus.rank_levels rld ON rld.rank_code = n.rank_dhahabi
       WHERE l.hadith_id = $1
       ORDER BY l.sanad_no, l.position`,
     [hadithId],

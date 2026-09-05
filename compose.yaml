@@ -94,5 +94,29 @@ services:
       - /app/node_modules
     working_dir: /app
 
+  api:
+    build: ./backend
+    container_name: ilham-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ilham
+      PGUSER: ilham_app
+      PGPASSWORD: ilham
+      PORT: "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  web:
+    build: ./frontend
+    container_name: ilham-web
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
 volumes:
   pgdata:
