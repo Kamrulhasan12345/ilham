@@ -1,4 +1,4 @@
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { type ReactNode, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../ui/Button/Button';
@@ -47,14 +47,19 @@ export function Shell({ children }: { children: ReactNode }) {
           )}
         </header>
         {state.status === 'signed-in' && (
+          // A plain <a> forces a full browser reload on every click, which
+          // reruns AuthProvider's startup /auth/refresh + /auth/me round trip
+          // and flashes a loading state. <Link> navigates inside the SPA, and
+          // its typed `to` makes a mistyped path a compile error instead of a
+          // silent 404 at click time.
           <nav aria-label="Primary" className={styles.nav}>
-            <a href="/collections">Collections</a>
-            <a href="/circles">Circles</a>
-            <a href="/notes">Notes</a>
+            <Link to="/collections">Collections</Link>
+            <Link to="/circles">Circles</Link>
+            <Link to="/notes">Notes</Link>
             {(state.user.role === 'teacher' || state.user.role === 'admin') && (
-              <a href="/students">Students</a>
+              <Link to="/students">Students</Link>
             )}
-            {state.user.role === 'admin' && <a href="/admin/verify">Verify teachers</a>}
+            {state.user.role === 'admin' && <Link to="/admin/verify">Verify teachers</Link>}
           </nav>
         )}
         {/* docs/frontend-prd.md §7.3: the waiting banner for an unverified

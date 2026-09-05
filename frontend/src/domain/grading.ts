@@ -23,8 +23,11 @@ export const RANK_WEIGHT: Record<RankCode, number> = {
   thiqa: 0.95,
 };
 
-const UNGRADED_WEIGHT = 0.5;
-const UNNAMED_WEIGHT = 0.15;
+// Exported so StrengthPlot can place its two prose rows at the exact same
+// weight this module uses to grade a link. One source of number, not two
+// copies that could drift apart.
+export const UNGRADED_WEIGHT = 0.5;
+export const UNNAMED_WEIGHT = 0.15;
 
 export interface GradeInfo {
   sentence: string;

@@ -1,13 +1,10 @@
-import { RANK_GLOSS, RANK_WEIGHT } from '../grading';
+import { RANK_GLOSS, RANK_WEIGHT, UNGRADED_WEIGHT, UNNAMED_WEIGHT } from '../grading';
 import styles from './StrengthPlot.module.css';
 
 export interface StrengthPlotProps {
   /** The real weight of every scored (non-compiler) link in the chain. */
   weights: number[];
 }
-
-const UNGRADED_WEIGHT = 0.5;
-const UNNAMED_WEIGHT = 0.15;
 
 const ROWS: { weight: number; ar: string | null; en: string | null }[] = [
   { weight: RANK_WEIGHT.thiqa, ar: 'ثقة', en: null },
