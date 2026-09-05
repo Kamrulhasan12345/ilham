@@ -14,7 +14,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as AuthedCollectionsIndexRouteImport } from './routes/_authed/collections/index'
 import { Route as AuthedCollectionsSlugRouteImport } from './routes/_authed/collections/$slug'
-import { Route as AuthedCollectionsSlugSeqRouteImport } from './routes/_authed/collections/$slug.$seq'
+import { Route as AuthedHadithsHadithIdRouteImport } from './routes/_authed/hadiths/$hadithId'
+import { Route as AuthedCollectionsSlugSeqRouteImport } from './routes/_authed/collections/$slug_.$seq'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -40,24 +41,31 @@ const AuthedCollectionsSlugRoute = AuthedCollectionsSlugRouteImport.update({
   path: '/collections/$slug',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedHadithsHadithIdRoute = AuthedHadithsHadithIdRouteImport.update({
+  id: '/hadiths/$hadithId',
+  path: '/hadiths/$hadithId',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedCollectionsSlugSeqRoute =
   AuthedCollectionsSlugSeqRouteImport.update({
-    id: '/$seq',
-    path: '/$seq',
-    getParentRoute: () => AuthedCollectionsSlugRoute,
+    id: '/collections/$slug_/$seq',
+    path: '/collections/$slug/$seq',
+    getParentRoute: () => AuthedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/login': typeof LoginRoute
-  '/collections/$slug': typeof AuthedCollectionsSlugRouteWithChildren
+  '/collections/$slug': typeof AuthedCollectionsSlugRoute
+  '/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
   '/collections/': typeof AuthedCollectionsIndexRoute
   '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthedIndexRoute
-  '/collections/$slug': typeof AuthedCollectionsSlugRouteWithChildren
+  '/collections/$slug': typeof AuthedCollectionsSlugRoute
+  '/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
   '/collections': typeof AuthedCollectionsIndexRoute
   '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
@@ -66,9 +74,10 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authed/': typeof AuthedIndexRoute
-  '/_authed/collections/$slug': typeof AuthedCollectionsSlugRouteWithChildren
+  '/_authed/collections/$slug': typeof AuthedCollectionsSlugRoute
+  '/_authed/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
   '/_authed/collections/': typeof AuthedCollectionsIndexRoute
-  '/_authed/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
+  '/_authed/collections/$slug_/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -76,6 +85,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/collections/$slug'
+    | '/hadiths/$hadithId'
     | '/collections/'
     | '/collections/$slug/$seq'
   fileRoutesByTo: FileRoutesByTo
@@ -83,6 +93,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/'
     | '/collections/$slug'
+    | '/hadiths/$hadithId'
     | '/collections'
     | '/collections/$slug/$seq'
   id:
@@ -91,8 +102,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authed/'
     | '/_authed/collections/$slug'
+    | '/_authed/hadiths/$hadithId'
     | '/_authed/collections/'
-    | '/_authed/collections/$slug/$seq'
+    | '/_authed/collections/$slug_/$seq'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,39 +149,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCollectionsSlugRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/collections/$slug/$seq': {
-      id: '/_authed/collections/$slug/$seq'
-      path: '/$seq'
+    '/_authed/hadiths/$hadithId': {
+      id: '/_authed/hadiths/$hadithId'
+      path: '/hadiths/$hadithId'
+      fullPath: '/hadiths/$hadithId'
+      preLoaderRoute: typeof AuthedHadithsHadithIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/collections/$slug_/$seq': {
+      id: '/_authed/collections/$slug_/$seq'
+      path: '/collections/$slug/$seq'
       fullPath: '/collections/$slug/$seq'
       preLoaderRoute: typeof AuthedCollectionsSlugSeqRouteImport
-      parentRoute: typeof AuthedCollectionsSlugRoute
+      parentRoute: typeof AuthedRoute
     }
   }
 }
 
-interface AuthedCollectionsSlugRouteChildren {
-  AuthedCollectionsSlugSeqRoute: typeof AuthedCollectionsSlugSeqRoute
-}
-
-const AuthedCollectionsSlugRouteChildren: AuthedCollectionsSlugRouteChildren = {
-  AuthedCollectionsSlugSeqRoute: AuthedCollectionsSlugSeqRoute,
-}
-
-const AuthedCollectionsSlugRouteWithChildren =
-  AuthedCollectionsSlugRoute._addFileChildren(
-    AuthedCollectionsSlugRouteChildren,
-  )
-
 interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
-  AuthedCollectionsSlugRoute: typeof AuthedCollectionsSlugRouteWithChildren
+  AuthedCollectionsSlugRoute: typeof AuthedCollectionsSlugRoute
+  AuthedHadithsHadithIdRoute: typeof AuthedHadithsHadithIdRoute
   AuthedCollectionsIndexRoute: typeof AuthedCollectionsIndexRoute
+  AuthedCollectionsSlugSeqRoute: typeof AuthedCollectionsSlugSeqRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
-  AuthedCollectionsSlugRoute: AuthedCollectionsSlugRouteWithChildren,
+  AuthedCollectionsSlugRoute: AuthedCollectionsSlugRoute,
+  AuthedHadithsHadithIdRoute: AuthedHadithsHadithIdRoute,
   AuthedCollectionsIndexRoute: AuthedCollectionsIndexRoute,
+  AuthedCollectionsSlugSeqRoute: AuthedCollectionsSlugSeqRoute,
 }
 
 const AuthedRouteWithChildren =
