@@ -1,0 +1,142 @@
+.empty {
+  font-size: var(--fs-rail);
+  color: var(--ink-app);
+  font-style: italic;
+}
+
+.sanadLabel {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--ink-app);
+  margin: var(--sp-3) 0 var(--sp-1);
+}
+
+.chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--mark-cell-w);
+  gap: var(--sp-2);
+  align-items: start;
+  min-height: var(--chain-row);
+  padding-block: var(--sp-2);
+}
+
+.markCell {
+  grid-column: 2;
+  align-self: stretch;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.markCell::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  width: var(--bw);
+  background: var(--rule);
+}
+.link:first-child .markCell::before {
+  inset-block-start: 50%;
+}
+.link:last-child .markCell::before {
+  inset-block-end: 50%;
+}
+
+.body {
+  grid-column: 1;
+  display: grid;
+  gap: var(--gap-stack);
+}
+
+.mark {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--mark-offset-top);
+  width: var(--mark-size);
+  height: var(--mark-size);
+  flex: none;
+  background: var(--ground);
+  border: 2px solid var(--ink);
+}
+.markPerson {
+  border-radius: 50%;
+  background: var(--ink);
+}
+.markAmbiguous {
+  border-radius: 50%;
+}
+.markUnresolved {
+  border-radius: 50%;
+  border-style: dashed;
+}
+.markPlaceholder {
+  border-style: dashed;
+}
+.markCollector {
+  background: var(--ink);
+}
+
+.name {
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-chain);
+  line-height: 1.25;
+  font-weight: 400;
+  text-align: right;
+  margin: 0;
+}
+.nameSetsScore {
+  border-bottom: var(--underline-w) solid var(--index);
+  display: inline-block;
+  padding-bottom: var(--underline-w);
+}
+
+.translit {
+  font-size: var(--fs-rail);
+  line-height: 1.35;
+  color: var(--ink-app);
+  margin: 0;
+}
+
+.grade {
+  font-size: var(--fs-rail);
+  line-height: 1.4;
+  color: var(--ink-app);
+  margin: 0;
+  text-align: right;
+}
+.gradeAbsent {
+  font-style: italic;
+}
+
+.sep {
+  color: var(--rule);
+}
+
+.vals {
+  font-size: var(--fs-label);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+.gloss {
+  font-size: var(--fs-label);
+  line-height: 1.35;
+  color: var(--ink-app);
+}
+
+.setsScore {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--index);
+}
