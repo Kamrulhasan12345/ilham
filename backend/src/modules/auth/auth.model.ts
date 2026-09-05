@@ -28,14 +28,27 @@ export async function findMeById(userId: number): Promise<MeRow | null> {
 // app.users directly — app.users has no rows of its own, per db/02_app.sql's
 // comments. The child table's assert_email_unique trigger rejects a
 // duplicate email across ALL three subtypes, not just this one.
+//
+// A new student starts at 'beginner'. The level is assigned here, never
+// chosen at registration: it is the teacher's assessment to raise, not a
+// self-declared badge. (db/02_app.sql carries no DEFAULT so the graded DDL
+// stays untouched; the model is the one writer.)
 export async function registerUser(input: RegisterInput): Promise<{ user_id: number }> {
   const passwordHash = await hashPassword(input.password);
-  const table = input.role === 'student' ? 'app.students' : 'app.teachers';
+  if (input.role === 'student') {
+    const { rows } = await pool.query<{ user_id: number }>(
+      `INSERT INTO app.students (email, password_hash, full_name, role, student_level)
+       VALUES ($1, $2, $3, 'student', 'beginner')
+       RETURNING user_id`,
+      [input.email, passwordHash, input.full_name],
+    );
+    return rows[0];
+  }
   const { rows } = await pool.query<{ user_id: number }>(
-    `INSERT INTO ${table} (email, password_hash, full_name, role)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO app.teachers (email, password_hash, full_name, role)
+     VALUES ($1, $2, $3, 'teacher')
      RETURNING user_id`,
-    [input.email, passwordHash, input.full_name, input.role],
+    [input.email, passwordHash, input.full_name],
   );
   return rows[0];
 }

@@ -6,10 +6,15 @@ import { bodyLimit } from 'hono/body-limit';
 import { WEB_ORIGIN } from './config.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { chaptersRoutes } from './modules/chapters/chapters.routes.js';
+import { circlesRoutes } from './modules/circles/circles.routes.js';
 import { collectionsRoutes } from './modules/collections/collections.routes.js';
 import { hadithsRoutes } from './modules/hadiths/hadiths.routes.js';
 import { narratorsRoutes } from './modules/narrators/narrators.routes.js';
+import { notesRoutes } from './modules/notes/notes.routes.js';
+import { studentsRoutes } from './modules/students/students.routes.js';
+import { teachersRoutes } from './modules/teachers/teachers.routes.js';
 import { requireAuth } from './middleware/requireAuth.js';
+import { requireRole } from './middleware/requireRole.js';
 import { NotFoundError } from './lib/errors.js';
 import type { Role } from './lib/jwt.js';
 
@@ -35,6 +40,18 @@ app.use('/hadiths/*', requireAuth);
 app.route('/hadiths', hadithsRoutes);
 app.use('/narrators/*', requireAuth);
 app.route('/narrators', narratorsRoutes);
+
+app.use('/notes/*', requireAuth);
+app.route('/notes', notesRoutes);
+
+app.use('/students/*', requireAuth);
+app.route('/students', studentsRoutes);
+
+app.use('/circles/*', requireAuth);
+app.route('/circles', circlesRoutes);
+
+app.use('/teachers/*', requireAuth, requireRole('admin'));
+app.route('/teachers', teachersRoutes);
 
 app.notFound((c) => c.json({ error: { code: 'not_found', message: 'not found' } }, 404));
 

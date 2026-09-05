@@ -34,10 +34,16 @@ maps errors to HTTP status codes.
 
 ## Scope
 
-This first pass only reads the `corpus` schema (collections, hadiths,
-narrators, chain strength). It has no write routes. The `ilham_app` DB role
-also has no `INSERT`/`UPDATE`/`DELETE` grant on `corpus.*`, so the read-only
-rule holds even if a route is added by mistake.
+Reads cover the `corpus` schema (collections, chapters, hadiths, narrators,
+chain strength). Writes go to the `app` schema only: authentication
+(`app.users` hierarchy, refresh tokens), notes (owner-scoped), circles
+(teacher-only create, verified-teacher trigger gate), and teacher verification
+(admin-only). The `ilham_app` DB role holds no `INSERT`/`UPDATE`/`DELETE`
+grant on `corpus.*`, so the read-only rule holds even if a route is added by
+mistake.
+
+Still missing per `docs/backend-prd.md` §5: study sets, assignments,
+review sessions, progress override, analytics, and search.
 
 ## Notes
 
