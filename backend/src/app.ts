@@ -4,6 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 import { collectionsRoutes } from './modules/collections/collections.routes.js';
 import { hadithsRoutes } from './modules/hadiths/hadiths.routes.js';
 import { narratorsRoutes } from './modules/narrators/narrators.routes.js';
+import { chaptersRoutes } from './modules/chapters/chapters.routes.js';
 import { NotFoundError } from './lib/errors.js';
 
 export const app = new Hono();
@@ -11,6 +12,7 @@ export const app = new Hono();
 app.use('*', logger());
 
 app.route('/collections', collectionsRoutes);
+app.route('/chapters', chaptersRoutes);
 app.route('/hadiths', hadithsRoutes);
 app.route('/narrators', narratorsRoutes);
 
