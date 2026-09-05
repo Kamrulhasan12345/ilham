@@ -1,9 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_authed/')({
-  component: HomeStub,
+  beforeLoad: () => {
+    throw redirect({ to: '/collections' });
+  },
 });
-
-function HomeStub() {
-  return <p>You are signed in. The collections index lands in the Browse phase.</p>;
-}

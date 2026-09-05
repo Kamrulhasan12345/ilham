@@ -1,5 +1,12 @@
 import { type ZodSchema, z } from 'zod';
 
+// '/api' is same-origin, which is the point: nginx (in the image) and the Vite
+// dev server (locally) both proxy it to the backend, so the browser makes no
+// cross-origin request and the httpOnly refresh cookie needs no SameSite=None.
+//
+// VITE_API_BASE overrides it for a static-host deployment, where no proxy
+// exists and the API has its own absolute URL. Vite inlines the value at build
+// time — see frontend/.env.example for what that costs.
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
 const refreshResponseSchema = z.object({ accessToken: z.string() });
@@ -17,10 +24,20 @@ export class ApiError extends Error {
 }
 
 type SessionLostListener = () => void;
-let sessionLostListener: SessionLostListener | null = null;
+// A set, not a single slot: AuthProvider clears its state and the app root
+// invalidates the router, and both subscribe independently (each returns an
+// unsubscribe for StrictMode-safe cleanup).
+const sessionLostListeners = new Set<SessionLostListener>();
 
-export function onSessionLost(listener: SessionLostListener): void {
-  sessionLostListener = listener;
+export function onSessionLost(listener: SessionLostListener): () => void {
+  sessionLostListeners.add(listener);
+  return () => {
+    sessionLostListeners.delete(listener);
+  };
+}
+
+function emitSessionLost(): void {
+  for (const listener of sessionLostListeners) listener();
 }
 
 let accessToken: string | null = null;
@@ -50,14 +67,14 @@ export async function refreshAccessToken(): Promise<string> {
     });
     if (!res.ok) {
       setAccessToken(null);
-      sessionLostListener?.();
+      emitSessionLost();
       throw new ApiError(res.status, 'unauthenticated', 'session expired');
     }
     const json = await res.json().catch(() => null);
     const parsed = refreshResponseSchema.safeParse((json as { data?: unknown } | null)?.data);
     if (!parsed.success) {
       setAccessToken(null);
-      sessionLostListener?.();
+      emitSessionLost();
       throw new ApiError(
         res.status,
         'contract_error',
@@ -78,7 +95,6 @@ export async function refreshAccessToken(): Promise<string> {
 export interface ApiFetchOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
-  credentials?: 'include';
 }
 
 // /auth/refresh and /auth/login are excluded because retrying them on a 401
@@ -99,7 +115,15 @@ export async function apiFetch<T>(
       method: options.method ?? 'GET',
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-      credentials: options.credentials,
+      // Always, and not for each caller to remember. /auth/login and
+      // /auth/register set the refresh cookie, and a cross-origin response only
+      // stores one when the request asks to carry credentials — so those two
+      // silently signed the user out on the next refresh, on a static-host
+      // deployment, while working the whole time on one origin.
+      //
+      // This costs nothing same-origin: the cookie has path '/', so the browser
+      // already sends it with every request there.
+      credentials: 'include',
     });
   };
 

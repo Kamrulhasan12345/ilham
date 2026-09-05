@@ -52,6 +52,15 @@
   --chain-row: 63px;
   --measure-app: 76rem; /* the app content column's max width */
 
+  /* The chain's mark spine, per DESIGN.md §4 "The chain" and "The five
+     marks" — sizes measured off docs/design/specimen.html's `.link`/`.mark`. */
+  --mark-cell-w: 24px; /* the 24px mark column, also the WCAG target floor */
+  --mark-size: 12px; /* each of the five marks is a 12x12 dot or square */
+  --mark-offset-top: 5px; /* nudges the mark to sit level with the name */
+  --gap-stack: 2px; /* the tight gap between a link's stacked lines */
+  --underline-w: 2px; /* the --index underline: "sets the score", emphasis */
+  --pdot-size: 8px; /* the strength plot dot size */
+
   /* A shared floor for a compact control that isn't the full 44px Button —
      a segmented toggle, a chip, a step button. Matches the WCAG 2.5.8 Target
      Size minimum; see docs/design/specimen.html's `.seg button` for the same

@@ -127,4 +127,35 @@ describe('apiFetch', () => {
       message: 'refresh response did not match the expected shape',
     });
   });
+
+  // A cross-origin response only stores its Set-Cookie when the request asked
+  // to carry credentials. /auth/login and /auth/register set the refresh
+  // cookie, and both once relied on the caller to pass the option — so they
+  // worked on one origin and signed the user out on the next refresh from a
+  // static host. These pin the option on for every request, not only for the
+  // endpoints someone remembered.
+  it('sends credentials on a plain request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      jsonResponse(200, { data: { collection_id: 1, slug: 'sahih-al-bukhari' } }),
+    );
+
+    await apiFetch('/collections/1', collectionSchema);
+
+    expect(vi.mocked(fetch).mock.calls[0]?.[1]).toMatchObject({ credentials: 'include' });
+  });
+
+  it('sends credentials on the endpoints that set the refresh cookie', async () => {
+    const tokenSchema = z.object({ accessToken: z.string() });
+
+    for (const path of ['/auth/login', '/auth/register']) {
+      vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(200, { data: { accessToken: 'tok' } }));
+
+      await apiFetch(path, tokenSchema, { method: 'POST', body: { email: 'a@example.com' } });
+
+      const init = vi.mocked(fetch).mock.calls.at(-1)?.[1];
+      expect(init, `${path} must ask to carry credentials`).toMatchObject({
+        credentials: 'include',
+      });
+    }
+  });
 });
