@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { z } from 'zod';
 import { apiFetch, onSessionLost, refreshAccessToken, setAccessToken } from '../lib/apiClient';
 import { router } from '../router';
@@ -49,7 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const establishSession = useCallback(async (accessToken: string): Promise<void> => {
     setAccessToken(accessToken);
     const user = await apiFetch('/auth/me', meSchema);
-    setState({ status: 'signed-in', user });
+    // flushSync forces the re-render (and, with it, RouterProvider's fresh
+    // `context={{ auth }}` prop) to commit synchronously before this promise
+    // resolves. Without it, a caller's `await signIn(token); navigate(...)`
+    // races React's own batching: `navigate()` runs in the same microtask as
+    // this setState, so the router still holds the pre-sign-in (signed-out)
+    // context and immediately guards the new location back to /login.
+    flushSync(() => {
+      setState({ status: 'signed-in', user });
+    });
   }, []);
 
   useEffect(() => {
