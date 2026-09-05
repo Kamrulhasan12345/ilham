@@ -59,6 +59,7 @@
   --mark-offset-top: 5px; /* nudges the mark to sit level with the name */
   --gap-stack: 2px; /* the tight gap between a link's stacked lines */
   --underline-w: 2px; /* the --index underline: "sets the score", emphasis */
+  --pdot-size: 8px; /* the strength plot dot size */
 
   /* A shared floor for a compact control that isn't the full 44px Button —
      a segmented toggle, a chip, a step button. Matches the WCAG 2.5.8 Target
