@@ -3,7 +3,7 @@ import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { HTTPException } from 'hono/http-exception';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { IS_PRODUCTION, REFRESH_TOKEN_TTL_DAYS } from '../../config.js';
+import { COOKIE_SAMESITE, COOKIE_SECURE, REFRESH_TOKEN_TTL_DAYS } from '../../config.js';
 import { signAccessToken } from '../../lib/jwt.js';
 import { SALT_ROUNDS, verifyPassword } from '../../lib/password.js';
 import { issueRefreshToken, consumeRefreshToken, revokeRefreshToken } from '../../lib/refreshToken.js';
@@ -33,8 +33,11 @@ const loginSchema = z.object({
 function setRefreshCookie(c: Context, token: string): void {
   setCookie(c, REFRESH_COOKIE, token, {
     httpOnly: true,
-    sameSite: 'Lax',
-    secure: IS_PRODUCTION,
+    // Both come from config, because a static-host deployment puts the frontend
+    // on another site and a Lax cookie is then never sent. config.ts refuses to
+    // start on a combination the browser would reject in silence.
+    sameSite: COOKIE_SAMESITE,
+    secure: COOKIE_SECURE,
     path: '/',
     maxAge: REFRESH_COOKIE_MAX_AGE,
   });
@@ -97,7 +100,15 @@ export async function refresh(c: Context) {
 export async function logout(c: Context) {
   const token = getCookie(c, REFRESH_COOKIE);
   if (token) await revokeRefreshToken(token);
-  deleteCookie(c, REFRESH_COOKIE, { path: '/' });
+  // The same sameSite and secure as setRefreshCookie. A browser applies an
+  // expiry only to a cookie whose attributes it accepts, and it drops a
+  // SameSite=None header that carries no Secure — so a mismatch here leaves the
+  // cookie in place and logout does not clear it.
+  deleteCookie(c, REFRESH_COOKIE, {
+    path: '/',
+    sameSite: COOKIE_SAMESITE,
+    secure: COOKIE_SECURE,
+  });
   return c.json({ data: null });
 }
 

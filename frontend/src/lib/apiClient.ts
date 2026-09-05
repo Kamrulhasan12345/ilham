@@ -95,7 +95,6 @@ export async function refreshAccessToken(): Promise<string> {
 export interface ApiFetchOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
-  credentials?: 'include';
 }
 
 // /auth/refresh and /auth/login are excluded because retrying them on a 401
@@ -116,7 +115,15 @@ export async function apiFetch<T>(
       method: options.method ?? 'GET',
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-      credentials: options.credentials,
+      // Always, and not for each caller to remember. /auth/login and
+      // /auth/register set the refresh cookie, and a cross-origin response only
+      // stores one when the request asks to carry credentials — so those two
+      // silently signed the user out on the next refresh, on a static-host
+      // deployment, while working the whole time on one origin.
+      //
+      // This costs nothing same-origin: the cookie has path '/', so the browser
+      // already sends it with every request there.
+      credentials: 'include',
     });
   };
 

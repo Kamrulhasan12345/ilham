@@ -3,7 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
 import { bodyLimit } from 'hono/body-limit';
-import { WEB_ORIGIN } from './config.js';
+import { WEB_ORIGINS } from './config.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { chaptersRoutes } from './modules/chapters/chapters.routes.js';
 import { circlesRoutes } from './modules/circles/circles.routes.js';
@@ -21,7 +21,11 @@ import type { Role } from './lib/jwt.js';
 export const app = new Hono<{ Variables: { userId: number; role: Role } }>();
 
 app.use('*', logger());
-app.use('*', cors({ origin: WEB_ORIGIN, credentials: true }));
+// A list, so a static-host deployment can name its production domain and its
+// preview URLs. hono/cors reflects whichever entry matches the request, which
+// is what a credentialed request needs: the wildcard is not allowed with
+// Access-Control-Allow-Credentials, so the header must name one exact origin.
+app.use('*', cors({ origin: WEB_ORIGINS, credentials: true }));
 app.use(
   '*',
   bodyLimit({

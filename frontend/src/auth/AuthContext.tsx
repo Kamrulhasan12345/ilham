@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn: establishSession,
       signOut: async () => {
         try {
-          await apiFetch('/auth/logout', z.unknown(), { method: 'POST', credentials: 'include' });
+          await apiFetch('/auth/logout', z.unknown(), { method: 'POST' });
         } catch {
           // Best-effort: the user is signed out locally even if the network call fails.
         } finally {
