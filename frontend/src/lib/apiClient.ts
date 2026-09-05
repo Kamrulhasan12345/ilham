@@ -17,10 +17,20 @@ export class ApiError extends Error {
 }
 
 type SessionLostListener = () => void;
-let sessionLostListener: SessionLostListener | null = null;
+// A set, not a single slot: AuthProvider clears its state and the app root
+// invalidates the router, and both subscribe independently (each returns an
+// unsubscribe for StrictMode-safe cleanup).
+const sessionLostListeners = new Set<SessionLostListener>();
 
-export function onSessionLost(listener: SessionLostListener): void {
-  sessionLostListener = listener;
+export function onSessionLost(listener: SessionLostListener): () => void {
+  sessionLostListeners.add(listener);
+  return () => {
+    sessionLostListeners.delete(listener);
+  };
+}
+
+function emitSessionLost(): void {
+  for (const listener of sessionLostListeners) listener();
 }
 
 let accessToken: string | null = null;
@@ -50,14 +60,14 @@ export async function refreshAccessToken(): Promise<string> {
     });
     if (!res.ok) {
       setAccessToken(null);
-      sessionLostListener?.();
+      emitSessionLost();
       throw new ApiError(res.status, 'unauthenticated', 'session expired');
     }
     const json = await res.json().catch(() => null);
     const parsed = refreshResponseSchema.safeParse((json as { data?: unknown } | null)?.data);
     if (!parsed.success) {
       setAccessToken(null);
-      sessionLostListener?.();
+      emitSessionLost();
       throw new ApiError(
         res.status,
         'contract_error',

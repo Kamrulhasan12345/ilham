@@ -3,6 +3,7 @@ import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/rea
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from './auth/AuthContext';
+import { AuthContext } from './auth/AuthContext';
 import type { AuthState } from './auth/guards';
 import { routeTree } from './routeTree.gen';
 
@@ -37,12 +38,17 @@ function fakeAuth(state: AuthState): AuthContextValue {
 
 // The Collections page (reachable via '/') uses useQuery, so every render in
 // this file needs a QueryClientProvider, not just an auth-aware router.
+// Shell reads the same auth through the React context (useAuth), while the
+// guards read it through the router context. Both come from the one fake.
 function renderRouter(router: Parameters<typeof RouterProvider>[0]['router']) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const { auth } = router.options.context as { auth: AuthContextValue };
   return render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+    <AuthContext.Provider value={auth}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </AuthContext.Provider>,
   );
 }
 
@@ -122,5 +128,39 @@ describe('focus management on route change', () => {
     expect(focusedMain).toBe(true);
 
     focusSpy.mockRestore();
+  });
+});
+
+describe('sign-out control', () => {
+  it('does not show a sign-out button when signed out', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/login'] });
+    const router = createRouter({
+      routeTree,
+      history,
+      context: { auth: fakeAuth({ status: 'signed-out' }) },
+    });
+    renderRouter(router);
+
+    await screen.findByRole('heading', { name: 'Sign in' });
+    expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument();
+  });
+
+  it('shows a sign-out button when signed in', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const router = createRouter({
+      routeTree,
+      history,
+      context: {
+        auth: fakeAuth({
+          status: 'signed-in',
+          user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
+        }),
+      },
+    });
+    renderRouter(router);
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
   });
 });

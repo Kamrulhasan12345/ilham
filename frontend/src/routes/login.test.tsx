@@ -3,6 +3,7 @@ import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/rea
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from '../auth/AuthContext';
+import { AuthContext } from '../auth/AuthContext';
 import { routeTree } from '../routeTree.gen';
 
 vi.mock('../lib/apiClient', async () => {
@@ -23,9 +24,11 @@ function renderLogin(signIn: AuthContextValue['signIn'] = vi.fn(async () => {}))
   const history = createMemoryHistory({ initialEntries: ['/login'] });
   const router = createRouter({ routeTree, history, context: { auth } });
   return render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+    <AuthContext.Provider value={auth}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </AuthContext.Provider>,
   );
 }
 

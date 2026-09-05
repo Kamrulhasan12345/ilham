@@ -11,7 +11,6 @@ import type { ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { z } from 'zod';
 import { apiFetch, onSessionLost, refreshAccessToken, setAccessToken } from '../lib/apiClient';
-import { router } from '../router';
 import type { AuthState } from './guards';
 
 export type { AuthState, AuthUser, Role, GuardRequirement, GuardResult } from './guards';
@@ -34,6 +33,11 @@ export interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+// Exported for tests only: router-level tests render <RouterProvider> with a
+// fake router context and give Shell the same auth through this provider,
+// instead of mounting a real AuthProvider (which would hit the network).
+export { AuthContext };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
@@ -81,10 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // The router side of session loss (invalidate, so guards re-run) lives in
+  // main.tsx's InnerApp, which owns the router instance. This context never
+  // imports the router singleton: that import closes a cycle
+  // (AuthContext -> router -> routeTree -> __root -> Shell -> AuthContext)
+  // that crashes any test importing a route module first.
   useEffect(() => {
-    onSessionLost(() => {
+    return onSessionLost(() => {
       setState({ status: 'signed-out' });
-      router.invalidate();
     });
   }, []);
 

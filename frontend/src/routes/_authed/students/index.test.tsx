@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from '../../../auth/AuthContext';
 import { AuthContext } from '../../../auth/AuthContext';
+import type { AuthUser } from '../../../auth/guards';
 import { routeTree } from '../../../routeTree.gen';
 
 vi.mock('../../../lib/apiClient', async () => {
@@ -14,21 +15,15 @@ vi.mock('../../../lib/apiClient', async () => {
 
 import { apiFetch } from '../../../lib/apiClient';
 
-function renderCollections() {
+function renderStudents(user: AuthUser) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const auth: AuthContextValue = {
-    state: {
-      status: 'signed-in',
-      user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
-    },
-    ready: Promise.resolve({
-      status: 'signed-in',
-      user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
-    }),
+    state: { status: 'signed-in', user },
+    ready: Promise.resolve({ status: 'signed-in', user }),
     signIn: async () => {},
     signOut: async () => {},
   };
-  const history = createMemoryHistory({ initialEntries: ['/collections'] });
+  const history = createMemoryHistory({ initialEntries: ['/students'] });
   const router = createRouter({ routeTree, history, context: { auth } });
   return render(
     <AuthContext.Provider value={auth}>
@@ -39,36 +34,48 @@ function renderCollections() {
   );
 }
 
-describe('Collections page', () => {
-  it('renders each collection with its Arabic and English titles, linked to its slug', async () => {
-    vi.mocked(apiFetch).mockResolvedValue([
-      {
-        collection_id: 1,
-        slug: 'sahih-al-bukhari',
-        title_ar: 'صحيح البخاري',
-        title_en: 'Sahih al-Bukhari',
-      },
-      { collection_id: 2, slug: 'sahih-muslim', title_ar: 'صحيح مسلم', title_en: 'Sahih Muslim' },
-    ]);
-    renderCollections();
-    expect(await screen.findByText('صحيح البخاري')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /صحيح مسلم/ })).toHaveAttribute(
-      'href',
-      '/collections/sahih-muslim',
-    );
+const TEACHER: AuthUser = {
+  user_id: 2,
+  role: 'teacher',
+  full_name: 'Ustadh',
+  email: 't@example.com',
+  is_verified: true,
+};
+const STUDENT: AuthUser = {
+  user_id: 1,
+  role: 'student',
+  full_name: 'Amina',
+  email: 'a@example.com',
+};
+
+describe('Students page', () => {
+  beforeEach(() => {
+    vi.mocked(apiFetch).mockReset();
   });
 
-  it('falls back to the Arabic title when English is absent', async () => {
+  it('shows a teacher every student with name and email', async () => {
     vi.mocked(apiFetch).mockResolvedValue([
-      { collection_id: 3, slug: 'example', title_ar: 'مثال', title_en: null },
+      {
+        user_id: 1,
+        email: 'a@example.com',
+        full_name: 'Amina',
+        student_level: 'beginner',
+        created_at: '2026-01-01',
+      },
     ]);
-    renderCollections();
-    expect(await screen.findByText('مثال')).toBeInTheDocument();
+    renderStudents(TEACHER);
+    expect(await screen.findByText(/Amina — a@example.com/)).toBeInTheDocument();
+  });
+
+  it('explains the rule to a student instead of redirecting in silence', async () => {
+    renderStudents(STUDENT);
+    expect(await screen.findByText(/only a teacher or an admin/i)).toBeInTheDocument();
+    expect(vi.mocked(apiFetch)).not.toHaveBeenCalled();
   });
 
   it('shows a plain error message when the request fails', async () => {
     vi.mocked(apiFetch).mockRejectedValue(new Error('network error'));
-    renderCollections();
+    renderStudents(TEACHER);
     expect(await screen.findByText(/could not be loaded/i)).toBeInTheDocument();
   });
 });

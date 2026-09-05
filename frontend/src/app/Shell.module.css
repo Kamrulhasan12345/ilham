@@ -41,6 +41,24 @@
   margin-inline-start: auto;
 }
 
+.identity {
+  font-size: var(--fs-rail);
+}
+
+.nav {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-1) var(--sp-3) var(--sp-2);
+  font-size: var(--fs-rail);
+}
+
+.banner {
+  margin: var(--sp-2) var(--sp-3);
+  padding-inline-start: var(--sp-2);
+  border-inline-start: 2px solid var(--index);
+  font-size: var(--fs-rail);
+}
+
 .main {
   padding: var(--sp-4) var(--sp-3) var(--sp-5);
   max-width: var(--measure-app);

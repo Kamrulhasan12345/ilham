@@ -11,10 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedAdminVerifyRouteImport } from './routes/_authed/admin/verify'
+import { Route as AuthedCirclesIndexRouteImport } from './routes/_authed/circles/index'
 import { Route as AuthedCollectionsIndexRouteImport } from './routes/_authed/collections/index'
 import { Route as AuthedCollectionsSlugRouteImport } from './routes/_authed/collections/$slug'
 import { Route as AuthedHadithsHadithIdRouteImport } from './routes/_authed/hadiths/$hadithId'
+import { Route as AuthedNotesIndexRouteImport } from './routes/_authed/notes/index'
+import { Route as AuthedStudentsIndexRouteImport } from './routes/_authed/students/index'
 import { Route as AuthedCollectionsSlugSeqRouteImport } from './routes/_authed/collections/$slug_.$seq'
 
 const AuthedRoute = AuthedRouteImport.update({
@@ -26,9 +31,24 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAdminVerifyRoute = AuthedAdminVerifyRouteImport.update({
+  id: '/admin/verify',
+  path: '/admin/verify',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedCirclesIndexRoute = AuthedCirclesIndexRouteImport.update({
+  id: '/circles/',
+  path: '/circles/',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedCollectionsIndexRoute = AuthedCollectionsIndexRouteImport.update({
@@ -46,6 +66,16 @@ const AuthedHadithsHadithIdRoute = AuthedHadithsHadithIdRouteImport.update({
   path: '/hadiths/$hadithId',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedNotesIndexRoute = AuthedNotesIndexRouteImport.update({
+  id: '/notes/',
+  path: '/notes/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedStudentsIndexRoute = AuthedStudentsIndexRouteImport.update({
+  id: '/students/',
+  path: '/students/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedCollectionsSlugSeqRoute =
   AuthedCollectionsSlugSeqRouteImport.update({
     id: '/collections/$slug_/$seq',
@@ -56,27 +86,42 @@ const AuthedCollectionsSlugSeqRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/admin/verify': typeof AuthedAdminVerifyRoute
   '/collections/$slug': typeof AuthedCollectionsSlugRoute
   '/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
+  '/circles/': typeof AuthedCirclesIndexRoute
   '/collections/': typeof AuthedCollectionsIndexRoute
+  '/notes/': typeof AuthedNotesIndexRoute
+  '/students/': typeof AuthedStudentsIndexRoute
   '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/': typeof AuthedIndexRoute
+  '/admin/verify': typeof AuthedAdminVerifyRoute
   '/collections/$slug': typeof AuthedCollectionsSlugRoute
   '/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
+  '/circles': typeof AuthedCirclesIndexRoute
   '/collections': typeof AuthedCollectionsIndexRoute
+  '/notes': typeof AuthedNotesIndexRoute
+  '/students': typeof AuthedStudentsIndexRoute
   '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/admin/verify': typeof AuthedAdminVerifyRoute
   '/_authed/collections/$slug': typeof AuthedCollectionsSlugRoute
   '/_authed/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
+  '/_authed/circles/': typeof AuthedCirclesIndexRoute
   '/_authed/collections/': typeof AuthedCollectionsIndexRoute
+  '/_authed/notes/': typeof AuthedNotesIndexRoute
+  '/_authed/students/': typeof AuthedStudentsIndexRoute
   '/_authed/collections/$slug_/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRouteTypes {
@@ -84,32 +129,48 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/register'
+    | '/admin/verify'
     | '/collections/$slug'
     | '/hadiths/$hadithId'
+    | '/circles/'
     | '/collections/'
+    | '/notes/'
+    | '/students/'
     | '/collections/$slug/$seq'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/register'
     | '/'
+    | '/admin/verify'
     | '/collections/$slug'
     | '/hadiths/$hadithId'
+    | '/circles'
     | '/collections'
+    | '/notes'
+    | '/students'
     | '/collections/$slug/$seq'
   id:
     | '__root__'
     | '/_authed'
     | '/login'
+    | '/register'
     | '/_authed/'
+    | '/_authed/admin/verify'
     | '/_authed/collections/$slug'
     | '/_authed/hadiths/$hadithId'
+    | '/_authed/circles/'
     | '/_authed/collections/'
+    | '/_authed/notes/'
+    | '/_authed/students/'
     | '/_authed/collections/$slug_/$seq'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -128,11 +189,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/': {
       id: '/_authed/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/admin/verify': {
+      id: '/_authed/admin/verify'
+      path: '/admin/verify'
+      fullPath: '/admin/verify'
+      preLoaderRoute: typeof AuthedAdminVerifyRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/circles/': {
+      id: '/_authed/circles/'
+      path: '/circles'
+      fullPath: '/circles/'
+      preLoaderRoute: typeof AuthedCirclesIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/collections/': {
@@ -156,6 +238,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedHadithsHadithIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/notes/': {
+      id: '/_authed/notes/'
+      path: '/notes'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof AuthedNotesIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/students/': {
+      id: '/_authed/students/'
+      path: '/students'
+      fullPath: '/students/'
+      preLoaderRoute: typeof AuthedStudentsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/collections/$slug_/$seq': {
       id: '/_authed/collections/$slug_/$seq'
       path: '/collections/$slug/$seq'
@@ -168,17 +264,25 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedAdminVerifyRoute: typeof AuthedAdminVerifyRoute
   AuthedCollectionsSlugRoute: typeof AuthedCollectionsSlugRoute
   AuthedHadithsHadithIdRoute: typeof AuthedHadithsHadithIdRoute
+  AuthedCirclesIndexRoute: typeof AuthedCirclesIndexRoute
   AuthedCollectionsIndexRoute: typeof AuthedCollectionsIndexRoute
+  AuthedNotesIndexRoute: typeof AuthedNotesIndexRoute
+  AuthedStudentsIndexRoute: typeof AuthedStudentsIndexRoute
   AuthedCollectionsSlugSeqRoute: typeof AuthedCollectionsSlugSeqRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedAdminVerifyRoute: AuthedAdminVerifyRoute,
   AuthedCollectionsSlugRoute: AuthedCollectionsSlugRoute,
   AuthedHadithsHadithIdRoute: AuthedHadithsHadithIdRoute,
+  AuthedCirclesIndexRoute: AuthedCirclesIndexRoute,
   AuthedCollectionsIndexRoute: AuthedCollectionsIndexRoute,
+  AuthedNotesIndexRoute: AuthedNotesIndexRoute,
+  AuthedStudentsIndexRoute: AuthedStudentsIndexRoute,
   AuthedCollectionsSlugSeqRoute: AuthedCollectionsSlugSeqRoute,
 }
 
@@ -188,6 +292,7 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
   LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
