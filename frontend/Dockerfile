@@ -40,7 +40,13 @@ COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 # Restrict substitution to API_* names. envsubst would otherwise consider every
 # variable in the environment, including any that collides with nginx's own
 # $host, $remote_addr, $scheme or $uri.
-ENV NGINX_ENVSUBST_FILTER="^API_" \
+# NGINX_ENTRYPOINT_LOCAL_RESOLVERS turns on the image's own
+# 15-local-resolvers.envsh, which reads the nameservers out of /etc/resolv.conf
+# and exports NGINX_LOCAL_RESOLVERS. That script returns early without this
+# flag. It is what keeps a DNS address from being written into the template,
+# and the filter has to admit the name it exports.
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS="1" \
+    NGINX_ENVSUBST_FILTER="^(API_|NGINX_LOCAL_RESOLVERS)" \
     API_UPSTREAM="http://api:3000"
 
 EXPOSE 80

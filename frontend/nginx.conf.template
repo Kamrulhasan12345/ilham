@@ -21,7 +21,27 @@ server {
     # never applies, and the httpOnly refresh cookie stays SameSite=Lax instead
     # of needing SameSite=None and real HTTPS.
     location /api/ {
-        proxy_pass ${API_UPSTREAM}/;
+        # Resolve the upstream for each request, not once at start.
+        #
+        # nginx resolves a literal proxy_pass host when it loads the config, and
+        # then keeps that address for the life of the process. Recreate the API
+        # container — which `compose up --build` does — and it comes back on a
+        # new address while nginx still holds the old one, so every call answers
+        # 502 until nginx itself restarts.
+        #
+        # A variable in proxy_pass defers the lookup to request time. The
+        # resolver is the container's own, which the nginx image reads out of
+        # /etc/resolv.conf in 15-local-resolvers.envsh, so no DNS address is
+        # written in here.
+        resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+        set $upstream ${API_UPSTREAM};
+
+        # A variable proxy_pass carries no URI part, so the trailing slash that
+        # used to strip /api/ is gone. This rewrite does that job instead:
+        # /api/collections reaches the backend as /collections.
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass $upstream;
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -23,6 +23,11 @@ dist/
 .env.local
 etl/shape.override.local.json
 
+# Claude Code's own directory. It holds per-machine editor settings, and
+# .claude/worktrees/ is where the tool checks out worktrees of THIS repository
+# — committing that would nest a copy of the tree inside itself.
+.claude/
+
 # ---------------------------------------------------------------------------
 # Database dumps: the canonical one IS committed (see db/README.md), so that a
 # plain clone is enough to get the real corpus. Anything else named like a

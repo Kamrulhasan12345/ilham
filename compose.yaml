@@ -100,37 +100,73 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # The backend's own env files, in order, so this file holds no copy of the
+    # API's configuration and no secret at all. A later file wins over an
+    # earlier one, and `environment:` below wins over both.
+    env_file:
+      # Committed, and it carries the disposable local defaults — so a fresh
+      # clone runs with no setup, the same bargain as the `ilham` password
+      # above. The JWT secret in it is on a reject list in config.ts.
+      - path: ./backend/.env.example
+        required: false
+      # Yours, and gitignored. Copy the example to it and edit. Anything set
+      # here replaces the value above, which is how a real secret gets in
+      # without ever being committed.
+      - path: ./backend/.env
+        required: false
     environment:
+      # Only what the CONTAINER changes about the values above. backend/.env is
+      # written for running the API on the host, where the database is on
+      # localhost and the browser is on the Vite port. Neither is true in here.
       PGHOST: db
       PGPORT: "5432"
-      PGDATABASE: ilham
-      PGUSER: ilham_app
-      PGPASSWORD: ilham
       PORT: "3000"
-      # Required. backend/src/config.ts throws at import when this is absent or
-      # shorter than 32 characters, so the container used to crash-loop with no
-      # value here at all. ${VAR:?message} makes compose refuse to start and say
-      # why, which beats a restarting container and a stack trace in the logs.
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env — see .env.example}
       # The browser origin the API accepts credentialed requests from. It must
       # be the address you open in the browser, which is the published port of
-      # the `web` service below — NOT the Vite dev port. These two disagreed,
-      # and every login from the containerised frontend was blocked by CORS.
+      # the `web` service below — NOT the Vite dev port that backend/.env names.
+      # These two disagreed, and every login from the containerised frontend was
+      # blocked by CORS.
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:${WEB_PORT:-8080}}
+      # Accepts the placeholder secret from .env.example, and only here. A
+      # deployment that does not copy this line refuses to start on a
+      # known-public secret, whatever NODE_ENV says.
+      ALLOW_DEV_SECRET: "1"
     ports:
       - "127.0.0.1:${API_PORT:-3000}:3000"
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # BUILD time, and that is the whole point: Vite replaces
+        # import.meta.env.VITE_* while it bundles, so this cannot be an
+        # environment variable on the container. There was no way to set it
+        # through compose at all before.
+        #
+        # Empty is right for this image. nginx below proxies /api on one
+        # origin, so the app wants the same-origin default; an absolute URL
+        # here would send the browser straight at the API and give up the
+        # proxy, CORS-free cookies included. Set it only for a static-host
+        # build — see frontend/.env.example.
+        VITE_API_BASE: ${VITE_API_BASE:-}
     container_name: ilham-web
     depends_on:
       - api
+    # The frontend's own env files, in the same order and with the same meaning
+    # as the api service above: committed defaults first, then your gitignored
+    # overrides. Note the scope, which is not the same as the backend's — only
+    # the RUNTIME variables here reach nginx. DEV_API_TARGET belongs to the Vite
+    # dev server on the host, and VITE_API_BASE is consumed at build, above.
+    env_file:
+      - path: ./frontend/.env.example
+        required: false
+      - path: ./frontend/.env
+        required: false
     environment:
-      # Where nginx forwards /api. This one IS the compose service name, because
-      # nginx resolves it inside the compose network — unlike a browser, which
-      # is outside it. The value used to be written into nginx.conf and baked
-      # into the image; it is now a template variable, so the same image can
-      # point somewhere else without a rebuild.
+      # Where nginx forwards /api, and it stays here rather than in an env file
+      # because it names a compose service — the same reason PGHOST does on the
+      # api service. nginx resolves `api` inside the compose network; a browser,
+      # which is outside it, never uses this value.
       API_UPSTREAM: ${API_UPSTREAM:-http://api:3000}
     ports:
       - "${WEB_PORT:-8080}:80"
