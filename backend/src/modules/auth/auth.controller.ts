@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { IS_PRODUCTION, REFRESH_TOKEN_TTL_DAYS } from '../../config.js';
 import { signAccessToken } from '../../lib/jwt.js';
-import { verifyPassword } from '../../lib/password.js';
+import { SALT_ROUNDS, verifyPassword } from '../../lib/password.js';
 import { issueRefreshToken, consumeRefreshToken, revokeRefreshToken } from '../../lib/refreshToken.js';
 import { findMeById, findUserByEmail, registerUser } from './auth.model.js';
 
@@ -16,7 +16,7 @@ const REFRESH_COOKIE_MAX_AGE = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60;
 // compare target when the email doesn't exist, so login always pays the same
 // bcrypt cost whether or not the account is real -- see the timing-oracle fix
 // below in `login`.
-const DUMMY_PASSWORD_HASH = bcrypt.hashSync('dummy-password-for-timing-safety', 10);
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync('dummy-password-for-timing-safety', SALT_ROUNDS);
 
 const registerSchema = z.object({
   email: z.string().email(),
