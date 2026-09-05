@@ -20,13 +20,12 @@
     "formatter": { "quoteStyle": "single", "semicolons": "always" }
   },
   "files": {
-    "ignore": [
-      "dist",
-      "node_modules",
-      "src/routeTree.gen.ts",
-      "vite.config.js",
-      "vite.config.d.ts",
-      "*.tsbuildinfo"
-    ]
-  }
+    "ignore": ["dist", "node_modules", "src/routeTree.gen.ts", "*.tsbuildinfo"]
+  },
+  "overrides": [
+    {
+      "include": ["tsconfig*.json"],
+      "json": { "parser": { "allowComments": true } }
+    }
+  ]
 }

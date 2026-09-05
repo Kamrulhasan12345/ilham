@@ -1,11 +1,32 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
-    "strict": true
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    /* noEmit, because this project used to lack it. A referenced project
+       emits by default, so `tsc -b` wrote vite.config.js and vite.config.d.ts
+       next to the source on every build. .gitignore hid them; it did not stop
+       them being made, and three vite.config.* files on disk read as three
+       configs. */
+    "noEmit": true,
+
+    "types": ["node", "vitest/globals"],
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  /* scripts/ belongs here, not in the app project: it is Node code, and it ran
+     with no type coverage at all while no tsconfig named it. */
+  "include": ["vite.config.ts", "scripts/**/*.ts"]
 }

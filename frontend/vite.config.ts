@@ -28,10 +28,31 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/vitest.setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
-    environmentMatchGlobs: [['scripts/**/*.test.ts', 'node']],
+    // Two projects, not one suite plus environmentMatchGlobs: Vitest 4 removed
+    // environmentMatchGlobs, and a removed option is ignored in silence. The
+    // scripts/ tests then ran under jsdom, where import.meta.url is not a
+    // file: URL, and fileURLToPath threw. Projects are the documented
+    // replacement. Each one names its own environment, so the split is
+    // explicit and cannot rot the same way.
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'app',
+          environment: 'jsdom',
+          setupFiles: ['./src/vitest.setup.ts'],
+          include: ['src/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'scripts',
+          environment: 'node',
+          include: ['scripts/**/*.test.ts'],
+        },
+      },
+    ],
   },
 });
