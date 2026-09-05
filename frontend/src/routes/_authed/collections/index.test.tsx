@@ -1,12 +1,13 @@
-import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from '../../../auth/AuthContext';
 import { routeTree } from '../../../routeTree.gen';
 
 vi.mock('../../../lib/apiClient', async () => {
-  const actual = await vi.importActual<typeof import('../../../lib/apiClient')>('../../../lib/apiClient');
+  const actual =
+    await vi.importActual<typeof import('../../../lib/apiClient')>('../../../lib/apiClient');
   return { ...actual, apiFetch: vi.fn() };
 });
 
@@ -15,8 +16,14 @@ import { apiFetch } from '../../../lib/apiClient';
 function renderCollections() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const auth: AuthContextValue = {
-    state: { status: 'signed-in', user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' } },
-    ready: Promise.resolve({ status: 'signed-in', user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' } }),
+    state: {
+      status: 'signed-in',
+      user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
+    },
+    ready: Promise.resolve({
+      status: 'signed-in',
+      user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
+    }),
     signIn: async () => {},
     signOut: async () => {},
   };
@@ -32,7 +39,12 @@ function renderCollections() {
 describe('Collections page', () => {
   it('renders each collection with its Arabic and English titles, linked to its slug', async () => {
     vi.mocked(apiFetch).mockResolvedValue([
-      { collection_id: 1, slug: 'sahih-al-bukhari', title_ar: 'صحيح البخاري', title_en: 'Sahih al-Bukhari' },
+      {
+        collection_id: 1,
+        slug: 'sahih-al-bukhari',
+        title_ar: 'صحيح البخاري',
+        title_en: 'Sahih al-Bukhari',
+      },
       { collection_id: 2, slug: 'sahih-muslim', title_ar: 'صحيح مسلم', title_en: 'Sahih Muslim' },
     ]);
     renderCollections();

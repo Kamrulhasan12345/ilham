@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { apiFetch } from '../../../lib/apiClient';
 
@@ -19,7 +19,7 @@ function useCollections() {
   return useQuery({
     queryKey: ['collections'],
     queryFn: () => apiFetch('/collections', collectionsSchema),
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }
 
