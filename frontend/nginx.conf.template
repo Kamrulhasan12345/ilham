@@ -1,18 +1,56 @@
+# Rendered at container start, not baked into the image.
+#
+# The nginx image runs envsubst over every file in /etc/nginx/templates/ before
+# it starts, and writes the result to /etc/nginx/conf.d/. So ${API_UPSTREAM}
+# below becomes an environment variable of the container, and one image can
+# point at a differently named or differently hosted API with no rebuild.
+#
+# NGINX_ENVSUBST_FILTER in the Dockerfile restricts substitution to API_*
+# names. Without it, envsubst would also consider nginx's own $host,
+# $remote_addr, $scheme and $uri below — those survive today only because no
+# environment variable happens to share their name, which is luck, not design.
+
 server {
     listen 80;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
 
+    # Same-origin proxy, and this is the reason nginx is here at all. The
+    # browser sees one origin, so the app makes no cross-origin request, CORS
+    # never applies, and the httpOnly refresh cookie stays SameSite=Lax instead
+    # of needing SameSite=None and real HTTPS.
     location /api/ {
-        proxy_pass http://api:3000/;
+        proxy_pass ${API_UPSTREAM}/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Assets are excluded from the SPA fallback below, and answer 404 on a miss.
+    #
+    # Without this block, try_files answers a missing bundle with index.html and
+    # a 200. The browser then reports a MIME or syntax error for a file it was
+    # told is JavaScript, which reads as an app bug rather than a broken deploy.
+    #
+    # Vite fingerprints each name with a content hash, so the URL changes
+    # whenever the bytes do and the file is safe to hold for a year.
+    # One directive, not `expires` plus `add_header`: each of those emits its
+    # own Cache-Control, and two of that header on one response is ambiguous.
+    location /assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # The SPA fallback. The router owns /collections and /hadiths/5 on the
+    # client, and no such file exists, so a deep link or a reload must still be
+    # answered with the app shell.
+    #
+    # index.html itself is never cached: it names the current hashed bundles, so
+    # a held copy pins the browser to the previous deployment.
     location / {
         try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache";
     }
 }

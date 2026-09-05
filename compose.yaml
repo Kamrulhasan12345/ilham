@@ -107,16 +107,33 @@ services:
       PGUSER: ilham_app
       PGPASSWORD: ilham
       PORT: "3000"
+      # Required. backend/src/config.ts throws at import when this is absent or
+      # shorter than 32 characters, so the container used to crash-loop with no
+      # value here at all. ${VAR:?message} makes compose refuse to start and say
+      # why, which beats a restarting container and a stack trace in the logs.
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env — see .env.example}
+      # The browser origin the API accepts credentialed requests from. It must
+      # be the address you open in the browser, which is the published port of
+      # the `web` service below — NOT the Vite dev port. These two disagreed,
+      # and every login from the containerised frontend was blocked by CORS.
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:${WEB_PORT:-8080}}
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${API_PORT:-3000}:3000"
 
   web:
     build: ./frontend
     container_name: ilham-web
     depends_on:
       - api
+    environment:
+      # Where nginx forwards /api. This one IS the compose service name, because
+      # nginx resolves it inside the compose network — unlike a browser, which
+      # is outside it. The value used to be written into nginx.conf and baked
+      # into the image; it is now a template variable, so the same image can
+      # point somewhere else without a rebuild.
+      API_UPSTREAM: ${API_UPSTREAM:-http://api:3000}
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
 
 volumes:
   pgdata:

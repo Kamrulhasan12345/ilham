@@ -1,5 +1,12 @@
 import { type ZodSchema, z } from 'zod';
 
+// '/api' is same-origin, which is the point: nginx (in the image) and the Vite
+// dev server (locally) both proxy it to the backend, so the browser makes no
+// cross-origin request and the httpOnly refresh cookie needs no SameSite=None.
+//
+// VITE_API_BASE overrides it for a static-host deployment, where no proxy
+// exists and the API has its own absolute URL. Vite inlines the value at build
+// time — see frontend/.env.example for what that costs.
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
 const refreshResponseSchema = z.object({ accessToken: z.string() });
