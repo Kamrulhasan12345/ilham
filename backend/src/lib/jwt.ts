@@ -12,9 +12,9 @@ export interface AccessClaims {
 
 export function signAccessToken(userId: number, role: Role): string {
   const options: jwt.SignOptions = { expiresIn: JWT_ACCESS_TTL as jwt.SignOptions['expiresIn'] };
-  return jwt.sign({ sub: String(userId), role }, JWT_SECRET as string, options);
+  return jwt.sign({ sub: String(userId), role }, JWT_SECRET, options);
 }
 
 export function verifyAccessToken(token: string): AccessClaims {
-  return jwt.verify(token, JWT_SECRET as string) as AccessClaims;
+  return jwt.verify(token, JWT_SECRET) as AccessClaims;
 }

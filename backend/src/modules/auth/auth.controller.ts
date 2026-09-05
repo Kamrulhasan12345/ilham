@@ -1,8 +1,9 @@
 import type { Context } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { HTTPException } from 'hono/http-exception';
+import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { REFRESH_TOKEN_TTL_DAYS } from '../../config.js';
+import { IS_PRODUCTION, REFRESH_TOKEN_TTL_DAYS } from '../../config.js';
 import { signAccessToken } from '../../lib/jwt.js';
 import { verifyPassword } from '../../lib/password.js';
 import { issueRefreshToken, consumeRefreshToken, revokeRefreshToken } from '../../lib/refreshToken.js';
@@ -10,6 +11,12 @@ import { findMeById, findUserByEmail, registerUser } from './auth.model.js';
 
 const REFRESH_COOKIE = 'refresh_token';
 const REFRESH_COOKIE_MAX_AGE = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60;
+
+// A well-formed bcrypt hash of an unguessable, unused password. Used as the
+// compare target when the email doesn't exist, so login always pays the same
+// bcrypt cost whether or not the account is real -- see the timing-oracle fix
+// below in `login`.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync('dummy-password-for-timing-safety', 10);
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -27,21 +34,22 @@ function setRefreshCookie(c: Context, token: string): void {
   setCookie(c, REFRESH_COOKIE, token, {
     httpOnly: true,
     sameSite: 'Lax',
-    secure: false, // dev over plain HTTP; flip to true once served over HTTPS
+    secure: IS_PRODUCTION,
     path: '/',
     maxAge: REFRESH_COOKIE_MAX_AGE,
   });
 }
 
 export async function register(c: Context) {
-  const parsed = registerSchema.safeParse(await c.req.json());
+  const body = await c.req.json().catch(() => null);
+  const parsed = registerSchema.safeParse(body);
   if (!parsed.success) {
     throw new HTTPException(400, { message: 'invalid registration payload' });
   }
-  const existing = await findUserByEmail(parsed.data.email);
-  if (existing) {
-    throw new HTTPException(409, { message: 'email is already registered' });
-  }
+  // No pre-check for an existing email here: that read-then-write is a TOCTOU
+  // race under concurrent registrations. app.assert_email_unique (the trigger)
+  // is the single source of truth, and its 23505 is mapped to 409 in
+  // app.ts's onError.
   const { user_id } = await registerUser(parsed.data);
   const accessToken = signAccessToken(user_id, parsed.data.role);
   const refreshToken = await issueRefreshToken(user_id);
@@ -50,12 +58,17 @@ export async function register(c: Context) {
 }
 
 export async function login(c: Context) {
-  const parsed = loginSchema.safeParse(await c.req.json());
+  const body = await c.req.json().catch(() => null);
+  const parsed = loginSchema.safeParse(body);
   if (!parsed.success) {
     throw new HTTPException(400, { message: 'invalid login payload' });
   }
   const user = await findUserByEmail(parsed.data.email);
-  if (!user || !(await verifyPassword(parsed.data.password, user.password_hash))) {
+  // Always run a bcrypt compare, even when there's no such user, so a
+  // nonexistent email and a wrong password cost the same time -- otherwise
+  // the `||` short-circuit is a user-enumeration timing oracle.
+  const passwordOk = await verifyPassword(parsed.data.password, user?.password_hash ?? DUMMY_PASSWORD_HASH);
+  if (!user || !passwordOk) {
     throw new HTTPException(401, { message: 'invalid email or password' });
   }
   const accessToken = signAccessToken(user.user_id, user.role);
