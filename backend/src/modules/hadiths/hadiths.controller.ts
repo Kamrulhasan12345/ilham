@@ -19,7 +19,7 @@ export async function getHadiths(c: Context) {
   const chapterId = parseOptionalInt(c.req.query('chapter_id'));
 
   const hadiths = await listHadiths({ collectionId, chapterId, limit, offset });
-  return c.json(hadiths);
+  return c.json({ data: hadiths });
 }
 
 export async function getHadith(c: Context) {
@@ -33,5 +33,5 @@ export async function getHadith(c: Context) {
   if (!detail) {
     throw new NotFoundError('hadith not found');
   }
-  return c.json(detail);
+  return c.json({ data: detail });
 }

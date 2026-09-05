@@ -10,5 +10,5 @@ export async function getChapters(c: Context) {
   }
   const { limit, offset } = parsePageParams(c.req.query());
   const chapters = await listChapters({ collectionId, limit, offset });
-  return c.json(chapters);
+  return c.json({ data: chapters });
 }

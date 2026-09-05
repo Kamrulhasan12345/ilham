@@ -13,5 +13,5 @@ export async function getNarrator(c: Context) {
   if (!narrator) {
     throw new NotFoundError('narrator not found');
   }
-  return c.json(narrator);
+  return c.json({ data: narrator });
 }
