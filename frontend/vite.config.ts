@@ -4,7 +4,18 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+      // A *.test.tsx file legitimately living under src/routes/ (testing a
+      // route's own component, e.g. __root.test.tsx) is not itself a route —
+      // without this the codegen warns on every build. Matches any test
+      // file, not just __root's, so a future route test doesn't reopen this.
+      routeFileIgnorePattern: '\\.test\\.tsx$',
+    }),
+    react(),
+  ],
   server: {
     proxy: {
       // In development Vite plays the part nginx plays in production: one
