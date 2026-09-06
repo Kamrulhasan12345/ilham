@@ -7,21 +7,37 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --import tsx 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
-    "dotenv": "^16.4.5",
-    "hono": "^4.6.9",
-    "pg": "^8.13.1"
+    "express": "^5.1.0",
+    "pg": "^8.13.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.23.8",
+    "cors": "^2.8.5",
+    "cookie-parser": "^1.4.7",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^7.4.1",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.9.0",
     "@types/pg": "^8.11.10",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/morgan": "^1.9.9",
+    "typescript": "^5.6.3",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2"
   }
 }

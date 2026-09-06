@@ -1,28 +1,57 @@
-import { Hono } from 'hono';
-import { logger } from 'hono/logger';
-import { HTTPException } from 'hono/http-exception';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import { WEB_ORIGIN, NODE_ENV } from './config.js';
+import { requireAuth } from './middleware/requireAuth.js';
+import { requireRole } from './middleware/requireRole.js';
+import { notFound } from './middleware/notFound.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+import { authRoutes } from './modules/auth/auth.routes.js';
 import { collectionsRoutes } from './modules/collections/collections.routes.js';
+import { chaptersRoutes } from './modules/chapters/chapters.routes.js';
 import { hadithsRoutes } from './modules/hadiths/hadiths.routes.js';
 import { narratorsRoutes } from './modules/narrators/narrators.routes.js';
-import { NotFoundError } from './lib/errors.js';
+import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
+import { teachersRoutes } from './modules/teachers/teachers.routes.js';
+import { circlesRoutes } from './modules/circles/circles.routes.js';
+import { studySetsRoutes } from './modules/studySets/studySets.routes.js';
+import { assignmentsRoutes } from './modules/assignments/assignments.routes.js';
+import { reviewsRoutes } from './modules/reviews/reviews.routes.js';
+import { progressRoutes } from './modules/progress/progress.routes.js';
+import { notesRoutes } from './modules/notes/notes.routes.js';
+import { metaRoutes } from './modules/meta/meta.routes.js';
+import { healthRoutes } from './modules/meta/health.routes.js';
+import { studentsRoutes } from './modules/students/students.routes.js';
 
-export const app = new Hono();
+export const app = express();
 
-app.use('*', logger());
+app.use(helmet());
+app.use(cors({ origin: WEB_ORIGIN, credentials: true }));
+if (NODE_ENV === 'development') app.use(morgan('dev'));
+app.use(express.json({ limit: '100kb' }));
+app.use(cookieParser());
 
-app.route('/collections', collectionsRoutes);
-app.route('/hadiths', hadithsRoutes);
-app.route('/narrators', narratorsRoutes);
+app.use('/health', healthRoutes);
 
-app.notFound((c) => c.json({ error: 'not_found' }, 404));
+app.use('/auth', authRoutes);
 
-app.onError((err, c) => {
-  if (err instanceof NotFoundError) {
-    return c.json({ error: err.message }, 404);
-  }
-  if (err instanceof HTTPException) {
-    return err.getResponse();
-  }
-  console.error(err);
-  return c.json({ error: 'internal_server_error' }, 500);
-});
+app.use('/collections', requireAuth, collectionsRoutes);
+app.use('/chapters', requireAuth, chaptersRoutes);
+app.use('/hadiths', requireAuth, hadithsRoutes);
+app.use('/narrators', requireAuth, narratorsRoutes);
+app.use('/analytics', requireAuth, analyticsRoutes);
+app.use('/teachers', requireAuth, requireRole('admin'), teachersRoutes);
+app.use('/circles', requireAuth, circlesRoutes);
+app.use('/students', requireAuth, studentsRoutes);
+app.use('/study-sets', requireAuth, studySetsRoutes);
+app.use('/assignments', requireAuth, assignmentsRoutes);
+app.use('/review-sessions', requireAuth, reviewsRoutes);
+app.use('/progress', requireAuth, progressRoutes);
+app.use('/notes', requireAuth, notesRoutes);
+app.use('/meta', requireAuth, metaRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
