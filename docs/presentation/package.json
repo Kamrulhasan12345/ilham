@@ -3,7 +3,7 @@
   "private": true,
   "description": "Marp source for the Ilham database design deck",
   "devDependencies": {
-    "@marp-team/marp-cli": "4.5.0"
+    "@marp-team/marp-cli": "4.5.1"
   },
   "scripts": {
     "build": "marp compact.md --theme theme/ilham.css --allow-local-files --no-stdin -o compact.pdf",
