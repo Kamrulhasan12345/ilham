@@ -29,6 +29,7 @@ digraph ERD_Reviews {
     student_id [label=<<U>student_id</U>>];
     t_inst [label="institution"];
     t_spec [label="specialization"];
+    t_verified [label="is_verified"];
     circle_id [label=<<U>circle_id</U>>];
     hadith_id [label=<<U>hadith_id</U>>];
     session_id [label=<<U>session_id</U>>];
@@ -40,6 +41,7 @@ digraph ERD_Reviews {
     Student -> student_id [color="#E3B341", style=solid, penwidth=1.4];
     Teacher -> t_inst;
     Teacher -> t_spec;
+    Teacher -> t_verified;
     Circle -> circle_id [color="#E3B341", style=solid, penwidth=1.4];
     Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
     ReviewSession -> session_id [color="#E3B341", style=solid, penwidth=1.4];

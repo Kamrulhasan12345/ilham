@@ -1,0 +1,89 @@
+/* Shared, small, scoped to /login and /register only. Not a general-purpose
+   Input primitive — see docs/frontend-prd.md §7.1-7.2 and the task note that
+   asked for plain markup here instead of a reusable component. */
+
+.page {
+  max-width: 28rem;
+  margin-inline: auto;
+  padding-block: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.field label {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  letter-spacing: var(--track-label);
+}
+
+.input {
+  min-height: var(--h-button);
+  border: var(--bw) solid var(--ink-app);
+  border-radius: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-en);
+  font-size: var(--fs-body);
+  padding-inline: var(--sp-2);
+}
+
+.passwordRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-1);
+}
+
+.passwordRow .input {
+  flex: 1;
+}
+
+.fieldset {
+  border: var(--bw) solid var(--rule);
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.fieldset legend {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  padding-inline: var(--sp-1);
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-rail);
+}
+
+.hint {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+}
+
+.formError {
+  font-size: var(--fs-rail);
+  color: var(--ink);
+  border-inline-start: 2px solid var(--ink);
+  padding-inline-start: var(--sp-2);
+}
+
+.fieldError {
+  font-size: var(--fs-label);
+  color: var(--ink);
+}

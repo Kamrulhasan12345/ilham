@@ -58,11 +58,15 @@ END $$;
 -- Lockdown. "Read-only" becomes a permission, not a convention.
 -- Assumes an application role named ilham_app; create it before running.
 -- -----------------------------------------------------------------------------
+-- Password matches every other local-dev credential in this repo (the
+-- postgres superuser is also 'ilham' -- see run_container.sh/compose.yaml):
+-- a known, disposable value for a database that isn't reachable outside
+-- loopback. Change it before this ever runs anywhere that matters.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'ilham_app') THEN
-    CREATE ROLE ilham_app LOGIN;
-    RAISE NOTICE 'created role ilham_app (set a password before deploying)';
+    CREATE ROLE ilham_app LOGIN PASSWORD 'ilham';
+    RAISE NOTICE 'created role ilham_app with the default local-dev password — change it before deploying';
   END IF;
 END $$;
 

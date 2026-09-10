@@ -116,6 +116,11 @@ The query layer enforces visibility:
 - One student never sees another student.
 - Every authenticated user can read the corpus.
 
+A teacher also carries a state. The column `teachers.is_verified` starts at
+`false`, and an admin sets it to `true`. Only a verified teacher opens a circle,
+and the trigger `trg_circles_teacher_verified` applies the rule in the database,
+not in the query layer.
+
 Inheritance is a deliberate modelling choice, and it has a cost. PostgreSQL does
 not inherit primary keys, unique constraints, foreign keys, or identity. The
 schema restores each one: a shared sequence, keys on each child table, and two

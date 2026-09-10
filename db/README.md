@@ -199,6 +199,21 @@ VALUES ('student1@ilham.test', 'x', 'Dupe', 'teacher', 'Test', 'Test');
 INSERT INTO app.notes (user_id, hadith_id, body) VALUES (999999999, 1, 'x');
 ```
 
+**The teacher verification gate.** The seed leaves teacher 4 unverified:
+
+```sql
+-- observed: ERROR: teacher 4 is not verified and cannot lead a circle
+INSERT INTO app.circles (teacher_id, name)
+SELECT user_id, 'حلقة جديدة' FROM app.teachers WHERE NOT is_verified LIMIT 1;
+
+-- the same teacher still owns a study set -- observed: 1
+SELECT count(*) FROM app.study_sets s
+JOIN app.teachers t ON t.user_id = s.owner_id
+WHERE NOT t.is_verified;
+```
+
+The gate closes the circle. It does not close the account.
+
 **`chain_strength` over the full real corpus** (14,901 hadiths):
 
 ```sql

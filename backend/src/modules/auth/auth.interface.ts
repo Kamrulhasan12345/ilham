@@ -18,5 +18,5 @@ export interface RegisterInput {
   email: string;
   password: string;
   full_name: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher';   // admin is never self-registered — see below
 }

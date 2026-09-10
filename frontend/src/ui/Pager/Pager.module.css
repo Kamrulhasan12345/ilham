@@ -1,0 +1,17 @@
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.range {
+  font-size: var(--fs-rail);
+  color: var(--ink-app);
+}
+
+.note {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  margin-inline-start: auto;
+}

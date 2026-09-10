@@ -3,7 +3,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { WEB_ORIGIN, NODE_ENV } from './config.js';
+import { WEB_ORIGINS, NODE_ENV } from './config.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import { requireRole } from './middleware/requireRole.js';
 import { notFound } from './middleware/notFound.js';
@@ -14,22 +14,21 @@ import { collectionsRoutes } from './modules/collections/collections.routes.js';
 import { chaptersRoutes } from './modules/chapters/chapters.routes.js';
 import { hadithsRoutes } from './modules/hadiths/hadiths.routes.js';
 import { narratorsRoutes } from './modules/narrators/narrators.routes.js';
-import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
-import { teachersRoutes } from './modules/teachers/teachers.routes.js';
 import { circlesRoutes } from './modules/circles/circles.routes.js';
-import { studySetsRoutes } from './modules/studySets/studySets.routes.js';
-import { assignmentsRoutes } from './modules/assignments/assignments.routes.js';
-import { reviewsRoutes } from './modules/reviews/reviews.routes.js';
-import { progressRoutes } from './modules/progress/progress.routes.js';
 import { notesRoutes } from './modules/notes/notes.routes.js';
-import { metaRoutes } from './modules/meta/meta.routes.js';
-import { healthRoutes } from './modules/meta/health.routes.js';
 import { studentsRoutes } from './modules/students/students.routes.js';
+import { teachersRoutes } from './modules/teachers/teachers.routes.js';
+import { healthRoutes } from './modules/meta/health.routes.js';
 
 export const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: WEB_ORIGIN, credentials: true }));
+// A list, so a static-host deployment can name its production domain and its
+// preview URLs. The `cors` package reflects whichever entry matches the
+// request, which is what a credentialed request needs: the wildcard is not
+// allowed with Access-Control-Allow-Credentials, so the header must name one
+// exact origin.
+app.use(cors({ origin: WEB_ORIGINS, credentials: true }));
 if (NODE_ENV === 'development') app.use(morgan('dev'));
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
@@ -42,16 +41,14 @@ app.use('/collections', requireAuth, collectionsRoutes);
 app.use('/chapters', requireAuth, chaptersRoutes);
 app.use('/hadiths', requireAuth, hadithsRoutes);
 app.use('/narrators', requireAuth, narratorsRoutes);
-app.use('/analytics', requireAuth, analyticsRoutes);
-app.use('/teachers', requireAuth, requireRole('admin'), teachersRoutes);
-app.use('/circles', requireAuth, circlesRoutes);
-app.use('/students', requireAuth, studentsRoutes);
-app.use('/study-sets', requireAuth, studySetsRoutes);
-app.use('/assignments', requireAuth, assignmentsRoutes);
-app.use('/review-sessions', requireAuth, reviewsRoutes);
-app.use('/progress', requireAuth, progressRoutes);
 app.use('/notes', requireAuth, notesRoutes);
-app.use('/meta', requireAuth, metaRoutes);
+app.use('/students', requireAuth, studentsRoutes);
+app.use('/circles', requireAuth, circlesRoutes);
+app.use('/teachers', requireAuth, requireRole('admin'), teachersRoutes);
+
+// study-sets, assignments, review-sessions, progress, and analytics are not
+// built yet on either backend (see docs/backend-prd.md §5.5, §5.8-§5.10) --
+// left out rather than stubbed, per YAGNI.
 
 app.use(notFound);
 app.use(errorHandler);

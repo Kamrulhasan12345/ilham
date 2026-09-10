@@ -173,8 +173,10 @@ BEGIN
 END $$;
 
 -- --- ISA -------------------------------------------------------------------
-INSERT INTO app.teachers (email, password_hash, full_name, role, institution)
-VALUES ('t1@x.io','$2b$','Ustadh Karim','teacher','Dar al-Hadith');
+-- is_verified must be set: a new teacher starts unverified and the circles
+-- below would be refused. The gate itself is tested after they are created.
+INSERT INTO app.teachers (email, password_hash, full_name, role, institution, is_verified)
+VALUES ('t1@x.io','$2b$','Ustadh Karim','teacher','Dar al-Hadith', true);
 INSERT INTO app.students (email, password_hash, full_name, role, student_level)
 SELECT 's'||g||'@x.io','$2b$','Student '||g,'student','beginner'
 FROM generate_series(1,4) g;
@@ -218,6 +220,29 @@ END $$;
 -- --- procedure + triggers --------------------------------------------------
 INSERT INTO app.circles (teacher_id, name)
 SELECT user_id, 'Halaqa A' FROM app.teachers;
+
+-- verification gate: an unverified teacher gets no circle. The teacher is
+-- added and removed here, so the user counts above stay correct.
+DO $$
+DECLARE v_tid int;
+BEGIN
+  INSERT INTO app.teachers (email, password_hash, full_name, role, institution)
+  VALUES ('t2@x.io','$2b$','Unverified','teacher','Unknown')
+  RETURNING user_id INTO v_tid;
+  BEGIN
+    INSERT INTO app.circles (teacher_id, name) VALUES (v_tid, 'Halaqa B');
+    RAISE EXCEPTION 'GATE FAILED: unverified teacher got a circle';
+  EXCEPTION WHEN check_violation THEN
+    NULL;   -- expected
+  END;
+  -- and the same teacher passes once an admin verifies them
+  UPDATE app.teachers SET is_verified = true WHERE user_id = v_tid;
+  INSERT INTO app.circles (teacher_id, name) VALUES (v_tid, 'Halaqa B');
+  DELETE FROM app.circles  WHERE teacher_id = v_tid;
+  DELETE FROM app.teachers WHERE user_id = v_tid;
+  RAISE NOTICE 'PASS circle verification gate';
+END $$;
+
 INSERT INTO app.enrollments (circle_id, student_id)
 SELECT c.circle_id, s.user_id FROM app.circles c, app.students s;
 INSERT INTO app.study_sets (owner_id, name)

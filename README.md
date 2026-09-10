@@ -34,10 +34,10 @@ Every document in this repository uses ASD-STE100 Simplified Technical English.
 | Database schema (`db/`) | ✅ Complete. Schemas, tables, functions, procedure, triggers, queries |
 | ERD diagrams (`docs/erd/`) | ✅ Chen-notation set and crow's-foot set |
 | ETL pipeline (`etl/`) | ✅ Loads the real corpus. 14,901 hadiths, 99.58% narrator resolution |
-| Backend (`backend/`) | 🚧 Scaffolded. Hono + TypeScript API over the read-only corpus |
-| Frontend (`frontend/`) | ⏳ Not started |
+| Backend (`backend/`) | 🚧 Express + TypeScript API: auth, corpus reads, circles, notes |
+| Frontend (`frontend/`) | 🚧 React app wired to the backend |
 
-**Stack:** PostgreSQL · Hono (Node.js, TypeScript) · React
+**Stack:** PostgreSQL · Express (Node.js, TypeScript) · React
 
 ---
 
@@ -68,8 +68,8 @@ ilham/
 │   ├── database.md            # Schema reference
 │   ├── data-and-etl.md        # Datasets and the pipeline
 │   └── erd/                   # The diagram sets
-├── backend/                   # Hono + TypeScript API (corpus reads scaffolded)
-└── frontend/                  # React application (planned)
+├── backend/                   # Express + TypeScript API
+└── frontend/                  # React application
 ```
 
 ---

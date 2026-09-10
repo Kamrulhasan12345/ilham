@@ -1,6 +1,15 @@
 import request from 'supertest';
 import type { Application } from 'express';
 
+// supertest makes real HTTP calls over loopback, so every request in this
+// process shares one real socket address. Without this, the rate limiter's
+// safe default (key on the real connection, ignore X-Forwarded-For) would
+// collapse every register/login call across every test file onto one bucket.
+// Setting TRUST_PROXY here -- and only here, in test setup -- makes fakeIp()
+// below actually isolate tests from each other, by opting into the same
+// rightmost-XFF-hop path a real deployment behind a trusted proxy would use.
+process.env.TRUST_PROXY = '1';
+
 export function uniqueEmail(tag: string): string {
   return `test-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 }

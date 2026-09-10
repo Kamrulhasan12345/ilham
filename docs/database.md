@@ -143,6 +143,11 @@ makes a circle owned by an admin impossible. Only two references are truly
 polymorphic — `study_sets.owner_id` and `notes.user_id` — and they use the
 trigger.
 
+The foreign key gives the role. It does not give the **state** of the teacher.
+The column `teachers.is_verified` holds that state, and
+`app.assert_teacher_verified()` applies it. See
+[the teacher verification gate](#appassert_teacher_verified--the-verification-gate).
+
 The column `audit_log.changed_by` has no check, and that is deliberate. A trigger
 writes the audit rows. A failed actor check there would roll back the legitimate
 user write that the row records. The column is nullable and best-effort by
@@ -200,6 +205,28 @@ therefore serves every polymorphic reference, which requirement 8 asks for.
 Both check existence only. There is no `ON DELETE` cascade, so the deletion of a
 user is a concern for the application layer.
 
+### `app.assert_teacher_verified()` — the verification gate
+
+A teacher account carries `is_verified`. A new account starts at `false`. An
+admin sets it to `true` after the admin confirms the ijaza or the institution.
+
+The flag gates **one** thing: a teacher must be verified to lead a circle. The
+trigger `trg_circles_teacher_verified` applies the rule on writes to
+`app.circles`.
+
+A `CHECK` constraint cannot do this. A `CHECK` reads one row of one table, and
+this rule reads `app.teachers` from `app.circles`. A composite foreign key can do
+it, but it needs a redundant boolean column on `app.circles`, and the ERD must
+stay honest about the columns that exist.
+
+The gate applies to the write. It does not reach backwards. If an admin removes
+the verification of a teacher, the circles of that teacher stay open, and the
+teacher starts no new one. An administrative change does not cancel a halaqa
+that runs.
+
+An unverified teacher keeps the rest of the platform. That teacher owns a study
+set, writes notes, and reviews a student. Only the circle is closed.
+
 ### `corpus.normalize_arabic(text)`
 
 The function removes the diacritic marks and the tatweel. It unifies the alif
@@ -217,6 +244,7 @@ it.
 | `trg_progress_audit` | A change of mastery | Adds a row to the `audit_log` shadow table. It reads the actor from `current_setting('ilham.user_id')`. The `row_key` is `progress_id`, because student and hadith together are no longer unique |
 | `trg_{students,teachers,admins}_email` | A subtype insert, or an email update | Email uniqueness across the whole hierarchy, through `assert_email_unique` |
 | `trg_study_sets_owner` and `trg_notes_user` | Polymorphic user references | They stand in for the foreign key to `app.users`, through `assert_user_exists` |
+| `trg_circles_teacher_verified` | An insert on `app.circles`, or a change of `teacher_id` | Only a verified teacher leads a circle, through `assert_teacher_verified`. It does not apply to a circle that already exists |
 
 The corpus fires no trigger. The first two triggers are the graded pair for
 requirement 4. The others exist only to restore the integrity that inheritance

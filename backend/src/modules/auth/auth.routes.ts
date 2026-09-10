@@ -1,22 +1,17 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import type { Request } from 'express';
 import { requireAuth } from '../../middleware/requireAuth.js';
+import { resolveClientKey } from '../../middleware/rateLimit.js';
 import { login, logout, me, refresh, register } from './auth.controller.js';
 
 export const authRoutes = Router();
-
-function rateLimitKey(req: Request): string {
-  const forwarded = req.get('x-forwarded-for');
-  return forwarded?.split(',')[0]?.trim() || req.ip || 'unknown';
-}
 
 const loginLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: rateLimitKey,
+  keyGenerator: resolveClientKey,
   message: { error: { code: 'rate_limited', message: 'too many attempts, try again shortly' } },
 });
 

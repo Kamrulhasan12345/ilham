@@ -10,8 +10,8 @@ export async function getChapters(req: Request, res: Response, next: NextFunctio
       throw new BadRequestError('collection_id is required and must be an integer');
     }
     const { limit, offset } = parsePageParams(req.query as Record<string, unknown>);
-    const chapters = await listChapters({ collectionId, limit, offset });
-    res.json({ data: chapters, page: { limit, offset, total: chapters.length } });
+    const { rows, total } = await listChapters({ collectionId, limit, offset });
+    res.json({ data: rows, page: { limit, offset, total } });
   } catch (e) {
     next(e);
   }

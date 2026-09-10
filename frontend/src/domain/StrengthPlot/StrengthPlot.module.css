@@ -1,0 +1,77 @@
+.legend {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-2);
+  border-bottom: var(--bw) solid var(--rule);
+  padding-bottom: var(--sp-1);
+}
+.legend b {
+  font-family: var(--font-ar);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.plot {
+  display: grid;
+  margin: var(--sp-2) 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 3.5rem 12rem minmax(0, 1fr);
+  gap: var(--sp-2);
+  align-items: center;
+  border-bottom: var(--bw) solid var(--rule);
+  padding-block: var(--sp-1);
+}
+
+.rowSets {
+  border-bottom-color: var(--index);
+  border-bottom-width: 2px;
+}
+.rowSets .weight {
+  color: var(--index);
+  font-weight: 500;
+}
+
+.weight {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--machine);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowLabelAr {
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-grade);
+  text-align: right;
+}
+.rowLabelEn {
+  font-family: var(--font-en);
+  font-size: var(--fs-label);
+  text-align: start;
+  color: var(--ink-app);
+}
+
+.cells {
+  display: flex;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+}
+
+.dot {
+  display: block;
+  width: var(--pdot-size);
+  height: var(--pdot-size);
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.tieNote {
+  font-size: var(--fs-rail);
+  color: var(--ink-app);
+  margin: var(--sp-1) 0 0;
+}

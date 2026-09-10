@@ -5,9 +5,8 @@ import { app } from './app.js';
 import { pool } from './db/pool.js';
 import { extractCookie, fakeIp, uniqueEmail } from './testUtils/helpers.js';
 
-
 describe('guarded route prefixes', () => {
-  for (const prefix of ['/collections', '/chapters', '/hadiths', '/narrators', '/analytics', '/circles', '/study-sets', '/assignments', '/review-sessions', '/progress', '/notes', '/meta', '/students']) {
+  for (const prefix of ['/collections', '/chapters', '/hadiths', '/narrators', '/circles', '/notes', '/students']) {
     test(`${prefix} rejects an unauthenticated request with 401`, async () => {
       const res = await request(app).get(prefix);
       assert.equal(res.status, 401);
@@ -61,7 +60,7 @@ describe('register', () => {
     assert.equal(second.body.error.code, 'conflict');
   });
 
-  test('a new student starts unverified-not-applicable and gets a usable access token immediately', async () => {
+  test('a new student gets a usable access token immediately', async () => {
     const res = await request(app)
       .post('/auth/register')
       .set('x-forwarded-for', fakeIp())
@@ -138,8 +137,13 @@ describe('login', () => {
   });
 });
 
-describe('login/register rate limiting (PRD §2.8)', () => {
-  test('the limiter keys by X-Forwarded-For, not the shared test-runner socket address', async () => {
+describe('login/register rate limiting', () => {
+  // testUtils/helpers.ts sets TRUST_PROXY=1 for this whole test process, so
+  // the limiter trusts X-Forwarded-For here -- this proves the limiter is
+  // correctly wired to resolveClientKey end to end. resolveClientKey's own
+  // unit tests (middleware/rateLimit.test.ts) cover the default, untrusted
+  // path: a spoofed header must NOT isolate buckets when TRUST_PROXY is off.
+  test('5 requests from one address succeed, the 6th is rate limited, and a different address is unaffected', async () => {
     const ipA = fakeIp();
     const ipB = fakeIp();
 
@@ -161,7 +165,7 @@ describe('login/register rate limiting (PRD §2.8)', () => {
       .post('/auth/register')
       .set('x-forwarded-for', ipB)
       .send({ email: uniqueEmail('rateb0'), password: 'password123', full_name: 'X', role: 'student' });
-    assert.notEqual(firstFromB.status, 429, 'a different IP must not share ipA\'s rate-limit bucket');
+    assert.notEqual(firstFromB.status, 429, "a different address must not share ipA's rate-limit bucket");
   });
 });
 

@@ -6,8 +6,8 @@ import { listUnverifiedTeachers, verifyTeacher } from './teachers.model.js';
 export async function getUnverifiedTeachers(req: Request, res: Response, next: NextFunction) {
   try {
     const { limit, offset } = parsePageParams(req.query as Record<string, unknown>);
-    const teachers = await listUnverifiedTeachers(limit, offset);
-    res.json({ data: teachers, page: { limit, offset, total: teachers.length } });
+    const { rows, total } = await listUnverifiedTeachers(limit, offset);
+    res.json({ data: rows, page: { limit, offset, total } });
   } catch (e) {
     next(e);
   }

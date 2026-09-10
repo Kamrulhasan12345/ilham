@@ -49,17 +49,22 @@ export async function seed({ reset = true } = {}) {
     }
 
     // --- users ------------------------------------------------------------
+    // The last teacher stays unverified on purpose: the admin queue needs a
+    // row to show, and only a verified teacher can lead a circle. That teacher
+    // still owns a study set below, which is what the gate does NOT block.
     const teachers = [], students = [];
     for (let i = 1; i <= N_TEACHERS; i++) {
       const { rows } = await c.query(
         `INSERT INTO app.teachers (email, password_hash, full_name, role,
-                                   institution, specialization)
-         VALUES ($1,$2,$3,'teacher',$4,$5) RETURNING user_id`,
+                                   institution, specialization, is_verified)
+         VALUES ($1,$2,$3,'teacher',$4,$5,$6) RETURNING user_id`,
         [`teacher${i}@ilham.test`, BCRYPT_DUMMY, name(i * 7),
          ['دار الحديث','جامعة الأزهر','Madrasah Ilham'][i % 3],
-         ['Rijal expert','Isnad criticism','Fiqh al-Hadith'][i % 3]]);
+         ['Rijal expert','Isnad criticism','Fiqh al-Hadith'][i % 3],
+         i < N_TEACHERS]);
       teachers.push(rows[0].user_id);
     }
+    const verified = teachers.slice(0, N_TEACHERS - 1);
     for (let i = 1; i <= N_STUDENTS; i++) {
       const { rows } = await c.query(
         `INSERT INTO app.students (email, password_hash, full_name, role, student_level)
@@ -71,15 +76,19 @@ export async function seed({ reset = true } = {}) {
     await c.query(
       `INSERT INTO app.admins (email, password_hash, full_name, role, admin_level)
        VALUES ('admin@ilham.test',$1,'Platform Admin','admin','super')`, [BCRYPT_DUMMY]);
-    log(`users: ${teachers.length} teachers, ${students.length} students, 1 admin`);
+    log(`users: ${teachers.length} teachers (${N_TEACHERS - 1} verified), ${students.length} students, 1 admin`);
 
     // --- circles and enrollments ------------------------------------------
-    const circles = [];
+    // circleTeacher[i] is remembered, not recomputed: the review sessions below
+    // must name the circle's OWN teacher as reviewer, and the two lists differ.
+    const circles = [], circleTeacher = [];
     for (let i = 0; i < N_CIRCLES; i++) {
+      const t = verified[i % verified.length];
       const { rows } = await c.query(
         `INSERT INTO app.circles (teacher_id, name) VALUES ($1,$2) RETURNING circle_id`,
-        [teachers[i % teachers.length], `حلقة ${i + 1}`]);
+        [t, `حلقة ${i + 1}`]);
       circles.push(rows[0].circle_id);
+      circleTeacher.push(t);
     }
     // Uneven on purpose: circle 0 is large, the last one is left empty so the
     // dashboard has a zero-state to render rather than only happy paths.
@@ -99,7 +108,7 @@ export async function seed({ reset = true } = {}) {
            ON CONFLICT DO NOTHING`, [circles[i], s]);
       }
     }
-    log(`circles: ${circles.length} (sizes ${sizes.join(', ')})`);
+    log(`circles: ${circles.length} (sizes ${sizes.join(', ')}), led by ${verified.length} verified teachers`);
 
     // --- study sets -------------------------------------------------------
     // Drawn from the best-resolved collections: a set full of unresolved
@@ -171,7 +180,7 @@ export async function seed({ reset = true } = {}) {
         [circles[ci]]);
       if (!er.length) continue;
       const studentId = er[0].student_id;
-      const teacherId = teachers[ci % teachers.length];
+      const teacherId = circleTeacher[ci];
 
       await c.query('BEGIN');
       try {

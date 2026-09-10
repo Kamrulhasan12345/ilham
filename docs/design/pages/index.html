@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Ilham Design — Apparatus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══ ILHAM · APPARATUS — hub ═══════════════════════════════════════════
+   Tokens mirror specimen.html, which is the source of truth. Two line
+   colours: --rule is a decorative 1.4:1 hairline, --edge is a 3:1
+   boundary that identifies a control. Contrast figures are quoted
+   against the surface the text sits on, not against the ground. */
+:root{
+  --ground:#FCFCFA; --rail:#F1F0EC; --rule:#D8D7D1; --edge:#8B8B85;
+  --ink:#111211; --ink-app:#5C5F5C; --index:#2437C4; --machine:#3B3E42;
+  --font-ar:'Scheherazade New','Amiri',serif;
+  --font-en:'Instrument Sans',system-ui,-apple-system,sans-serif;
+  --font-mono:'DM Mono',ui-monospace,monospace;
+  --sp-1:6px; --sp-2:12px; --sp-3:24px; --sp-4:48px; --sp-5:96px;
+  --lh-ar:1.9;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#16181A; --rail:#1E2124; --rule:#2E3236; --edge:#656B72;
+    --ink:#E4E2DC; --ink-app:#B4B8B3; --index:#93A8F5; --machine:#A9AEB4;
+    --lh-ar:1.95;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#16181A; --rail:#1E2124; --rule:#2E3236; --edge:#656B72;
+  --ink:#E4E2DC; --ink-app:#B4B8B3; --index:#93A8F5; --machine:#A9AEB4;
+  --lh-ar:1.95;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--font-en);font-size:1rem;line-height:1.55;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--index)}
+a:hover{text-decoration-thickness:2px}
+*:focus-visible{outline:2px solid var(--index);outline-offset:2px}
+@media (forced-colors:active){*:focus-visible{outline:2px solid CanvasText}}
+
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:var(--sp-3);top:var(--sp-3);z-index:9;background:var(--ground);
+  border:1px solid var(--edge);padding:var(--sp-2) var(--sp-3)}
+
+.page{max-width:1040px;margin-inline:auto;padding:var(--sp-5) var(--sp-4)}
+@media (max-width:640px){.page{padding:var(--sp-4) var(--sp-3)}}
+
+/* The signature element: a 210px rail at a fixed x, 48px gutter. The hub
+   uses it too, so the first screen already teaches the layout. */
+.r{display:grid;grid-template-columns:210px minmax(0,1fr);gap:var(--sp-4)}
+@media (max-width:900px){.r{grid-template-columns:1fr;gap:var(--sp-2)}}
+
+.label{font-size:0.8125rem;font-weight:600;letter-spacing:.005em;
+  text-transform: none;color:var(--ink-app);margin:0}
+
+/* Arabic leads the masthead, so it takes the Arabic line-height. Below
+   about 1.25 the descenders of إلهام fall into the line beneath. */
+h1{font-family:var(--font-ar);font-size:clamp(3rem,9vw,4rem);font-weight:400;
+  line-height:1.25;margin:0;letter-spacing:0}
+.lede{font-size:1.3125rem;line-height:1.45;max-width:46ch;margin:var(--sp-3) 0 0}
+.sub{font-size:.9375rem;line-height:1.55;color:var(--ink-app);max-width:60ch;
+  margin:var(--sp-2) 0 0}
+
+/* A flex item is blockified, so inline-flex alone would stretch the
+   control and leave an empty bordered segment beside the last button. */
+.seg{display:inline-flex;width:fit-content;align-self:start;border:1px solid var(--edge)}
+.seg button{white-space:nowrap;font:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:.005em;
+  text-transform: none;color:var(--ink-app);background:none;border:0;
+  padding:var(--sp-1) var(--sp-2);cursor:pointer;min-height:32px}
+.seg button+button{border-left:1px solid var(--edge)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+
+/* 38px DM Mono + brackets + a thousands separator is the widest string in
+   the system: [139,629] needs about 200px. minmax(0,1fr) cannot grow and
+   the figure cannot wrap, so the columns are sized to content. */
+.counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-3)}
+@media (max-width:840px){.counts{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}}
+.counts div{display:flex;flex-direction:column;gap:var(--sp-1);background:var(--ground);border:1px solid var(--rule);padding:var(--sp-2)}
+.counts b{font-family:var(--font-mono);font-size:2.375rem;font-weight:400;
+  line-height:1.1;color:var(--machine);letter-spacing:-.02em}
+.counts span{font-size:0.8125rem;font-weight:600;letter-spacing:.005em;
+  text-transform: none;color:var(--ink-app)}
+@media (max-width:640px){.counts b{font-size:1.75rem}}
+
+.nav{border-top:1px solid var(--rule)}
+a.row{display:grid;grid-template-columns:210px minmax(0,1fr);gap:var(--sp-4);
+  padding:var(--sp-3) 0;border-bottom:1px solid var(--rule);
+  color:inherit;text-decoration:none}
+a.row:hover{background:var(--rail)}
+a.row:focus-visible{outline-offset:-2px}
+a.row .k{font-size:0.8125rem;font-weight:600;letter-spacing:.005em;
+  text-transform: none;color:var(--ink-app)}
+a.row h2{font-size:1.3125rem;font-weight:600;margin:0}
+a.row p{margin:var(--sp-1) 0 0;font-size:.9375rem;color:var(--ink-app);max-width:62ch}
+a.row .go{font-size:.9375rem;color:var(--index);margin:var(--sp-2) 0 0}
+@media (max-width:900px){a.row{grid-template-columns:1fr;gap:var(--sp-1)}}
+
+footer{margin-top:var(--sp-4);font-size:.75rem;color:var(--ink-app)}
+footer code{font-family:var(--font-mono);color:var(--machine)}
+
+/* ══════════════════ COMMON REGION ═══════════════════════════════════
+   Apparatus originally grouped by proximity alone: 48px of air and a
+   surface tint, no cards. That holds at a narrow measure and fails at a
+   wide one. The rail label sits 210px + 48px from the content it
+   describes, and the wider the window the further apart they get, so the
+   cue doing the grouping is the cue that weakens as the screen grows —
+   which is why the mess only showed up on big screens, with the rail
+   metadata off to the side.
+
+   Common region is the principle that fixes it: elements inside a shared
+   boundary read as one group even when they are spaced apart (Palmer,
+   1992; Palmer & Rock, 1994), and it survives responsive reflow in a way
+   spacing relationships do not. So each section is now a bounded panel,
+   and the rail travels inside its own section's region.
+
+   Two surfaces, one meaning each:
+     section, .panel  — apparatus. Tinted, bounded. Everything ABOUT the text.
+     section, .panel--figure — the text itself. Sits on the page ground, so the
+       Arabic stays the figure and every panel around it is ground.
+   Nested regions step back to the ground tint to show a level, never a
+   third colour. No shadows: elevation is surface, per the dark-mode
+   research. */
+section, .panel {
+  background: var(--rail);
+  border: var(--bw) solid var(--rule);
+  padding: var(--sp-3);
+}
+section, .panel + section, .panel { margin-top: var(--sp-3); }
+section, .panel--figure { background: var(--ground); }
+section > :first-child, .panel > :first-child { margin-block-start: 0; }
+section, .panel > :last-child { margin-block-end: 0; }
+/* A region inside a region returns to the ground, so depth is legible
+   without inventing a surface. */
+section, .panel section, .panel, section, .panel--figure section, .panel { background: var(--ground); }
+section, .panel--figure section, .panel { background: var(--rail); }
+@media (max-width: 62rem) { section, .panel { padding: var(--sp-2); } }
+
+/* ══════════════════ MOTION ══════════════════════════════════════════
+   Same tokens as the prototype. Animate the viewpoint, never the data —
+   with one documented exception below. */
+:root{--dur-micro:120ms;--dur-move:180ms;--dur-enter:240ms;
+  --ease-out:cubic-bezier(.2,.7,.3,1)}
+a.row{transition:background var(--dur-micro) var(--ease-out)}
+a.row .go{transition:transform var(--dur-micro) var(--ease-out)}
+a.row:hover .go{transform:translateX(3px)}
+.seg button{transition:background var(--dur-micro) var(--ease-out),
+  color var(--dur-micro) var(--ease-out)}
+/* The counters are the exception, and it is the only place Apparatus
+   exceeds its own 240ms ceiling. A count-up animates a data value, which
+   this system otherwise refuses — Tversky found no animation that beat a
+   good static diagram. It is allowed here because it runs once per
+   session, is an entrance rather than a response to input, and the final
+   figure is the only one anyone reads. 520ms, then never again. */
+.counts b{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){
+  :root{--dur-micro:0.01ms;--dur-move:0.01ms;--dur-enter:0.01ms}
+  a.row:hover .go{transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to contents</a>
+
+<div class="page">
+
+  <header class="r" style="align-items:start">
+    <div style="display:flex;flex-direction:column;gap:var(--sp-3)">
+      <p class="label">Ilham · design</p>
+      <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
+        <span class="label" id="tl" style="font-size:0.8125rem">Ground</span>
+        <div class="seg" role="group" aria-labelledby="tl">
+          <button type="button" data-theme-set="light" aria-pressed="true">1c light</button>
+          <button type="button" data-theme-set="dark" aria-pressed="false">2a dark</button>
+        </div>
+      </div>
+      <p class="sub" style="max-width:22ch">Your choice is remembered across every page here.</p>
+    </div>
+    <div>
+      <h1 dir="rtl">إلهام</h1>
+      <p class="lede">Apparatus — the design system for a bilingual hadith instrument, and a working prototype of its screens.</p>
+      <p class="sub">The Arabic is the object on the table, set at 44px. The English interface shrinks to a quiet apparatus around it: one accent, no serif English, no photography anywhere in the product. Light is the default ground; dark is a choice, not an accessibility claim.</p>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+
+    <section class="r" style="margin-top:var(--sp-5)">
+      <p class="label">The corpus</p>
+      <div class="counts">
+        <div><b>[14,901]</b><span>Hadiths</span></div>
+        <div><b>[20,957]</b><span>Narrator biographies</span></div>
+        <div><b>[139,629]</b><span>Chain links</span></div>
+      </div>
+    </section>
+
+    <nav class="nav" style="margin-top:var(--sp-4)" aria-label="Contents">
+      <a class="row" href="specimen.html">
+        <span class="k">The system</span>
+        <span>
+          <h2>Design system</h2>
+          <p>Both grounds, the three families and two type scales, the fixed rail, the five chain marks, controls, fields, empty and failed states, the app shell and the nine implementation rules.</p>
+          <p class="go">Open the specimen →</p>
+        </span>
+      </a>
+      <a class="row" href="demo.html">
+        <span class="k">The prototype</span>
+        <span>
+          <h2>Four screens</h2>
+          <p>A hadith with its chain, a narrator page, a teacher's circle, and one analytics question — built from the system rather than described by it.</p>
+          <p class="go">Open the prototype →</p>
+        </span>
+      </a>
+      <a class="row" href="specimen.html#colour">
+        <span class="k">The review</span>
+        <span>
+          <h2>Measured audit</h2>
+          <p>Every contrast figure in the system, measured against the surface the text actually sits on, with the four claims that failed and what changed. Read this before quoting a number.</p>
+          <p class="go">See the measured ratios →</p>
+        </span>
+      </a>
+      <a class="row" href="specimen.html#type">
+        <span class="k">Legibility</span>
+        <span>
+          <h2>Capitals and icons</h2>
+          <p>Why every label moved from tracked capitals to sentence case, the peer-reviewed study that argues the other way, and why icons only ever appear beside a word.</p>
+          <p class="go">See the type foundations →</p>
+        </span>
+      </a>
+      <a class="row" href="specimen.html#motion">
+        <span class="k">Motion</span>
+        <span>
+          <h2>What to animate</h2>
+          <p>Three durations, one easing curve, and the split the evidence forces: animate a change of view, never animate the data. Includes a playable duration comparison.</p>
+          <p class="go">See the motion chapter →</p>
+        </span>
+      </a>
+      <a class="row" href="Ilham Directions.dc.html">
+        <span class="k">The evidence</span>
+        <span>
+          <h2>What the sources support</h2>
+          <p>The research the system rests on: bi-script typography, Arabic layout requirements, dark-mode optics, and colour meaning in this subject — including the findings that argue against the design.</p>
+          <p class="go">Open the direction report →</p>
+        </span>
+      </a>
+    </nav>
+
+    <footer>
+      <p><code>index.html</code> · <code>specimen.html</code> · <code>demo.html</code> · <code>review.html</code> · <code>legibility.html</code> · <code>motion.html</code> — tokens live in <code>specimen.html</code>, which is the source of truth. Last measured <code>2026-09-04</code>.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+/* Count-up on the three corpus figures.
+   The resting state is the CORRECT figure: each element is written to its
+   final formatted value before a single frame runs, and the animation
+   only ever counts up toward a number that is already on screen. An
+   earlier version wrote [0] on the first frame and set the final value
+   only in the terminal branch — so any interruption of the frame chain
+   stranded the hub's headline data at zero, which is exactly what
+   happened. A timeout backstop now re-asserts the final value
+   unconditionally, and the once-per-session flag is set only after the
+   figure is known good, so a failure is recoverable by reloading. */
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var nodes = [].slice.call(document.querySelectorAll('.counts b'));
+  if (!nodes.length) return;
+
+  var items = nodes.map(function (el) {
+    var target = parseInt((el.textContent || '').replace(/[^0-9]/g, ''), 10);
+    return { el: el, target: target || 0 };
+  }).filter(function (it) { return it.target > 0; });
+
+  // 1. The truth, first and always.
+  function settle() {
+    items.forEach(function (it) {
+      it.el.textContent = '[' + it.target.toLocaleString('en-US') + ']';
+    });
+  }
+  settle();
+  if (!items.length) return;
+
+  var seen = false;
+  try { seen = sessionStorage.getItem('ilham.counted') === '1'; } catch (e) {}
+  if (reduce.matches || seen) return;
+
+  // 2. Animate toward a figure that is already correct on screen.
+  var DUR = 520, t0 = null, done = false;
+  function finish() {
+    if (done) return;
+    done = true;
+    settle();
+    try { sessionStorage.setItem('ilham.counted', '1'); } catch (e) {}
+  }
+  function frame(t) {
+    if (done) return;
+    if (t0 === null) t0 = t;
+    var p = Math.min(1, (t - t0) / DUR);
+    var eased = 1 - Math.pow(1 - p, 3);
+    items.forEach(function (it) {
+      it.el.textContent = '[' + Math.round(it.target * eased).toLocaleString('en-US') + ']';
+    });
+    if (p < 1) requestAnimationFrame(frame);
+    else finish();
+  }
+  requestAnimationFrame(frame);
+  // 3. Backstop: if the frame chain never completes — background tab,
+  //    throttling, anything — the correct figure is restored anyway.
+  setTimeout(finish, DUR + 100);
+})();
+</script>
+<script>
+/* The ground is a product decision the reader makes once. It persisted on
+   the specimen and the prototype but not here, so the hub used to argue
+   with the choice made one click earlier. */
+(function () {
+  var KEY = 'ilham.ground';
+  var root = document.documentElement;
+  var btns = document.querySelectorAll('[data-theme-set]');
+  function apply(v, store) {
+    if (v) root.setAttribute('data-theme', v); else root.removeAttribute('data-theme');
+    var dark = v ? v === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    btns.forEach(function (b) {
+      b.setAttribute('aria-pressed', String((b.dataset.themeSet === 'dark') === dark));
+    });
+    if (store) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  apply(saved === 'light' || saved === 'dark' ? saved : null, false);
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () { apply(b.dataset.themeSet, true); });
+  });
+})();
+</script>
+</body>
+</html>

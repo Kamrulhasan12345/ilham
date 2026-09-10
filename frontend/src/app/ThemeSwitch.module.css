@@ -1,0 +1,28 @@
+.seg {
+  display: inline-flex;
+  border: var(--bw) solid var(--rule);
+  border-radius: var(--r-chip);
+  overflow: hidden;
+}
+
+.seg button {
+  font-family: var(--font-en);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  padding: var(--sp-1) var(--sp-2);
+  min-height: var(--h-compact);
+  border: 0;
+  cursor: pointer;
+  background: var(--rail);
+  color: var(--ink-app);
+}
+
+.seg button + button {
+  border-inline-start: var(--bw) solid var(--rule);
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--ground);
+}

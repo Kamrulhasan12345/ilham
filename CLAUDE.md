@@ -13,10 +13,10 @@ Ilham (إلهام) is a term project for a database course. Two persons build it
 is a hadith study platform, and a teacher leads the study.
 
 The current deliverable is a **database design**: the DDL, the ERD set, and the
-product specification. `backend/` now has a scaffold: a Hono/TypeScript API
-over the read-only `corpus` schema. `frontend/` is still empty.
+product specification. `backend/` has a working Express/TypeScript API over
+the corpus and app schemas. `frontend/` has a working React app wired to it.
 
-**Planned stack:** PostgreSQL, Hono (Node.js, TypeScript), React.
+**Stack:** PostgreSQL, Express (Node.js, TypeScript), React.
 
 Start from these files. They are correct, and the whole picture lives across
 them:
@@ -199,3 +199,22 @@ validation and English narrator names. LK gives the English hadith text.
 - After you change the schema, keep these consistent with the DDL: the ERD `.dot`
   files and their images in `docs/erd/`, the prose in `docs/`, and `docs/prd.md`.
   They are graded deliverables, and they must not drift from `db/*.sql`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues in `Kamrulhasan12345/ilham`. The skills use the
+`gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical labels keep their default names. See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This repository uses one context. `CONTEXT.md` and `docs/adr/` sit at the root.
+Neither exists yet. The skills continue without them, and `/domain-modeling`
+creates them when a term or a decision needs a home. See
+`docs/agents/domain.md`.
