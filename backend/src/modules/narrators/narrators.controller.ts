@@ -1,17 +1,15 @@
-import type { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
-import { NotFoundError } from '../../lib/errors.js';
+import type { NextFunction, Request, Response } from 'express';
+import { BadRequestError, NotFoundError } from '../../lib/errors.js';
 import { getNarratorById } from './narrators.model.js';
 
-export async function getNarrator(c: Context) {
-  const id = Number(c.req.param('id'));
-  if (!Number.isInteger(id)) {
-    throw new HTTPException(400, { message: 'invalid narrator id' });
+export async function getNarrator(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) throw new BadRequestError('invalid narrator id');
+    const narrator = await getNarratorById(id);
+    if (!narrator) throw new NotFoundError('narrator not found');
+    res.json({ data: narrator });
+  } catch (e) {
+    next(e);
   }
-
-  const narrator = await getNarratorById(id);
-  if (!narrator) {
-    throw new NotFoundError('narrator not found');
-  }
-  return c.json({ data: narrator });
 }

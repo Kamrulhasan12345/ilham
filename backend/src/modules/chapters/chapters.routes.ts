@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
+import { Router } from 'express';
 import { getChapters } from './chapters.controller.js';
 
-export const chaptersRoutes = new Hono();
+export const chaptersRoutes = Router();
 
 chaptersRoutes.get('/', getChapters);

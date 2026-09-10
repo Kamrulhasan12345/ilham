@@ -3,6 +3,7 @@ export interface ChapterRow {
   collection_id: number;
   seq: number;
   title_ar: string;
+  hadith_count: number;
 }
 
 export interface ChapterListParams {

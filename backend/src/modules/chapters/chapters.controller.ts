@@ -1,14 +1,18 @@
-import type { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
+import type { NextFunction, Request, Response } from 'express';
+import { BadRequestError } from '../../lib/errors.js';
 import { parsePageParams } from '../../lib/pagination.js';
 import { listChapters } from './chapters.model.js';
 
-export async function getChapters(c: Context) {
-  const collectionId = Number(c.req.query('collection_id'));
-  if (!Number.isInteger(collectionId)) {
-    throw new HTTPException(400, { message: 'collection_id is required and must be an integer' });
+export async function getChapters(req: Request, res: Response, next: NextFunction) {
+  try {
+    const collectionId = Number(req.query.collection_id);
+    if (!Number.isInteger(collectionId)) {
+      throw new BadRequestError('collection_id is required and must be an integer');
+    }
+    const { limit, offset } = parsePageParams(req.query as Record<string, unknown>);
+    const { rows, total } = await listChapters({ collectionId, limit, offset });
+    res.json({ data: rows, page: { limit, offset, total } });
+  } catch (e) {
+    next(e);
   }
-  const { limit, offset } = parsePageParams(c.req.query());
-  const chapters = await listChapters({ collectionId, limit, offset });
-  return c.json({ data: chapters });
 }

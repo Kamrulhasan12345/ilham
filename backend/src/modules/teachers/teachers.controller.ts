@@ -1,21 +1,26 @@
-import type { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
-import { NotFoundError } from '../../lib/errors.js';
+import type { NextFunction, Request, Response } from 'express';
+import { BadRequestError, NotFoundError } from '../../lib/errors.js';
+import { parsePageParams } from '../../lib/pagination.js';
 import { listUnverifiedTeachers, verifyTeacher } from './teachers.model.js';
 
-export async function getUnverifiedTeachers(c: Context) {
-  const teachers = await listUnverifiedTeachers();
-  return c.json({ data: teachers });
+export async function getUnverifiedTeachers(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { limit, offset } = parsePageParams(req.query as Record<string, unknown>);
+    const { rows, total } = await listUnverifiedTeachers(limit, offset);
+    res.json({ data: rows, page: { limit, offset, total } });
+  } catch (e) {
+    next(e);
+  }
 }
 
-export async function postVerifyTeacher(c: Context) {
-  const id = Number(c.req.param('id'));
-  if (!Number.isInteger(id)) {
-    throw new HTTPException(400, { message: 'invalid teacher id' });
+export async function postVerifyTeacher(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) throw new BadRequestError('invalid teacher id');
+    const verified = await verifyTeacher(id);
+    if (!verified) throw new NotFoundError('teacher not found');
+    res.json({ data: { user_id: id, is_verified: true } });
+  } catch (e) {
+    next(e);
   }
-  const verified = await verifyTeacher(id);
-  if (!verified) {
-    throw new NotFoundError('teacher not found');
-  }
-  return c.json({ data: { user_id: id, is_verified: true } });
 }

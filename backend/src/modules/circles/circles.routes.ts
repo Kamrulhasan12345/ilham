@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Router } from 'express';
 import { requireRole } from '../../middleware/requireRole.js';
 import { getCircles, postCircle } from './circles.controller.js';
 
@@ -7,7 +7,7 @@ import { getCircles, postCircle } from './circles.controller.js';
 // the role guard here keeps students and admins out with a 403 before the
 // database is even reached. An admin verifies teachers, they do not run
 // circles, so admins are excluded too.
-export const circlesRoutes = new Hono();
+export const circlesRoutes = Router();
 
 circlesRoutes.get('/', getCircles);
 circlesRoutes.post('/', requireRole('teacher'), postCircle);

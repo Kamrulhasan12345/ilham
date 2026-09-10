@@ -1,13 +1,8 @@
-import type { Context, Next } from 'hono';
-import { HTTPException } from 'hono/http-exception';
+import type { NextFunction, Request, Response } from 'express';
 import type { Role } from '../lib/jwt.js';
+import { ForbiddenError } from '../lib/errors.js';
 
-export function requireRole(...roles: Role[]) {
-  return async (c: Context, next: Next) => {
-    const role = c.get('role') as Role;
-    if (!roles.includes(role)) {
-      throw new HTTPException(403, { message: 'forbidden' });
-    }
-    await next();
-  };
-}
+export const requireRole =
+  (...roles: Role[]) =>
+  (req: Request, _res: Response, next: NextFunction) =>
+    req.user && roles.includes(req.user.role) ? next() : next(new ForbiddenError('forbidden'));

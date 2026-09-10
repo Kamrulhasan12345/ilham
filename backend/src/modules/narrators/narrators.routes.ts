@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
+import { Router } from 'express';
 import { getNarrator } from './narrators.controller.js';
 
-export const narratorsRoutes = new Hono();
+export const narratorsRoutes = Router();
 
 narratorsRoutes.get('/:id', getNarrator);

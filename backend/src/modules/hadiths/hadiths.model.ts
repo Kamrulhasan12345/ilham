@@ -7,7 +7,16 @@ import type {
   TranslationRow,
 } from './hadiths.interface.js';
 
-export async function listHadiths(params: HadithListParams): Promise<HadithRow[]> {
+interface HadithListRow {
+  hadith_id: number;
+  collection_id: number;
+  chapter_id: number | null;
+  hadith_num: string;
+  text_plain: string;
+  sanad_count: number;
+}
+
+export async function listHadiths(params: HadithListParams): Promise<HadithListRow[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
 
@@ -19,31 +28,58 @@ export async function listHadiths(params: HadithListParams): Promise<HadithRow[]
     values.push(params.chapterId);
     conditions.push(`chapter_id = $${values.length}`);
   }
+  if (params.q) {
+    values.push(params.q);
+    conditions.push(
+      `corpus.normalize_arabic(text_plain) LIKE '%' || corpus.normalize_arabic($${values.length}) || '%'`,
+    );
+  }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
   values.push(params.limit);
-  const limitPlaceholder = `$${values.length}`;
+  const limitPh = `$${values.length}`;
   values.push(params.offset);
-  const offsetPlaceholder = `$${values.length}`;
+  const offsetPh = `$${values.length}`;
 
-  const { rows } = await pool.query<HadithRow>(
-    `SELECT hadith_id, collection_id, chapter_id, hadith_num, text_plain, text_diac, sanad_count
+  const { rows } = await pool.query<HadithListRow>(
+    `SELECT hadith_id, collection_id, chapter_id, hadith_num, text_plain, sanad_count
        FROM corpus.hadiths
        ${where}
       ORDER BY hadith_id
-      LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
+      LIMIT ${limitPh} OFFSET ${offsetPh}`,
     values,
   );
   return rows;
 }
 
-export async function getHadithDetail(
-  hadithId: number,
-  lang = 'en',
-): Promise<HadithDetail | null> {
+export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'offset'>): Promise<number> {
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+  if (params.collectionId !== undefined) {
+    values.push(params.collectionId);
+    conditions.push(`collection_id = $${values.length}`);
+  }
+  if (params.chapterId !== undefined) {
+    values.push(params.chapterId);
+    conditions.push(`chapter_id = $${values.length}`);
+  }
+  if (params.q) {
+    values.push(params.q);
+    conditions.push(
+      `corpus.normalize_arabic(text_plain) LIKE '%' || corpus.normalize_arabic($${values.length}) || '%'`,
+    );
+  }
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const { rows } = await pool.query<{ count: string }>(
+    `SELECT count(*) FROM corpus.hadiths ${where}`,
+    values,
+  );
+  return Number(rows[0].count);
+}
+
+export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<HadithDetail | null> {
   const { rows: hadithRows } = await pool.query<HadithRow>(
-    `SELECT hadith_id, collection_id, chapter_id, hadith_num, text_plain, text_diac, sanad_count
+    `SELECT hadith_id, collection_id, chapter_id, hadith_num, text_plain, text_diac, matn_plain, sanad_count
        FROM corpus.hadiths
       WHERE hadith_id = $1`,
     [hadithId],

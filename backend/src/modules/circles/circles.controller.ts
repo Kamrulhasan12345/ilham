@@ -1,6 +1,6 @@
-import type { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
+import type { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
+import { BadRequestError } from '../../lib/errors.js';
 import {
   createCircle,
   listAllCircles,
@@ -10,21 +10,25 @@ import {
 
 const createCircleSchema = z.object({ name: z.string().min(1) });
 
-export async function getCircles(c: Context) {
-  const userId = c.get('userId') as number;
-  const role = c.get('role') as string;
-  if (role === 'admin') return c.json({ data: await listAllCircles() });
-  if (role === 'teacher') return c.json({ data: await listCirclesForTeacher(userId) });
-  return c.json({ data: await listCirclesForStudent(userId) });
+export async function getCircles(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { userId, role } = req.user!;
+    if (role === 'admin') return res.json({ data: await listAllCircles() });
+    if (role === 'teacher') return res.json({ data: await listCirclesForTeacher(userId) });
+    res.json({ data: await listCirclesForStudent(userId) });
+  } catch (e) {
+    next(e);
+  }
 }
 
-export async function postCircle(c: Context) {
-  const teacherId = c.get('userId') as number;
-  const body = await c.req.json().catch(() => null);
-  const parsed = createCircleSchema.safeParse(body);
-  if (!parsed.success) {
-    throw new HTTPException(400, { message: 'invalid circle payload' });
+export async function postCircle(req: Request, res: Response, next: NextFunction) {
+  try {
+    const teacherId = req.user!.userId;
+    const parsed = createCircleSchema.safeParse(req.body);
+    if (!parsed.success) throw new BadRequestError('invalid circle payload');
+    const circle = await createCircle({ teacherId, name: parsed.data.name });
+    res.status(201).json({ data: circle });
+  } catch (e) {
+    next(e);
   }
-  const circle = await createCircle({ teacherId, name: parsed.data.name });
-  return c.json({ data: circle }, 201);
 }

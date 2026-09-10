@@ -45,8 +45,8 @@ export async function registerUser(input: RegisterInput): Promise<{ user_id: num
     return rows[0];
   }
   const { rows } = await pool.query<{ user_id: number }>(
-    `INSERT INTO app.teachers (email, password_hash, full_name, role)
-     VALUES ($1, $2, $3, 'teacher')
+    `INSERT INTO app.teachers (email, password_hash, full_name, role, is_verified)
+     VALUES ($1, $2, $3, 'teacher', false)
      RETURNING user_id`,
     [input.email, passwordHash, input.full_name],
   );

@@ -1,18 +1,15 @@
-import type { Context, Next } from 'hono';
-import { HTTPException } from 'hono/http-exception';
+import type { NextFunction, Request, Response } from 'express';
 import { verifyAccessToken } from '../lib/jwt.js';
+import { UnauthenticatedError } from '../lib/errors.js';
 
-export async function requireAuth(c: Context, next: Next) {
-  const header = c.req.header('authorization');
-  if (!header?.startsWith('Bearer ')) {
-    throw new HTTPException(401, { message: 'unauthenticated' });
-  }
+export function requireAuth(req: Request, _res: Response, next: NextFunction) {
+  const header = req.get('authorization');
+  if (!header?.startsWith('Bearer ')) return next(new UnauthenticatedError('missing bearer token'));
   try {
     const claims = verifyAccessToken(header.slice(7));
-    c.set('userId', Number(claims.sub));
-    c.set('role', claims.role);
+    req.user = { userId: Number(claims.sub), role: claims.role };
+    next();
   } catch {
-    throw new HTTPException(401, { message: 'unauthenticated' });
+    next(new UnauthenticatedError('invalid or expired token'));
   }
-  await next();
 }

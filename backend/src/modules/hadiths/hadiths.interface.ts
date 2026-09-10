@@ -5,12 +5,14 @@ export interface HadithRow {
   hadith_num: string;
   text_plain: string;
   text_diac: string;
+  matn_plain: string | null;
   sanad_count: number;
 }
 
 export interface HadithListParams {
   collectionId?: number;
   chapterId?: number;
+  q?: string;
   limit: number;
   offset: number;
 }
@@ -25,9 +27,9 @@ export interface IsnadLinkRow {
   sanad_no: number;
   position: number;
   narrator_id: number | null;
-  raw_name: string;
   display_name: string | null;
   name_en: string | null;
+  raw_name: string;
   transmission_word: string | null;
   is_compiler: boolean;
   resolution: string;

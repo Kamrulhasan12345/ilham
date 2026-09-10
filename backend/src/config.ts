@@ -1,5 +1,8 @@
 import 'dotenv/config';
 
+export const NODE_ENV = process.env.NODE_ENV || 'development';
+export const IS_PRODUCTION = NODE_ENV === 'production';
+
 export const DB = {
   host: process.env.PGHOST || 'localhost',
   port: Number(process.env.PGPORT || 5432),
@@ -9,8 +12,6 @@ export const DB = {
 };
 
 export const PORT = Number(process.env.PORT || 3000);
-
-export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 /**
  * Secrets that must never sign a real token.
