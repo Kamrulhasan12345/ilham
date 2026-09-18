@@ -8,8 +8,6 @@ import {
   getWeakestChains,
 } from './analytics.model.js';
 
-// PRD §5.5: "Q1, Q2, Q3 and Q5 read the corpus only, and need no special
-// role -- a student may read the corpus analytics." No requireRole on these.
 export async function getTopNarratorsHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { limit } = parsePageParams(req.query as Record<string, unknown>);

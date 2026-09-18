@@ -6,11 +6,6 @@ import { pool } from '../../db/pool.js';
 import { hashPassword } from '../../lib/password.js';
 import { bearer, loginAndGetToken, registerAndGetToken, uniqueEmail } from '../../testUtils/helpers.js';
 
-// New coverage beyond the demo's suites: PRD §5.8's assignment procedure
-// carries three explicit rules (no transaction wrapper around the CALL,
-// ownership checked before the call since the procedure commits, and
-// calling twice is CORRECT, not a bug). These tests exist to catch a
-// regression in exactly those three rules.
 
 async function verifiedTeacher(tag: string): Promise<{ accessToken: string; userId: number }> {
   const email = uniqueEmail(tag);
@@ -68,10 +63,6 @@ describe('POST /assignments -- the CALL app.assign_study_set procedure pattern',
     assert.equal(first.status, 201);
 
     const second = await request(app).post('/assignments').set(bearer(teacher.accessToken)).send(payload);
-    // NOT 409. Deliberately allowed to create a second, independent
-    // assignment -- see PRD §5.8: "Calling twice creates two assignments
-    // and two sets of obligations. This is correct and deliberate. Do not
-    // add an 'already assigned' check."
     assert.equal(second.status, 201);
 
     const { rows } = await pool.query(
@@ -93,9 +84,6 @@ describe('POST /assignments -- the CALL app.assign_study_set procedure pattern',
 
     assert.equal(res.status, 403);
 
-    // And critically: no assignment row was created as a side effect of the
-    // rejected attempt (proving the check really does run before the CALL,
-    // not that the CALL ran and something else cleaned up after).
     const { rows } = await pool.query('SELECT count(*) FROM app.assignments WHERE circle_id = $1', [
       circleId,
     ]);
@@ -112,10 +100,6 @@ describe('POST /assignments -- the CALL app.assign_study_set procedure pattern',
   });
 
   test('GET /assignments/:id/completion is owner-only (403 for a non-owning teacher)', async () => {
-    // Depends on app.v_assignment_completion existing (db/06_queries.sql,
-    // PRD §8.3). If this test fails with a 500/42P01 instead of the
-    // expected 200/403, that SQL file has not been applied to this
-    // database yet -- it is not a bug in this test or the controller.
     const owner = await verifiedTeacher('completionowner');
     const intruder = await verifiedTeacher('completionintruder');
     const { circleId, studySetId } = await makeCircleAndStudySet(owner.accessToken);

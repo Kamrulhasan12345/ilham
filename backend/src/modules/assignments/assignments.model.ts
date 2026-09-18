@@ -34,9 +34,6 @@ export async function getAssignmentById(assignmentId: number): Promise<Assignmen
   return rows[0] ?? null;
 }
 
-// PRD §5.5 Q6: app.v_assignment_completion -- "Per student: due, done,
-// percentage." Filtered by the caller's assignment (ownership checked in
-// the controller before this runs).
 export async function getAssignmentCompletion(assignmentId: number): Promise<Record<string, unknown>[]> {
   const { rows } = await pool.query(
     `SELECT * FROM app.v_assignment_completion WHERE assignment_id = $1`,
@@ -45,15 +42,6 @@ export async function getAssignmentCompletion(assignmentId: number): Promise<Rec
   return rows;
 }
 
-// PRD §5.8 — THREE RULES, each a real failure mode if broken:
-// 1. Do NOT open a transaction around the CALL. The procedure's own COMMIT
-//    fails with "invalid transaction termination" inside a BEGIN block.
-//    Use pool.query, never withTransaction.
-// 2. Ownership of the circle must be checked by the CALLER (controller)
-//    BEFORE this runs — the procedure commits, so there is nothing to roll
-//    back if it turns out the teacher didn't own the circle.
-// 3. Calling this twice with the same args is correct and creates TWO
-//    assignments. Never add an "already assigned" guard here.
 export async function assignStudySet(circleId: number, studySetId: number, dueDate: string): Promise<void> {
   await pool.query('CALL app.assign_study_set($1, $2, $3)', [circleId, studySetId, dueDate]);
 }

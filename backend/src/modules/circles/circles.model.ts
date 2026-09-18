@@ -1,8 +1,6 @@
 import { pool } from '../../db/pool.js';
 import type { CircleRow, StudentInCircleRow } from './circles.interface.js';
 
-// PRD §4 visibility table, each function bakes in its own predicate so a
-// controller can never forget the filter.
 export async function listCirclesForTeacher(teacherId: number): Promise<CircleRow[]> {
   const { rows } = await pool.query<CircleRow>(
     `SELECT circle_id, teacher_id, name, created_at
@@ -38,9 +36,6 @@ export async function getCircleById(circleId: number): Promise<CircleRow | null>
   return rows[0] ?? null;
 }
 
-// Membership check used by the "A + member" guard on GET /circles/:id and
-// the "T + owner" checks below — this is the predicate that turns a
-// non-member's request into 404, per PRD §2.4.
 export async function isStudentInCircle(circleId: number, studentId: number): Promise<boolean> {
   const { rows } = await pool.query(
     `SELECT 1 FROM app.enrollments WHERE circle_id = $1 AND student_id = $2`,
@@ -49,10 +44,6 @@ export async function isStudentInCircle(circleId: number, studentId: number): Pr
   return rows.length > 0;
 }
 
-// PRD §3.4 / §1.6: teacher_id always comes from the verified JWT, never the
-// body. NO pre-check for is_verified here — trg_circles_teacher_verified is
-// the single source of truth; letting the insert run and mapping its 23514
-// avoids double-enforcement (and drift if the trigger's condition changes).
 export async function createCircle(input: { teacherId: number; name: string }): Promise<CircleRow> {
   const { rows } = await pool.query<CircleRow>(
     `INSERT INTO app.circles (teacher_id, name)
@@ -84,8 +75,6 @@ export async function listStudentsInCircle(circleId: number): Promise<StudentInC
   return rows;
 }
 
-// PRD §5.6: "409 on a repeat" — the unique constraint on (circle_id,
-// student_id) does the enforcement; 23505 -> 409 via errorHandler.
 export async function enrollStudent(circleId: number, studentId: number): Promise<void> {
   await pool.query(
     `INSERT INTO app.enrollments (circle_id, student_id) VALUES ($1, $2)`,
@@ -93,8 +82,6 @@ export async function enrollStudent(circleId: number, studentId: number): Promis
   );
 }
 
-// PRD §5.6: "Leaves the progress rows. Deleting them destroys the audit
-// trail" — this deletes ONLY the enrollment row, never touches app.progress.
 export async function unenrollStudent(circleId: number, studentId: number): Promise<boolean> {
   const { rowCount } = await pool.query(
     `DELETE FROM app.enrollments WHERE circle_id = $1 AND student_id = $2`,
@@ -103,9 +90,6 @@ export async function unenrollStudent(circleId: number, studentId: number): Prom
   return (rowCount ?? 0) > 0;
 }
 
-// PRD §5.5 Q4: app.v_circle_overview -- "The teacher dashboard. Per
-// student: assigned, mastered, overdue." Filtered by the caller's circle
-// (ownership already checked in the controller before this runs).
 export async function getCircleOverview(circleId: number): Promise<Record<string, unknown>[]> {
   const { rows } = await pool.query(
     `SELECT * FROM app.v_circle_overview WHERE circle_id = $1`,

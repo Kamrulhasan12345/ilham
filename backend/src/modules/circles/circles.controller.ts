@@ -18,7 +18,6 @@ import {
 const createCircleSchema = z.object({ name: z.string().min(1) });
 const enrollSchema = z.object({ student_id: z.number().int() });
 
-// PRD §4: role-based visibility.
 export async function getCircles(req: Request, res: Response, next: NextFunction) {
   try {
     const { userId, role } = req.user!;
@@ -34,9 +33,6 @@ export async function getCircles(req: Request, res: Response, next: NextFunction
   }
 }
 
-// PRD §5.6: teacher_id from the token, never the body. No pre-check on
-// is_verified — let the trg_circles_teacher_verified trigger raise, mapped
-// to 403 teacher_not_verified by errorHandler.
 export async function postCircle(req: Request, res: Response, next: NextFunction) {
   try {
     const { userId } = req.user!;
@@ -48,9 +44,6 @@ export async function postCircle(req: Request, res: Response, next: NextFunction
   }
 }
 
-// PRD §5.6: "GET /circles/:id | A + member | 404 for a non-member" — a
-// student who isn't enrolled, or a teacher who doesn't own it, and isn't
-// admin, gets 404 (never confirms the row exists to a non-participant).
 export async function getCircle(req: Request, res: Response, next: NextFunction) {
   try {
     const circleId = Number(req.params.id);
@@ -70,11 +63,6 @@ export async function getCircle(req: Request, res: Response, next: NextFunction)
   }
 }
 
-// Shared ownership check for the "T + owner" rows in PRD §5.6's table.
-// Returns the circle if the caller owns it. A circle that exists but is
-// owned by someone else is a 403 (the caller — a teacher — can plausibly
-// know it exists from a shared listing), per PRD §2.4's "use 403 only where
-// the caller may know the row exists" rule.
 async function requireOwnedCircle(req: Request, circleId: number) {
   const circle = await getCircleById(circleId);
   if (!circle) throw new NotFoundError('circle not found');
@@ -89,7 +77,7 @@ export async function patchCircle(req: Request, res: Response, next: NextFunctio
     const circleId = Number(req.params.id);
     if (!Number.isInteger(circleId)) throw new BadRequestError('invalid circle id');
     await requireOwnedCircle(req, circleId);
-    const body = createCircleSchema.parse(req.body); // rename only, same shape
+    const body = createCircleSchema.parse(req.body);
     const updated = await renameCircle(circleId, body.name);
     res.json({ data: updated });
   } catch (e) {
@@ -115,14 +103,13 @@ export async function postCircleStudent(req: Request, res: Response, next: NextF
     if (!Number.isInteger(circleId)) throw new BadRequestError('invalid circle id');
     await requireOwnedCircle(req, circleId);
     const body = enrollSchema.parse(req.body);
-    await enrollStudent(circleId, body.student_id); // 23505 -> 409 on repeat
+    await enrollStudent(circleId, body.student_id);
     res.status(201).json({ data: { circle_id: circleId, student_id: body.student_id } });
   } catch (e) {
     next(e);
   }
 }
 
-// PRD §5.5 Q4 / §5.6: GET /circles/:id/overview | T + owner
 export async function getCircleOverviewHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const circleId = Number(req.params.id);
