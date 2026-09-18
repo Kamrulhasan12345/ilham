@@ -5,7 +5,6 @@ import { createNote, deleteOwnNote, listNotesForHadith, updateOwnNote } from './
 
 const bodySchema = z.object({ body: z.string().min(1) });
 
-// PRD §5.11: GET /hadiths/:id/notes -- "The caller's own notes on that hadith"
 export async function getNotesForHadith(req: Request, res: Response, next: NextFunction) {
   try {
     const hadithId = Number(req.params.id);
@@ -17,7 +16,6 @@ export async function getNotesForHadith(req: Request, res: Response, next: NextF
   }
 }
 
-// PRD §5.11: POST /hadiths/:id/notes -- "user_id from the token"
 export async function postNoteForHadith(req: Request, res: Response, next: NextFunction) {
   try {
     const hadithId = Number(req.params.id);
@@ -30,8 +28,6 @@ export async function postNoteForHadith(req: Request, res: Response, next: NextF
   }
 }
 
-// PRD §5.11: PATCH /notes/:id -- A + owner. 404 (not 403) for a non-owner,
-// per §2.4's "never confirm the row exists" rule.
 export async function patchNote(req: Request, res: Response, next: NextFunction) {
   try {
     const noteId = Number(req.params.id);
@@ -45,7 +41,6 @@ export async function patchNote(req: Request, res: Response, next: NextFunction)
   }
 }
 
-// PRD §5.11: DELETE /notes/:id -- A + owner
 export async function deleteNote(req: Request, res: Response, next: NextFunction) {
   try {
     const noteId = Number(req.params.id);

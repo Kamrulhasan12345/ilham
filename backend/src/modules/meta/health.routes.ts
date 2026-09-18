@@ -3,8 +3,6 @@ import { pool } from '../../db/pool.js';
 
 export const healthRoutes = Router();
 
-// PRD §5.12: "Database reachable, and the corpus row counts." No guard --
-// mounted directly in app.ts before requireAuth is ever applied.
 healthRoutes.get('/', async (_req, res) => {
   try {
     const { rows } = await pool.query<{ hadith_count: string; narrator_count: string }>(

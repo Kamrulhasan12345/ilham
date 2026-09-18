@@ -15,9 +15,6 @@ export async function getNarratorById(narratorId: number): Promise<NarratorRow |
   return rows[0] ?? null;
 }
 
-// PRD §5.3: "GET /narrators | Search by name. q matches name_norm or
-// display_norm". Normalized columns exist specifically so search doesn't
-// need to fuzz-match raw Arabic text itself.
 export async function searchNarrators(params: NarratorSearchParams): Promise<NarratorRow[]> {
   if (!params.q) {
     const { rows } = await pool.query<NarratorRow>(
@@ -38,10 +35,6 @@ export async function searchNarrators(params: NarratorSearchParams): Promise<Nar
   return rows;
 }
 
-// PRD §5.3: "GET /narrators/:id/hadiths | Paged. The chains the narrator
-// appears in" — join isnad_links back to hadiths, distinct on hadith_id
-// since a narrator can appear in more than one link of the same hadith
-// across sanads.
 export async function listHadithsForNarrator(
   params: NarratorHadithParams,
 ): Promise<{ hadith_id: number; hadith_num: string; collection_id: number }[]> {
