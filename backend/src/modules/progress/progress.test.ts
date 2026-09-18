@@ -6,14 +6,6 @@ import { pool } from '../../db/pool.js';
 import { hashPassword } from '../../lib/password.js';
 import { bearer, loginAndGetToken, registerAndGetToken, uniqueEmail } from '../../testUtils/helpers.js';
 
-// New coverage beyond the demo's suites: PRD §5.10's override flow is the
-// other API-owned transaction, and it carries a subtle correctness
-// requirement (set_config's third argument must be `true`, i.e.
-// transaction-local) that has no visible symptom in a single isolated test
-// run -- only under concurrent/pooled connection reuse. We test what we CAN
-// observe from the HTTP layer: the audit row's changed_by value, and the
-// two hard business rules (self-study is never overridable; only the
-// owning teacher may override).
 
 async function firstHadithId(): Promise<number> {
   const { rows } = await pool.query<{ hadith_id: number }>(
@@ -86,8 +78,6 @@ async function enrollStudentAndAssign(
   const assignmentId = assignmentRows[0].assignment_id;
   const hadithId = await firstHadithId();
 
-  // Seed a progress row for this (student, hadith, assignment) triple via a
-  // real review submission, so PATCH /progress/:id has a row to act on.
   await request(app)
     .post('/review-sessions')
     .set(bearer(teacherToken))
@@ -132,7 +122,6 @@ describe('PATCH /progress/:progressId -- the override flow', () => {
     const studentId = userRows[0].user_id;
     const hadithId = await firstHadithId();
 
-    // Self-study review -- no assignment_id, no circle_id.
     await request(app)
       .post('/review-sessions')
       .set(bearer(student.accessToken))
@@ -171,16 +160,6 @@ describe('PATCH /progress/:progressId -- the override flow', () => {
   });
 
   test('overriding mastery fires trg_progress_audit with the correct changed_by', async () => {
-    // The closest an HTTP-level test can get to verifying
-    // set_config('ilham.user_id', $userId, true) was used correctly: if the
-    // third argument were `false` (transaction-persistent, the exact bug
-    // PRD §5.10 warns about), changed_by would still likely be correct on a
-    // single isolated request like this one -- the bug only shows up under
-    // pooled-connection reuse across DIFFERENT users' requests. This test
-    // confirms changed_by is populated with the overriding teacher's id on
-    // the happy path; a true concurrency regression test would need to
-    // force two requests onto the same pooled connection, out of scope for
-    // an HTTP-level suite.
     const teacher = await verifiedTeacherWithCircle('auditcheck');
     const { studentId, assignmentId } = await enrollStudentAndAssign(teacher.accessToken, teacher.circleId);
 

@@ -9,12 +9,10 @@ import {
   listReviewSessionsForTeacher,
 } from './reviews.model.js';
 
-// PRD §5.9 body shape exactly:
-// { student_id, circle_id, assignment_id, items: [{ hadith_id, result }] }
 const createSchema = z.object({
   student_id: z.number().int(),
   circle_id: z.number().int().nullable().optional(),
-  assignment_id: z.number().int().nullable().optional(), // absent/null = self-study
+  assignment_id: z.number().int().nullable().optional(),
   items: z.array(
     z.object({
       hadith_id: z.number().int(),
@@ -28,11 +26,6 @@ export async function postReviewSession(req: Request, res: Response, next: NextF
     const body = createSchema.parse(req.body);
     const { userId, role } = req.user!;
 
-    // §12.4 open decision resolved as "yes, with restriction to self":
-    // a student may only create a session for themselves; a teacher may
-    // create one for any student in their circle (circle ownership isn't
-    // re-verified at the SQL layer here since review_sessions.circle_id is
-    // nullable and self-study needs no circle at all).
     if (role === 'student' && body.student_id !== userId) {
       throw new BadRequestError('a student may only submit a review session for themselves');
     }

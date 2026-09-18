@@ -34,8 +34,6 @@ export async function postStudySet(req: Request, res: Response, next: NextFuncti
   }
 }
 
-// PRD §2.4: a caller who isn't the owner gets 404, not 403 — a study set's
-// existence isn't something another user can already infer from a shared list.
 async function requireOwnedStudySet(req: Request, studySetId: number) {
   const set = await getStudySetById(studySetId);
   if (!set || set.owner_id !== req.user!.userId) throw new NotFoundError('study set not found');
@@ -72,7 +70,7 @@ export async function deleteStudySetHandler(req: Request, res: Response, next: N
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) throw new BadRequestError('invalid study set id');
     await requireOwnedStudySet(req, id);
-    await deleteStudySet(id); // 23503 -> 422 if an assignment references it
+    await deleteStudySet(id);
     res.json({ data: null });
   } catch (e) {
     next(e);
@@ -85,7 +83,7 @@ export async function postStudySetItem(req: Request, res: Response, next: NextFu
     if (!Number.isInteger(id)) throw new BadRequestError('invalid study set id');
     await requireOwnedStudySet(req, id);
     const body = itemSchema.parse(req.body);
-    await addStudySetItem(id, body.hadith_id); // 23505 -> 409 on repeat
+    await addStudySetItem(id, body.hadith_id);
     res.status(201).json({ data: { study_set_id: id, hadith_id: body.hadith_id } });
   } catch (e) {
     next(e);

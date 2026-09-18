@@ -18,8 +18,6 @@ export async function getStudySetById(studySetId: number): Promise<StudySetRow |
   return rows[0] ?? null;
 }
 
-// owner_id is polymorphic (PRD §5.7): assert_user_exists (a trigger), not a
-// foreign key, checks it. No pre-check here.
 export async function createStudySet(input: { ownerId: number; name: string }): Promise<StudySetRow> {
   const { rows } = await pool.query<StudySetRow>(
     `INSERT INTO app.study_sets (owner_id, name) VALUES ($1, $2)
@@ -38,9 +36,6 @@ export async function renameStudySet(studySetId: number, name: string): Promise<
   return rows[0] ?? null;
 }
 
-// PRD §5.7: "Refuse with 422 if an assignment references it" — the
-// assignments.study_set_id foreign key raises 23503 on DELETE, which
-// errorHandler maps to 422 unprocessable. No app-level pre-check needed.
 export async function deleteStudySet(studySetId: number): Promise<boolean> {
   const { rowCount } = await pool.query(`DELETE FROM app.study_sets WHERE study_set_id = $1`, [
     studySetId,
@@ -60,7 +55,6 @@ export async function listStudySetItems(studySetId: number): Promise<StudySetIte
   return rows;
 }
 
-// PRD §5.7: "409 on a repeat" — unique constraint on (study_set_id, hadith_id).
 export async function addStudySetItem(studySetId: number, hadithId: number): Promise<void> {
   await pool.query(
     `INSERT INTO app.study_set_items (study_set_id, hadith_id) VALUES ($1, $2)`,

@@ -9,7 +9,7 @@ export interface CreateReviewSessionInput {
   reviewerId: number | null;
   studentId: number;
   circleId: number | null;
-  assignmentId: number | null; // PRD §5.9 "open decision": taken from the body, absent = self-study
+  assignmentId: number | null;
   items: ReviewItemInput[];
 }
 

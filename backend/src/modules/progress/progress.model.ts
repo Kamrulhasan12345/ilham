@@ -36,8 +36,6 @@ export async function getProgressById(progressId: number): Promise<ProgressRow |
   return rows[0] ?? null;
 }
 
-// PRD §5.10: reads app.student_stats. NEVER recompute it -- trg_progress_stats
-// is the single writer (req 4a).
 export async function getStudentStats(studentId: number): Promise<Record<string, unknown> | null> {
   const { rows } = await pool.query(`SELECT * FROM app.student_stats WHERE student_id = $1`, [
     studentId,
@@ -45,16 +43,6 @@ export async function getStudentStats(studentId: number): Promise<Record<string,
   return rows[0] ?? null;
 }
 
-// PRD §5.10 override flow, on one pooled client:
-//   BEGIN
-//   SELECT set_config('ilham.user_id', $userId, true)   <-- true = tx-local!
-//   UPDATE app.progress SET mastery = $1 WHERE progress_id = $2
-//   [trg_progress_audit fires]
-//   COMMIT
-// Using `true` (not `false`, despite the stale DDL comment in db/02_app.sql)
-// is what makes the setting reset at COMMIT -- `false` would leak the actor
-// onto the pooled connection for whichever request draws it next, and the
-// audit log would misattribute the NEXT override to THIS user.
 export async function overrideMastery(
   progressId: number,
   newMastery: number,

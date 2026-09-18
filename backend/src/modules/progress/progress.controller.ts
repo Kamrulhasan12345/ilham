@@ -21,8 +21,6 @@ export async function getProgress(req: Request, res: Response, next: NextFunctio
     const assignmentIdParam =
       typeof req.query.assignment_id === 'string' ? Number(req.query.assignment_id) : undefined;
 
-    // PRD §4: a student only ever sees their own rows, regardless of what
-    // student_id they pass.
     const studentId = role === 'student' ? userId : studentIdParam;
     const rows = await listProgress({ studentId, assignmentId: assignmentIdParam });
     res.json({ data: rows });
@@ -37,14 +35,9 @@ export async function getStudentStatsHandler(req: Request, res: Response, next: 
     if (!Number.isInteger(studentId)) throw new BadRequestError('invalid student id');
 
     const { userId, role } = req.user!;
-    // "A + self or teacher" per PRD §5.10. A teacher's visibility into a
-    // specific student's stats is via a shared circle; check that instead
-    // of trusting the role alone.
     if (role === 'student' && studentId !== userId) {
       throw new NotFoundError('stats not found');
     }
-    // (Teacher/admin: allowed through; a stricter same-circle check could be
-    // added here once a circle_id is supplied, matching §4's spirit.)
 
     const stats = await getStudentStats(studentId);
     if (!stats) throw new NotFoundError('stats not found');
@@ -54,8 +47,6 @@ export async function getStudentStatsHandler(req: Request, res: Response, next: 
   }
 }
 
-// PRD §5.10: "T + owner of the circle" and "A teacher may not override
-// self-study. If the target row has assignment_id IS NULL, refuse with 422."
 export async function patchProgress(req: Request, res: Response, next: NextFunction) {
   try {
     const progressId = Number(req.params.progressId);
@@ -69,7 +60,6 @@ export async function patchProgress(req: Request, res: Response, next: NextFunct
       throw new UnprocessableError('a teacher may not override a self-study progress row');
     }
 
-    // Ownership: the assignment's circle must belong to this teacher.
     const assignment = await getAssignmentById(row.assignment_id);
     if (!assignment) throw new NotFoundError('progress row not found');
     const circle = await getCircleById(assignment.circle_id);

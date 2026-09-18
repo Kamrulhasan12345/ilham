@@ -5,12 +5,6 @@ import { app } from '../../app.js';
 import { pool } from '../../db/pool.js';
 import { bearer, registerAndGetToken, uniqueEmail } from '../../testUtils/helpers.js';
 
-// New coverage beyond the demo's suites: PRD §5.9's review-session flow is
-// the API's one multi-table, API-owned transaction (withTransaction, not
-// the CALL-procedure pattern). These tests check the mastery arithmetic
-// (least/greatest per result), the self-study progress-row matching
-// (assignment_id IS NOT DISTINCT FROM), and that a student may only submit
-// a session for themselves.
 
 async function firstHadithId(): Promise<number> {
   const { rows } = await pool.query<{ hadith_id: number }>(
@@ -82,7 +76,6 @@ describe('POST /review-sessions -- self-study (no assignment_id) writes app.prog
     const student = await registerAndGetUserId(uniqueEmail('masteryrule'), 'student');
     const hadithId = await firstHadithId();
 
-    // pass x5 -> mastery caps at 4, not 5.
     for (let i = 0; i < 5; i++) {
       const res = await request(app)
         .post('/review-sessions')
@@ -102,7 +95,6 @@ describe('POST /review-sessions -- self-study (no assignment_id) writes app.prog
       'times_reviewed increments on every result, including a capped pass',
     );
 
-    // partial -> mastery unchanged, times_reviewed still increments.
     await request(app)
       .post('/review-sessions')
       .set(bearer(student.accessToken))
@@ -115,7 +107,6 @@ describe('POST /review-sessions -- self-study (no assignment_id) writes app.prog
     assert.equal(rows[0].mastery, 4, 'partial must not change mastery');
     assert.equal(rows[0].times_reviewed, 6);
 
-    // fail x5 -> mastery floors at 0, not negative.
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post('/review-sessions')
@@ -136,7 +127,7 @@ describe('POST /review-sessions -- self-study (no assignment_id) writes app.prog
     const { rows: hadithRows } = await pool.query<{ hadith_id: number }>(
       'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 2',
     );
-    if (hadithRows.length < 2) return; // corpus too small in this environment; skip silently
+    if (hadithRows.length < 2) return;
 
     const [h1, h2] = hadithRows.map((r) => r.hadith_id);
     const res = await request(app)
