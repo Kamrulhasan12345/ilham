@@ -18,7 +18,7 @@ const narratorRowSchema = z.object({
 });
 const narratorListSchema = z.array(narratorRowSchema);
 
-const searchParamsSchema = z.object({ q: z.coerce.string().catch(''), offset: z.number().catch(0) });
+const searchParamsSchema = z.object({ q: z.string().catch(''), offset: z.number().catch(0) });
 const LIMIT = 50;
 
 export const Route = createFileRoute('/_authed/narrators/')({
