@@ -103,3 +103,47 @@ describe('GET /analytics/shared-narrators -- Q3', () => {
     assert.equal(missing.status, 400);
   });
 });
+
+describe('analytics display values (frontend PRD 7.12/7.13/7.15)', () => {
+  test('top-narrators carries a summary matching a direct count', async () => {
+    const token = await authToken();
+    const res = await request(app)
+      .get('/analytics/top-narrators?limit=5')
+      .set(bearer(token));
+    assert.equal(res.status, 200);
+    const total = await pool.query<{ count: string }>(
+      'SELECT count(*) FROM corpus.isnad_links WHERE NOT is_compiler AND narrator_id IS NOT NULL',
+    );
+    assert.equal(res.body.summary.total_positions, Number(total.rows[0].count));
+    assert.equal(res.body.summary.top_count, res.body.data.length);
+    const shown = res.body.data.reduce((n: number, r: { positions: number }) => n + Number(r.positions), 0);
+    assert.ok(Math.abs(res.body.summary.top_share - shown / Number(total.rows[0].count)) < 1e-9);
+  });
+
+  test('contested rows carry both Arabic grade glosses', async () => {
+    const token = await authToken();
+    const res = await request(app)
+      .get('/analytics/contested-narrators?limit=3')
+      .set(bearer(token));
+    assert.equal(res.status, 200);
+    assert.ok(res.body.data.length > 0);
+    for (const row of res.body.data) {
+      assert.equal(typeof row.label_ibn_hajar, 'string');
+      assert.equal(typeof row.label_dhahabi, 'string');
+    }
+  });
+
+  test('weakest-chains carries the unscored count matching a direct count', async () => {
+    const token = await authToken();
+    const res = await request(app)
+      .get('/analytics/weakest-chains?limit=3')
+      .set(bearer(token));
+    assert.equal(res.status, 200);
+    const direct = await pool.query<{ count: string }>(
+      `SELECT count(*) FROM corpus.hadiths h
+        WHERE NOT EXISTS (SELECT 1 FROM corpus.isnad_links l
+                          WHERE l.hadith_id = h.hadith_id AND NOT l.is_compiler)`,
+    );
+    assert.equal(res.body.summary.unscored, Number(direct.rows[0].count));
+  });
+});

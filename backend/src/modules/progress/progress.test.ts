@@ -312,3 +312,74 @@ describe('GET /progress', () => {
     assert.equal(res.status, 401);
   });
 });
+
+describe('GET /students/:id/stats (PRD 5.10)', () => {
+  test('a student reads their own stats after a review, shape has counts', async () => {
+    const email = uniqueEmail('statself');
+    await registerAndGetToken(app, email, 'student');
+    const stu = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    const studentId = stu.rows[0].user_id;
+    const login = await request(app)
+      .post('/auth/login')
+      .send({ email, password: 'password123' });
+    const token = login.body.data.accessToken;
+    const hadith = await firstHadithId();
+    await request(app)
+      .post('/review-sessions')
+      .set(bearer(token))
+      .send({ student_id: studentId, items: [{ hadith_id: hadith, result: 'pass' }] });
+
+    const res = await request(app)
+      .get(`/students/${studentId}/stats`)
+      .set(bearer(token));
+    assert.equal(res.status, 200);
+    assert.equal(Number(res.body.data.student_id), studentId);
+    assert.ok('mastered_count' in res.body.data);
+    assert.ok('review_count' in res.body.data);
+  });
+
+  test('rules: other student 404, teacher 200, anonymous 401, bad id 400', async () => {
+    const emailA = uniqueEmail('statA');
+    await registerAndGetToken(app, emailA, 'student');
+    const stuA = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [emailA],
+    );
+    const loginA = await request(app)
+      .post('/auth/login')
+      .send({ email: emailA, password: 'password123' });
+    const tokenA = loginA.body.data.accessToken;
+
+    const emailB = uniqueEmail('statB');
+    await registerAndGetToken(app, emailB, 'student');
+    const stuB = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [emailB],
+    );
+
+    const other = await request(app)
+      .get(`/students/${stuB.rows[0].user_id}/stats`)
+      .set(bearer(tokenA));
+    assert.equal(other.status, 404);
+
+    const teacher = await verifiedTeacherWithCircle('statteach');
+    const hadith = await firstHadithId();
+    await request(app)
+      .post('/review-sessions')
+      .set(bearer(tokenA))
+      .send({ student_id: stuA.rows[0].user_id, items: [{ hadith_id: hadith, result: 'pass' }] });
+    const seen = await request(app)
+      .get(`/students/${stuA.rows[0].user_id}/stats`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(seen.status, 200);
+
+    const anon = await request(app).get(`/students/${stuA.rows[0].user_id}/stats`);
+    assert.equal(anon.status, 401);
+
+    const bad = await request(app).get('/students/abc/stats').set(bearer(tokenA));
+    assert.equal(bad.status, 400);
+  });
+});

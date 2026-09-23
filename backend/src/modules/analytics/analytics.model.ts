@@ -28,8 +28,8 @@ export async function getTopNarrators(limit: number): Promise<TopNarratorRow[]> 
 export async function getContestedNarrators(limit: number): Promise<ContestedNarratorRow[]> {
   const { rows } = await pool.query(
     `SELECT n.narrator_id, n.display_name,
-            n.rank_ibn_hajar, ri.ordinal AS ordinal_ibn_hajar,
-            n.rank_dhahabi, rd.ordinal AS ordinal_dhahabi
+            n.rank_ibn_hajar, ri.ordinal AS ordinal_ibn_hajar, ri.label_ar AS label_ibn_hajar,
+            n.rank_dhahabi, rd.ordinal AS ordinal_dhahabi, rd.label_ar AS label_dhahabi
        FROM corpus.narrators n
        JOIN corpus.rank_levels ri ON ri.rank_code = n.rank_ibn_hajar
        JOIN corpus.rank_levels rd ON rd.rank_code = n.rank_dhahabi
@@ -56,6 +56,25 @@ export async function getSharedNarrators(hadithA: number, hadithB: number): Prom
     [hadithA, hadithB],
   );
   return rows;
+}
+
+// Denominator for the concentration the top-narrators page prints: every
+// counted chain position, same predicate as the ranking.
+export async function getPositionTotal(): Promise<number> {
+  const { rows } = await pool.query<{ count: string }>(
+    `SELECT count(*) FROM corpus.isnad_links WHERE NOT is_compiler AND narrator_id IS NOT NULL`,
+  );
+  return Number(rows[0].count);
+}
+
+// Hadiths with no scorable chain, for the weakest-chains caption.
+export async function getUnscoredHadithCount(): Promise<number> {
+  const { rows } = await pool.query<{ count: string }>(
+    `SELECT count(*) FROM corpus.hadiths h
+      WHERE NOT EXISTS (SELECT 1 FROM corpus.isnad_links l
+                        WHERE l.hadith_id = h.hadith_id AND NOT l.is_compiler)`,
+  );
+  return Number(rows[0].count);
 }
 
 // PRD §5.5 Q5: weakest chains first, joined to collection and chapter for

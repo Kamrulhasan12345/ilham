@@ -17,6 +17,7 @@ import { narratorsRoutes } from './modules/narrators/narrators.routes.js';
 import { circlesRoutes } from './modules/circles/circles.routes.js';
 import { notesRoutes } from './modules/notes/notes.routes.js';
 import { studentsRoutes } from './modules/students/students.routes.js';
+import { getStudentStatsHandler } from './modules/progress/progress.controller.js';
 import { teachersRoutes } from './modules/teachers/teachers.routes.js';
 import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
 import { studySetsRoutes } from './modules/studySets/studySets.routes.js';
@@ -49,6 +50,9 @@ app.use('/hadiths', requireAuth, hadithsRoutes);
 app.use('/narrators', requireAuth, narratorsRoutes);
 app.use('/notes', requireAuth, notesRoutes);
 app.use('/students', requireAuth, studentsRoutes);
+// Mounted here, not in either router: the path lives under /students but the
+// handler (and its self-or-teacher rule) belongs to progress (PRD §5.10).
+app.get('/students/:id/stats', requireAuth, getStudentStatsHandler);
 app.use('/circles', requireAuth, circlesRoutes);
 app.use('/teachers', requireAuth, requireRole('admin'), teachersRoutes);
 app.use('/analytics', requireAuth, analyticsRoutes);

@@ -208,3 +208,60 @@ describe('GET /circles/:id/overview', () => {
     }
   });
 });
+
+describe('overview mastered threshold (frontend PRD: mastery >= 3)', () => {
+  test('mastery 3 counts as mastered, mastery 2 does not', async () => {
+    const teacher = await verifiedTeacher('ovth');
+    const student = await registerStudent('ovthstu');
+    const circleId = await makeCircle(teacher.accessToken, 'ovth');
+    await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+
+    const hadith = await pool.query<{ hadith_id: number }>(
+      'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 1',
+    );
+    const setRes = await request(app)
+      .post('/study-sets')
+      .set(bearer(teacher.accessToken))
+      .send({ name: 'ovth set' });
+    const setId = setRes.body.data.study_set_id;
+    await request(app)
+      .post(`/study-sets/${setId}/items`)
+      .set(bearer(teacher.accessToken))
+      .send({ hadith_id: hadith.rows[0].hadith_id });
+    await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({ circle_id: circleId, study_set_id: setId, due_date: '2027-06-01' });
+
+    const prog = await pool.query<{ progress_id: number }>(
+      'SELECT progress_id FROM app.progress WHERE student_id = $1',
+      [student.userId],
+    );
+    const progressId = prog.rows[0].progress_id;
+    const mastered = async () => {
+      const res = await request(app)
+        .get(`/circles/${circleId}/overview`)
+        .set(bearer(teacher.accessToken));
+      assert.equal(res.status, 200);
+      const row = res.body.data.find(
+        (r: { student_id: number }) => Number(r.student_id) === student.userId,
+      );
+      return Number(row.mastered);
+    };
+
+    await request(app)
+      .patch(`/progress/${progressId}`)
+      .set(bearer(teacher.accessToken))
+      .send({ mastery: 3 });
+    assert.equal(await mastered(), 1);
+
+    await request(app)
+      .patch(`/progress/${progressId}`)
+      .set(bearer(teacher.accessToken))
+      .send({ mastery: 2 });
+    assert.equal(await mastered(), 0);
+  });
+});

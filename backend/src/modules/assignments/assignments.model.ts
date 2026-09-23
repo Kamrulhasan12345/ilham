@@ -35,7 +35,7 @@ export async function getAssignmentById(assignmentId: number): Promise<Assignmen
 }
 
 // Per enrolled student: total hadiths in the set, distinct hadiths reviewed,
-// distinct hadiths mastered (mastery at the top of the 0-4 scale). No view
+// distinct hadiths mastered (mastery at 3 or above). No view
 // exists for this in the DDL, so the query lives here instead of inventing
 // schema. Progress is keyed by (student, hadith, assignment), so every count
 // is count(DISTINCT hadith_id).
@@ -49,7 +49,7 @@ export async function getAssignmentCompletion(assignmentId: number): Promise<Rec
        (SELECT count(DISTINCT p.hadith_id) FROM app.progress p
          WHERE p.assignment_id = $1 AND p.student_id = e.student_id) AS reviewed,
        (SELECT count(DISTINCT p.hadith_id) FROM app.progress p
-         WHERE p.assignment_id = $1 AND p.student_id = e.student_id AND p.mastery = 4) AS mastered
+         WHERE p.assignment_id = $1 AND p.student_id = e.student_id AND p.mastery >= 3) AS mastered
        FROM app.enrollments e
        JOIN app.assignments a ON a.circle_id = e.circle_id
       WHERE a.assignment_id = $1

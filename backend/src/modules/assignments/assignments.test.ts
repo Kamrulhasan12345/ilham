@@ -245,3 +245,64 @@ describe('GET /assignments and GET /assignments/:id', () => {
     assert.equal(anonRes.status, 401);
   });
 });
+
+describe('completion mastered threshold (frontend PRD: mastery >= 3)', () => {
+  test('mastery 3 counts as mastered, mastery 2 does not', async () => {
+    const teacher = await verifiedTeacher('compth');
+    const { circleId, studySetId } = await makeCircleAndStudySet(teacher.accessToken);
+    const hadith = await pool.query<{ hadith_id: number }>(
+      'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 1',
+    );
+    await request(app)
+      .post(`/study-sets/${studySetId}/items`)
+      .set(bearer(teacher.accessToken))
+      .send({ hadith_id: hadith.rows[0].hadith_id });
+
+    const studentEmail = uniqueEmail('compthstu');
+    await registerAndGetToken(app, studentEmail, 'student');
+    const stu = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [studentEmail],
+    );
+    await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: stu.rows[0].user_id });
+    await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({ circle_id: circleId, study_set_id: studySetId, due_date: '2027-06-01' });
+
+    const aid = await pool.query<{ assignment_id: number }>(
+      'SELECT assignment_id FROM app.assignments WHERE circle_id = $1 ORDER BY assignment_id DESC LIMIT 1',
+      [circleId],
+    );
+    const assignmentId = aid.rows[0].assignment_id;
+    const prog = await pool.query<{ progress_id: number }>(
+      'SELECT progress_id FROM app.progress WHERE student_id = $1 AND assignment_id = $2',
+      [stu.rows[0].user_id, assignmentId],
+    );
+    const mastered = async () => {
+      const res = await request(app)
+        .get(`/assignments/${assignmentId}/completion`)
+        .set(bearer(teacher.accessToken));
+      assert.equal(res.status, 200);
+      const row = res.body.data.find(
+        (r: { student_id: number }) => Number(r.student_id) === stu.rows[0].user_id,
+      );
+      return Number(row.mastered);
+    };
+
+    await request(app)
+      .patch(`/progress/${prog.rows[0].progress_id}`)
+      .set(bearer(teacher.accessToken))
+      .send({ mastery: 3 });
+    assert.equal(await mastered(), 1);
+
+    await request(app)
+      .patch(`/progress/${prog.rows[0].progress_id}`)
+      .set(bearer(teacher.accessToken))
+      .send({ mastery: 2 });
+    assert.equal(await mastered(), 0);
+  });
+});
