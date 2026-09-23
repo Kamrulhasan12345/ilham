@@ -4,6 +4,7 @@ import { BadRequestError, NotFoundError } from '../../lib/errors.js';
 import {
   createNote,
   deleteOwnNote,
+  listNotesForHadith,
   listNotesForUser,
   updateOwnNote,
 } from './notes.model.js';
@@ -23,12 +24,40 @@ export async function getNotes(req: Request, res: Response, next: NextFunction) 
   }
 }
 
+// Wired under /hadiths/:id/notes (see docs/backend-prd.md §5.11) -- the
+// :id here is a hadith id, not a note id.
+export async function getNotesForHadith(req: Request, res: Response, next: NextFunction) {
+  try {
+    const hadithId = Number(req.params.id);
+    if (!Number.isInteger(hadithId)) throw new BadRequestError('invalid hadith id');
+    const notes = await listNotesForHadith(req.user!.userId, hadithId);
+    res.json({ data: notes });
+  } catch (e) {
+    next(e);
+  }
+}
+
 export async function postNote(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
     const parsed = createNoteSchema.safeParse(req.body);
     if (!parsed.success) throw new BadRequestError('invalid note payload');
     const note = await createNote({ userId, hadithId: parsed.data.hadith_id, body: parsed.data.body });
+    res.status(201).json({ data: note });
+  } catch (e) {
+    next(e);
+  }
+}
+
+// Wired under /hadiths/:id/notes (see docs/backend-prd.md §5.11) -- the
+// hadith id comes from the path, the body carries only the text.
+export async function postNoteForHadith(req: Request, res: Response, next: NextFunction) {
+  try {
+    const hadithId = Number(req.params.id);
+    if (!Number.isInteger(hadithId)) throw new BadRequestError('invalid hadith id');
+    const parsed = updateNoteSchema.safeParse(req.body);
+    if (!parsed.success) throw new BadRequestError('invalid note payload');
+    const note = await createNote({ userId: req.user!.userId, hadithId, body: parsed.data.body });
     res.status(201).json({ data: note });
   } catch (e) {
     next(e);

@@ -3,4 +3,5 @@ export interface CollectionRow {
   slug: string;
   title_ar: string;
   title_en: string | null;
+  hadith_count: number;
 }

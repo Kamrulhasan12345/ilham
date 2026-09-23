@@ -327,7 +327,10 @@ CREATE TRIGGER trg_progress_audit
 AFTER UPDATE ON app.progress
 FOR EACH ROW EXECUTE FUNCTION app.audit_progress();
 
--- API sets the actor per connection: SELECT set_config('ilham.user_id', $1, false);
+-- API sets the actor per connection: SELECT set_config('ilham.user_id', $1, true);
+-- true keeps the setting transaction-local. false would persist it on the
+-- pooled connection, and the next request to draw that connection would
+-- inherit a stale actor.
 
 -- =============================================================================
 -- PROCEDURE: assign_study_set — multi-table fan-out that owns its transaction.

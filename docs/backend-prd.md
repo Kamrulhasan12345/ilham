@@ -356,6 +356,7 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
 |---|---|---|---|
 | GET | `/teachers/unverified` | Ad | Paged |
 | POST | `/teachers/:id/verify` | Ad | Sets `is_verified = true` |
+| DELETE | `/teachers/:id/verify` | Ad | **Missing — must implement.** Sets `is_verified = false`. Blocks only future circles: the trigger checks the flag at circle INSERT time, so running circles continue. The admin UI confirms first, because declining is destructive (frontend PRD §7.23) |
 
 ### 5.3 Corpus — read-only
 
@@ -369,6 +370,7 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
 | GET | `/narrators/:id` | A | The profile, the grades, both raw and coded |
 | GET | `/narrators/:id/hadiths` | A | Paged. The chains the narrator appears in |
 | GET | `/narrators` | A | Search by name. `q` matches `name_norm` or `display_norm` |
+| GET | `/narrators/:id/adjacent` | A | **Missing — must implement.** The neighbours table for frontend PRD §7.10 section 4: teacher rows and student rows from `corpus.isnad_edges`, never a graph. `GET /narrators/:id/hadiths` above already serves the chains list (§7.10 section 3), so no separate chains endpoint is needed |
 
 **`GET /hadiths/:id` — the response shape:**
 
@@ -377,20 +379,22 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
   "hadith":  { "hadith_id": 1, "hadith_num": "1", "text_plain": "…",
                "text_diac": "…", "matn_plain": "…", "sanad_count": 1 },
   "collection": { "slug": "sahih-al-bukhari", "title_ar": "…", "title_en": "…" },
-  "chapter":    { "chapter_id": 12, "seq": 12, "title_ar": "…" },
+  "chapter":    { "chapter_id": 12, "seq": 12, "title_ar": "…" },  // null when absent
   "translation": { "lang": "en", "text_full": "…", "source": "LK",
                    "match_via": "E" },          // null when absent
+  "isnadChain": [ /* flat, ordered by (sanad_no, position) — kept for readers */ ],
   "chains": [                                    // GROUPED by sanad_no
     { "sanad_no": 1,
       "strength": 0.95,                          // per-sanad, see §8.4
       "links": [
         { "position": 1, "narrator_id": 4021, "display_name": "…",
-          "name_en": "…", "raw_name": "…", "transmission_word": null,
+          "name_en": "…", "kunya": "…", "lineage": "…", "school": "…",
+          "tabaqa_raw": "…", "raw_name": "…", "transmission_word": null,
           "is_compiler": false, "resolution": "A",
-          "rank_ibn_hajar_raw": "…", "rank_ibn_hajar": "thiqa" }
+          "rank_ibn_hajar_raw": "…", "rank_ibn_hajar": "thiqa",
+          "rank_ibn_hajar_via": "E" }
       ] } ],
-  "chain_strength": 0.95,
-  "chain_strength_basis": { "words_aligned": true, "sanad_count": 1 }
+  "chain_strength": 0.95,                        // best sanad, from the function
 }
 ```
 
@@ -409,10 +413,11 @@ Three things worth spelling out:
   between hadiths unless the reader can see this. One boolean turns an
   unstated flaw into a stated limitation.
 
-Build this from two queries, not four: one for the hadith with its collection,
-chapter, translation and `corpus.chain_strength` joined; one for the links with
-the narrator and the rank levels joined, ordered `sanad_no, position`, grouped
-in application code.
+Build this from one single-purpose query each: the hadith with its collection
+and chapter joined; the translation; the links with the narrator, biography,
+and rank levels joined, ordered `sanad_no, position`; the best strength from
+the function; the per-sanad strengths from the view. Links group in
+application code.
 
 ### 5.4 Corpus search
 
@@ -446,12 +451,12 @@ the API thin.
 
 | Q | Endpoint | Object | Notes |
 |---|---|---|---|
-| Q1 | `GET /analytics/top-narrators` | `corpus.v_top_narrators` | Count of chain positions per narrator. Exclude `is_compiler` and `is_placeholder` |
-| Q2 | `GET /analytics/contested-narrators` | `corpus.v_contested_narrators` | `rank_levels.ordinal` differs between the two scholars. **Exclude `rank_*_via = 'S'`** — the Companion tabaqa pass sets both columns from one rule, so those narrators are not contested, they are unjudged |
+| Q1 | `GET /analytics/top-narrators` | `corpus.v_top_narrators` | Count of chain positions per narrator. Exclude `is_compiler` and `is_placeholder`. Implemented as model SQL (no view file exists); the response carries a `summary` with `total_positions`, `top_count`, and `top_share` for the frontend caption |
+| Q2 | `GET /analytics/contested-narrators` | `corpus.v_contested_narrators` | `rank_levels.ordinal` differs between the two scholars. **Exclude `rank_*_via = 'S'`** — the Companion tabaqa pass sets both columns from one rule, so those narrators are not contested, they are unjudged. Implemented as model SQL; rows carry both `label_ar` glosses for the chart axis |
 | Q3 | `GET /analytics/shared-narrators?a=&b=` | `corpus.shared_narrators(a, b)` | Two hadiths, the narrators in common. A view cannot take a parameter and the self-join over 139k links is not materialisable, so this one is a SQL function |
-| Q4 | `GET /circles/:id/overview` | `app.v_circle_overview` | The teacher dashboard. Per student: assigned, mastered, overdue. `count(DISTINCT hadith_id)` |
-| Q5 | `GET /analytics/weakest-chains` | `corpus.v_weakest_chains` | Ordered by `chain_strength`. Join to the collection and the chapter for display |
-| Q6 | `GET /assignments/:id/completion` | `app.v_assignment_completion` | Per student: due, done, percentage |
+| Q4 | `GET /circles/:id/overview` | `app.v_circle_overview` | The teacher dashboard. Per student: assigned, mastered, overdue. `count(DISTINCT hadith_id)`. Implemented as model SQL (no view file exists) |
+| Q5 | `GET /analytics/weakest-chains` | `corpus.v_weakest_chains` | Ordered by `chain_strength`. Join to the collection and the chapter for display. Implemented as model SQL over the `corpus.chain_strength` function; the response carries a `summary` with the `unscored` hadith count for the caption |
+| Q6 | `GET /assignments/:id/completion` | `app.v_assignment_completion` | Per student: due, done, percentage. Implemented as model SQL (no view file exists) |
 
 Q4 and Q6 are views in `app`, filtered by the caller's circle in the model. Q1,
 Q2, Q3 and Q5 read the corpus only, and need no special role — a student may
@@ -813,6 +818,9 @@ expose the per-sanad `min` in a view. Prefer the view — req 8 grades
 restraint, and a second function duplicating the first one's arithmetic is
 the kind of thing this project has otherwise avoided.
 
+Done: `db/07_sanad_strength.sql` creates the `corpus.sanad_strengths` view,
+and `GET /hadiths/:id` returns grouped `chains` with one strength each.
+
 ---
 
 ## 9. Requirement map
@@ -882,10 +890,10 @@ The split follows `docs/prd.md` §7.
    one admin row directly in `db/04_seed_reference.sql` or via a one-time
    script; do not add a bootstrap endpoint that creates an admin from an
    unauthenticated request.
-7. **Does an admin action ever un-verify a teacher?** The trigger comment
-   states the gate does not retroactively close a running circle. If the
-   product wants a revocation path, it is a second endpoint
-   (`DELETE /teachers/:id/verify` or similar) and needs no new trigger — the
+7. **Does an admin action ever un-verify a teacher?** Yes: `DELETE
+   /teachers/:id/verify` unsets the flag (see §5.2). The trigger comment
+   states the gate does not retroactively close a running circle. The
+   endpoint needs no new trigger — the
    existing one already only checks the flag at `INSERT`/`UPDATE OF
    teacher_id` time on `circles`, so unverifying a teacher naturally blocks
    only their *next* circle, consistent with §3.4.

@@ -25,3 +25,11 @@ export async function verifyTeacher(userId: number): Promise<boolean> {
   );
   return (rowCount ?? 0) > 0;
 }
+
+export async function unverifyTeacher(userId: number): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    `UPDATE app.teachers SET is_verified = false WHERE user_id = $1`,
+    [userId],
+  );
+  return (rowCount ?? 0) > 0;
+}

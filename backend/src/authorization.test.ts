@@ -197,3 +197,44 @@ describe('every role can log in, and the verified-teacher flow works end to end'
     assert.equal(circle.status, 201);
   });
 });
+
+describe('declining a teacher (DELETE /teachers/:id/verify)', () => {
+  test('admin unverifies: flag flips, teacher rejoins the queue, circles stay', async () => {
+    const teacherEmail = uniqueEmail('decline');
+    await registerAndGetToken(app, teacherEmail, 'teacher');
+    const t = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [teacherEmail],
+    );
+    const teacherId = t.rows[0].user_id;
+    const { token: adminToken } = await seedAdmin('declineadmin');
+
+    await request(app).post(`/teachers/${teacherId}/verify`).set(bearer(adminToken));
+    const declined = await request(app)
+      .delete(`/teachers/${teacherId}/verify`)
+      .set(bearer(adminToken));
+    assert.equal(declined.status, 200);
+    assert.equal(declined.body.data.is_verified, false);
+
+    const queue = await request(app).get('/teachers/unverified').set(bearer(adminToken));
+    assert.ok(queue.body.data.some((r: { user_id: number }) => r.user_id === teacherId));
+  });
+
+  test('rules: bad id 400, missing teacher 404, non-admin 403, anonymous 401', async () => {
+    const { token: adminToken } = await seedAdmin('declinerules');
+    const bad = await request(app).delete('/teachers/abc/verify').set(bearer(adminToken));
+    assert.equal(bad.status, 400);
+    const missing = await request(app).delete('/teachers/999999999/verify').set(bearer(adminToken));
+    assert.equal(missing.status, 404);
+
+    const { accessToken: teacherToken } = await registerAndGetToken(
+      app,
+      uniqueEmail('declinetch'),
+      'teacher',
+    );
+    const forbidden = await request(app).delete('/teachers/1/verify').set(bearer(teacherToken));
+    assert.equal(forbidden.status, 403);
+    const anon = await request(app).delete('/teachers/1/verify');
+    assert.equal(anon.status, 401);
+  });
+});
