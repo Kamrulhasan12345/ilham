@@ -43,80 +43,32 @@
   margin-inline-start: auto;
 }
 
-.identity {
-  font-size: var(--fs-rail);
-}
-
 .navTier {
-  display: flex;
-  align-items: stretch;
-  gap: var(--sp-3);
-  padding: 0 var(--sp-2);
-  background: var(--rail);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.navTier::-webkit-scrollbar {
-  display: none;
-}
-
-.navGroup {
   display: flex;
   align-items: stretch;
   gap: var(--sp-2);
 }
-.navGroup + .navGroup {
-  border-inline-start: var(--bw) solid var(--rule);
-  padding-inline-start: var(--sp-3);
-}
 
-.navLabel {
-  font-size: var(--fs-label);
-  font-weight: 600;
-  letter-spacing: var(--track-label);
-  color: var(--ink-app);
-  padding: var(--sp-2) var(--sp-2) var(--sp-1);
-  margin: 0;
-  align-self: center;
-  white-space: nowrap;
-}
-
-/* Current tab carries three signals — weight, an index underline and
-   aria-current — so it never rests on colour alone. */
-.navLink {
+.menuItem {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  padding: var(--p-nav-v) var(--sp-1);
+  padding: var(--sp-2);
   min-height: var(--h-button);
-  white-space: nowrap;
+  font-family: var(--font-en);
   font-size: var(--fs-rail);
-  color: var(--ink-app);
+  color: var(--ink);
   text-decoration: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: calc(var(--bw) * -1);
-}
-.navLink:hover {
-  color: var(--ink);
-}
-.navLink[data-status="active"] {
-  font-weight: 600;
-  color: var(--ink);
-  border-bottom-color: var(--index);
-}
-.navLink:focus-visible {
-  outline-offset: -2px;
+  white-space: nowrap;
 }
 
-.icon {
-  width: var(--icon-size);
-  height: var(--icon-size);
-  flex: none;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--rail);
+}
+
+.menuItem[data-status="active"] {
+  font-weight: 600;
 }
 
 .banner {
@@ -139,13 +91,4 @@
 }
 .main:focus {
   outline: none;
-}
-
-@media (max-width: 62rem) {
-  .navLabel {
-    display: none;
-  }
-  .navTier {
-    padding: 0;
-  }
 }

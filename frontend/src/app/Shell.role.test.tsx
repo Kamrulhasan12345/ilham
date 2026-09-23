@@ -72,7 +72,7 @@ describe('role-aware shell', () => {
         is_verified: true,
       },
     });
-    await screen.findByRole('navigation', { name: 'Study' });
+    await screen.findByRole('button', { name: 'Study' });
     expect(screen.queryByText(/waiting for review/i)).not.toBeInTheDocument();
   });
 
@@ -81,8 +81,9 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 9, role: 'admin', full_name: 'Root', email: 'a@x.io' },
     });
-    expect(await screen.findByText(/root · admin/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Verify teachers' })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Account' }));
+    expect(screen.getByText(/root · admin/i)).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Verify teachers' })).toBeInTheDocument();
   });
 
   it('hides the verify link from a student', async () => {
@@ -90,8 +91,8 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    await screen.findByRole('navigation', { name: 'Study' });
-    expect(screen.queryByRole('link', { name: 'Verify teachers' })).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Account' }));
+    expect(screen.queryByRole('menuitem', { name: 'Verify teachers' })).not.toBeInTheDocument();
   });
 
   it('shows the students link to a teacher but not to a student', async () => {
@@ -105,7 +106,8 @@ describe('role-aware shell', () => {
         is_verified: true,
       },
     });
-    expect(await screen.findByRole('link', { name: 'Students' })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Study' }));
+    expect(screen.getByRole('menuitem', { name: 'Students' })).toBeInTheDocument();
   });
 
   it('hides the students link from a student', async () => {
@@ -113,22 +115,22 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    await screen.findByRole('navigation', { name: 'Study' });
-    expect(screen.queryByRole('link', { name: 'Students' })).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Study' }));
+    expect(screen.queryByRole('menuitem', { name: 'Students' })).not.toBeInTheDocument();
   });
 
-  it('renders the nav as real router links: clicking one navigates client-side, not via a full reload', async () => {
-    // A plain <a> would not update the router's own location in jsdom (a raw
-    // anchor click either no-ops or hits jsdom's unimplemented-navigation
-    // path). Only a TanStack Router <Link> intercepts the click, calls
-    // preventDefault, and pushes the new location through the router itself
-    // — so asserting the router's location changed is exactly the evidence
-    // that this is a client-side SPA navigation, not a page reload.
+  it('renders menu items as real router links: clicking one navigates client-side, not via a full reload', async () => {
+    // A plain <a> would not update the router's own location in jsdom. Only
+    // a TanStack Router <Link> intercepts the click, calls preventDefault,
+    // and pushes the new location through the router itself — so asserting
+    // the router's location changed is exactly the evidence that this is a
+    // client-side SPA navigation, not a page reload.
     const router = renderShellAt('/collections', {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    const circlesLink = await screen.findByRole('link', { name: 'Circles' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Study' }));
+    const circlesLink = screen.getByRole('menuitem', { name: 'Circles' });
     fireEvent.click(circlesLink);
     await waitFor(() => expect(router.state.location.pathname).toBe('/circles'));
   });
