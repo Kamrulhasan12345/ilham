@@ -61,8 +61,14 @@ export async function overrideMastery(
 
 export async function listAuditLog(limit: number, offset: number): Promise<AuditLogRow[]> {
   const { rows } = await pool.query<AuditLogRow>(
-    `SELECT audit_id, progress_id, changed_by, old_mastery, new_mastery, changed_at
-       FROM app.progress_audit
+    `SELECT audit_id,
+            row_key::bigint AS progress_id,
+            changed_by,
+            (old_value->>'mastery')::smallint AS old_mastery,
+            (new_value->>'mastery')::smallint AS new_mastery,
+            changed_at
+       FROM app.audit_log
+      WHERE table_name = 'app.progress'
       ORDER BY changed_at DESC
       LIMIT $1 OFFSET $2`,
     [limit, offset],

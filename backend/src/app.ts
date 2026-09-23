@@ -18,6 +18,12 @@ import { circlesRoutes } from './modules/circles/circles.routes.js';
 import { notesRoutes } from './modules/notes/notes.routes.js';
 import { studentsRoutes } from './modules/students/students.routes.js';
 import { teachersRoutes } from './modules/teachers/teachers.routes.js';
+import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
+import { studySetsRoutes } from './modules/studySets/studySets.routes.js';
+import { assignmentsRoutes } from './modules/assignments/assignments.routes.js';
+import { reviewsRoutes } from './modules/reviews/reviews.routes.js';
+import { progressRoutes } from './modules/progress/progress.routes.js';
+import { metaRoutes } from './modules/meta/meta.routes.js';
 import { healthRoutes } from './modules/meta/health.routes.js';
 
 export const app = express();
@@ -45,10 +51,12 @@ app.use('/notes', requireAuth, notesRoutes);
 app.use('/students', requireAuth, studentsRoutes);
 app.use('/circles', requireAuth, circlesRoutes);
 app.use('/teachers', requireAuth, requireRole('admin'), teachersRoutes);
-
-// study-sets, assignments, review-sessions, progress, and analytics are not
-// built yet on either backend (see docs/backend-prd.md §5.5, §5.8-§5.10) --
-// left out rather than stubbed, per YAGNI.
+app.use('/analytics', requireAuth, analyticsRoutes);
+app.use('/study-sets', requireAuth, studySetsRoutes);
+app.use('/assignments', requireAuth, assignmentsRoutes);
+app.use('/review-sessions', requireAuth, reviewsRoutes);
+app.use('/progress', requireAuth, progressRoutes);
+app.use('/meta', requireAuth, metaRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

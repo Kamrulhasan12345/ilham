@@ -66,7 +66,7 @@ describe('POST /assignments -- the CALL app.assign_study_set procedure pattern',
     assert.equal(second.status, 201);
 
     const { rows } = await pool.query(
-      'SELECT count(*) FROM app.assignments WHERE circle_id = $1 AND study_set_id = $2',
+      'SELECT count(*) FROM app.assignments WHERE circle_id = $1 AND set_id = $2',
       [circleId, studySetId],
     );
     assert.equal(Number(rows[0].count), 2);

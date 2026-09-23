@@ -96,9 +96,30 @@ export async function unenrollStudent(circleId: number, studentId: number): Prom
   return (rowCount ?? 0) > 0;
 }
 
+// The teacher dashboard (PRD Q4): per enrolled student, assigned / mastered /
+// overdue. Mastered means reaching the top of the 0-4 scale (see the mastery
+// rule in reviews.model.ts). No view exists for this in the DDL, so the query
+// lives here, with the rest of the SQL, instead of inventing schema.
 export async function getCircleOverview(circleId: number): Promise<Record<string, unknown>[]> {
   const { rows } = await pool.query(
-    `SELECT * FROM app.v_circle_overview WHERE circle_id = $1`,
+    `SELECT e.student_id,
+       (SELECT count(DISTINCT si.hadith_id)
+          FROM app.assignments a
+          JOIN app.set_items si ON si.set_id = a.set_id
+         WHERE a.circle_id = $1) AS assigned,
+       (SELECT count(DISTINCT p.hadith_id)
+          FROM app.progress p
+          JOIN app.assignments a ON a.assignment_id = p.assignment_id
+         WHERE p.student_id = e.student_id AND a.circle_id = $1 AND p.mastery = 4) AS mastered,
+       (SELECT count(*)
+          FROM app.assignments a
+         WHERE a.circle_id = $1 AND a.due_date < CURRENT_DATE
+           AND (SELECT count(DISTINCT si.hadith_id) FROM app.set_items si WHERE si.set_id = a.set_id)
+             > (SELECT count(DISTINCT p.hadith_id) FROM app.progress p
+                 WHERE p.assignment_id = a.assignment_id AND p.student_id = e.student_id AND p.mastery = 4)) AS overdue
+       FROM app.enrollments e
+      WHERE e.circle_id = $1
+      ORDER BY e.student_id`,
     [circleId],
   );
   return rows;

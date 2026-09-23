@@ -175,13 +175,13 @@ describe('PATCH /progress/:progressId -- the override flow', () => {
       .send({ mastery: 2 });
 
     const { rows: auditRows } = await pool.query(
-      `SELECT changed_by, new_mastery FROM app.progress_audit
-        WHERE progress_id = $1 ORDER BY changed_at DESC LIMIT 1`,
-      [progressId],
+      `SELECT changed_by, new_value->>'mastery' AS new_mastery FROM app.audit_log
+        WHERE table_name = 'app.progress' AND row_key = $1 ORDER BY changed_at DESC LIMIT 1`,
+      [String(progressId)],
     );
     assert.equal(auditRows.length, 1, 'expected trg_progress_audit to have written a row');
     assert.equal(Number(auditRows[0].changed_by), teacher.userId);
-    assert.equal(auditRows[0].new_mastery, 2);
+    assert.equal(Number(auditRows[0].new_mastery), 2);
   });
 
   test('rejects a mastery value outside 0-4 with 400', async () => {
