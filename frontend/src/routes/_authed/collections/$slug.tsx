@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { apiFetch } from '../../../lib/apiClient';
 import { Pager } from '../../../ui/Pager';
 import { State } from '../../../domain/State';
+import { Card } from '../../../ui/Card';
+import { PageHeader } from '../../../ui/PageHeader';
+import styles from './$slug.module.css';
 
 const collectionSchema = z.object({
   collection_id: z.number(),
@@ -100,19 +103,23 @@ function ChaptersPage() {
 
   return (
     <div>
-      <h1>Chapters</h1>
-      <ul>
+      <PageHeader title="Chapters" />
+      <div>
         {data.map((chapter) => (
-          <li key={chapter.chapter_id}>
-            <Link to="/collections/$slug/$seq" params={{ slug, seq: String(chapter.seq) }}>
-              <span className="m">{chapter.seq}</span>
+          <Card key={chapter.chapter_id} className={styles.row}>
+            <Link
+              to="/collections/$slug/$seq"
+              params={{ slug, seq: String(chapter.seq) }}
+              className={styles.link}
+            >
+              <span className={`m ${styles.seq}`}>{chapter.seq}</span>
               <span className="ar" dir="rtl">
                 {chapter.title_ar}
               </span>
             </Link>
-          </li>
+          </Card>
         ))}
-      </ul>
+      </div>
       <Pager
         offset={offset}
         limit={LIMIT}
