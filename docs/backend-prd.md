@@ -379,20 +379,22 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
   "hadith":  { "hadith_id": 1, "hadith_num": "1", "text_plain": "…",
                "text_diac": "…", "matn_plain": "…", "sanad_count": 1 },
   "collection": { "slug": "sahih-al-bukhari", "title_ar": "…", "title_en": "…" },
-  "chapter":    { "chapter_id": 12, "seq": 12, "title_ar": "…" },
+  "chapter":    { "chapter_id": 12, "seq": 12, "title_ar": "…" },  // null when absent
   "translation": { "lang": "en", "text_full": "…", "source": "LK",
                    "match_via": "E" },          // null when absent
+  "isnadChain": [ /* flat, ordered by (sanad_no, position) — kept for readers */ ],
   "chains": [                                    // GROUPED by sanad_no
     { "sanad_no": 1,
       "strength": 0.95,                          // per-sanad, see §8.4
       "links": [
         { "position": 1, "narrator_id": 4021, "display_name": "…",
-          "name_en": "…", "raw_name": "…", "transmission_word": null,
+          "name_en": "…", "kunya": "…", "lineage": "…", "school": "…",
+          "tabaqa_raw": "…", "raw_name": "…", "transmission_word": null,
           "is_compiler": false, "resolution": "A",
-          "rank_ibn_hajar_raw": "…", "rank_ibn_hajar": "thiqa" }
+          "rank_ibn_hajar_raw": "…", "rank_ibn_hajar": "thiqa",
+          "rank_ibn_hajar_via": "E" }
       ] } ],
-  "chain_strength": 0.95,
-  "chain_strength_basis": { "words_aligned": true, "sanad_count": 1 }
+  "chain_strength": 0.95,                        // best sanad, from the function
 }
 ```
 
@@ -411,10 +413,11 @@ Three things worth spelling out:
   between hadiths unless the reader can see this. One boolean turns an
   unstated flaw into a stated limitation.
 
-Build this from two queries, not four: one for the hadith with its collection,
-chapter, translation and `corpus.chain_strength` joined; one for the links with
-the narrator and the rank levels joined, ordered `sanad_no, position`, grouped
-in application code.
+Build this from one single-purpose query each: the hadith with its collection
+and chapter joined; the translation; the links with the narrator, biography,
+and rank levels joined, ordered `sanad_no, position`; the best strength from
+the function; the per-sanad strengths from the view. Links group in
+application code.
 
 ### 5.4 Corpus search
 

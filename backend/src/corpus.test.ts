@@ -394,3 +394,77 @@ describe('GET /hadiths/:id detail companions (PRD 5.3)', () => {
   // null branch below is structural only: the LEFT JOIN keeps the detail
   // working if one ever loads.
 });
+
+describe('frontend page data (closed 2026-09-23)', () => {
+  test('collections rows carry a hadith_count matching a direct count', async () => {
+    const token = await tokenFor('coll-count');
+    const res = await authed(token, request(app).get('/collections'));
+    assert.equal(res.status, 200);
+    for (const c of res.body.data) {
+      const direct = await pool.query<{ count: string }>(
+        'SELECT count(*) FROM corpus.hadiths WHERE collection_id = $1',
+        [c.collection_id],
+      );
+      assert.equal(c.hadith_count, Number(direct.rows[0].count));
+    }
+  });
+
+  test('hadith list rows carry a numeric chain_strength matching the function', async () => {
+    const token = await tokenFor('list-strength');
+    const res = await authed(token, request(app).get('/hadiths?limit=5'));
+    assert.equal(res.status, 200);
+    assert.ok(res.body.data.length > 0);
+    for (const h of res.body.data) {
+      assert.ok(h.chain_strength === null || typeof h.chain_strength === 'number');
+    }
+    const first = res.body.data[0];
+    const direct = await pool.query<{ chain_strength: string | null }>(
+      'SELECT corpus.chain_strength($1) AS chain_strength',
+      [first.hadith_id],
+    );
+    const expected = direct.rows[0].chain_strength;
+    assert.equal(first.chain_strength, expected != null ? Number(expected) : null);
+  });
+
+  test('detail links carry biography and grade provenance fields', async () => {
+    const token = await tokenFor('link-fields');
+    const res = await authed(token, request(app).get('/hadiths/5'));
+    assert.equal(res.status, 200);
+    const link = res.body.data.isnadChain.find(
+      (l: { narrator_id: number | null }) => l.narrator_id !== null,
+    );
+    assert.ok(link, 'expected a resolved link');
+    for (const field of [
+      'kunya',
+      'lineage',
+      'school',
+      'tabaqa_raw',
+      'rank_ibn_hajar_raw',
+      'rank_ibn_hajar_via',
+      'rank_dhahabi_raw',
+      'rank_dhahabi_via',
+    ] as const) {
+      assert.ok(field in link, `link missing ${field}`);
+    }
+  });
+});
+
+describe('detail basis (PRD 5.3: words_aligned flag)', () => {
+  test('single-sanad hadith reports words aligned, multi-sanad does not', async () => {
+    const token = await tokenFor('basis');
+    const single = await authed(token, request(app).get('/hadiths/5'));
+    assert.equal(single.status, 200);
+    assert.equal(single.body.data.chainStrengthBasis.words_aligned, true);
+    assert.equal(
+      single.body.data.chainStrengthBasis.sanad_count,
+      single.body.data.hadith.sanad_count,
+    );
+
+    const multi = await pool.query<{ hadith_id: number }>(
+      'SELECT hadith_id FROM corpus.hadiths WHERE sanad_count > 1 ORDER BY hadith_id LIMIT 1',
+    );
+    const res = await authed(token, request(app).get(`/hadiths/${multi.rows[0].hadith_id}`));
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.chainStrengthBasis.words_aligned, false);
+  });
+});

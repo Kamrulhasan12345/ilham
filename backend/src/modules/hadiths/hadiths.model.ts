@@ -1,5 +1,6 @@
 import { pool } from '../../db/pool.js';
 import type {
+  ChainStrengthBasis,
   HadithDetail,
   HadithListParams,
   HadithRow,
@@ -15,6 +16,7 @@ interface HadithListRow {
   hadith_num: string;
   text_plain: string;
   sanad_count: number;
+  chain_strength: number | null;
 }
 
 export async function listHadiths(params: HadithListParams): Promise<HadithListRow[]> {
@@ -42,15 +44,20 @@ export async function listHadiths(params: HadithListParams): Promise<HadithListR
   values.push(params.offset);
   const offsetPh = `$${values.length}`;
 
-  const { rows } = await pool.query<HadithListRow>(
-    `SELECT hadith_id, collection_id, chapter_id, hadith_num, text_plain, sanad_count
-       FROM corpus.hadiths
+  const { rows } = await pool.query<HadithListRow & { chain_strength: string | null }>(
+    `SELECT h.hadith_id, h.collection_id, h.chapter_id, h.hadith_num, h.text_plain, h.sanad_count,
+            corpus.chain_strength(h.hadith_id) AS chain_strength
+       FROM corpus.hadiths h
        ${where}
-      ORDER BY hadith_id
+      ORDER BY h.hadith_id
       LIMIT ${limitPh} OFFSET ${offsetPh}`,
     values,
   );
-  return rows;
+  // numeric comes back as text; the list contract carries numbers.
+  return rows.map((r) => ({
+    ...r,
+    chain_strength: r.chain_strength != null ? Number(r.chain_strength) : null,
+  }));
 }
 
 export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'offset'>): Promise<number> {
@@ -122,10 +129,13 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
 
   const { rows: isnadRows } = await pool.query<IsnadLinkRow>(
     `SELECT l.sanad_no, l.position, l.narrator_id, l.raw_name, n.display_name,
-            n.name_en, l.transmission_word, l.is_compiler, l.resolution,
+            n.name_en, n.kunya, n.lineage, n.school, n.tabaqa_raw,
+            l.transmission_word, l.is_compiler, l.resolution,
             coalesce(n.is_placeholder, false) AS is_placeholder,
-            n.rank_ibn_hajar, rlh.weight AS rank_ibn_hajar_weight,
-            n.rank_dhahabi, rld.weight AS rank_dhahabi_weight
+            n.rank_ibn_hajar_raw, n.rank_ibn_hajar, n.rank_ibn_hajar_via,
+            rlh.weight AS rank_ibn_hajar_weight,
+            n.rank_dhahabi_raw, n.rank_dhahabi, n.rank_dhahabi_via,
+            rld.weight AS rank_dhahabi_weight
        FROM corpus.isnad_links l
        LEFT JOIN corpus.narrators n ON n.narrator_id = l.narrator_id
        LEFT JOIN corpus.rank_levels rlh ON rlh.rank_code = n.rank_ibn_hajar
@@ -165,6 +175,14 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
     }
   }
 
+  // The ETL aligns transmission words for single-sanad hadiths only, so the
+  // anʿana penalty cannot fire on multi-sanad chains. The number is not
+  // comparable across hadiths without this flag beside it.
+  const basis: ChainStrengthBasis = {
+    words_aligned: hadith.sanad_count === 1,
+    sanad_count: hadith.sanad_count,
+  };
+
   return {
     hadith: hadith as HadithRow,
     collection,
@@ -173,5 +191,6 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
     isnadChain: isnadRows,
     chains,
     chainStrength: rawStrength != null ? Number(rawStrength) : null,
+    chainStrengthBasis: basis,
   };
 }

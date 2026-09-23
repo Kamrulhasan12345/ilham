@@ -560,7 +560,9 @@ isnad array, and `chain_strength`. **The array is flat and ordered by
 6. The chain. **The collector first, the Companion last.** Each narrator shows
    the Arabic name, a transliteration under it, both scholars' verdicts on one
    plain English line, and the machine values — with the transmission word
-   glossed: `[ḥaddathanā]` "he narrated to us".
+   glossed: `[ḥaddathanā]` "he narrated to us". Transliteration has no source
+   in the corpus (decided 2026-09-23): use `name_en` where it exists and omit
+   the line where it does not, per the empty-label rule in §7.10.
 7. **The generation filter.** A slider that hides the later end of the chain.
    It must say what a generation is, say that filtering scores nothing, and
    print its readout as text beside ± step buttons.
@@ -579,7 +581,8 @@ hadith score.
 
 **Job.** Find a hadith by its text.
 
-**Data.** `GET /hadiths?q=`. **This endpoint does not exist yet.** See §8.3.
+**Data.** `GET /hadiths?q=`. Closed 2026-09-23: the endpoint exists (Arabic
+normalised match) with a trigram index behind it (`db/08_search.sql`).
 
 **Tell the reader what search does.** It removes the diacritic marks and the
 tatweel, and it unifies the alif, ta marbuta, and ya forms. A reader who types a
@@ -792,18 +795,40 @@ trace.
 
 **401.** Clear the auth context and go to `/login`, keeping the target.
 
+### 7.26 Account — `/me`
+
+**Job.** Show who is signed in and end the session.
+
+**Data.** `GET /auth/me`: `user_id`, `role`, `full_name`, `email`, and
+`is_verified` for a teacher.
+
+**Rows.** Name, email, role in plain words. A teacher also sees the
+verification state: verified, or the waiting note from §7.3.
+
+**Actions.** Sign out: `POST /auth/logout`, drop the in-memory token, go to
+`/login`.
+
+(Added 2026-09-23: the route table listed this page but no section
+specified it.)
+
 ---
 
 ## 8. The API contract
 
 ### 8.1 What exists today
 
+Closed 2026-09-23: every row below exists, plus the §8.2 list.
+
 | Endpoint | Parameters |
 |---|---|
-| `GET /collections` | none |
-| `GET /hadiths` | `collection_id`, `chapter_id`, `limit`, `offset` |
-| `GET /hadiths/:id` | `lang`, default `en` |
+| `GET /collections` | none. Rows carry `hadith_count` |
+| `GET /chapters` | `collection_id` (required), `limit`, `offset` |
+| `GET /hadiths` | `collection_id`, `chapter_id`, `q`, `limit`, `offset`. Rows carry `chain_strength` |
+| `GET /hadiths/:id` | `lang`, default `en`. Detail carries collection, chapter, grouped `chains`, and link biography with grade provenance |
+| `GET /narrators` | `q`, `limit`, `offset` |
 | `GET /narrators/:id` | none |
+| `GET /narrators/:id/hadiths` | `limit`, `offset` |
+| `GET /narrators/:id/adjacent` | none |
 
 `limit` defaults to 20 and stops at 100. A bad `collection_id` returns 400. A
 bad `limit` falls back to the default silently. **No total count anywhere.**
@@ -813,15 +838,17 @@ bad `limit` falls back to the default silently. **No total count anywhere.**
 **Authentication.** `POST /auth/register`, `POST /auth/login`,
 `POST /auth/refresh`, `POST /auth/logout`.
 
-**`GET /auth/me` is missing from `docs/backend-prd.md` §5 and the frontend needs
-it.** The access-token claims are `sub`, `role`, `iat`, and `exp`. They carry no
-name and no email, so the shell cannot render the signed-in user. Add the
+**`GET /auth/me` is live** (closed 2026-09-23; it was missing from
+`docs/backend-prd.md` §5 when this was written). The access-token claims are
+`sub`, `role`, `iat`, and `exp`. They carry no name and no email, so the shell
+cannot render the signed-in user. Add the
 endpoint, or add the two fields to the claims. The endpoint is the better
 answer, because a claim grows the token on every request.
 
-**Corpus.** `GET /chapters?collection_id=`. `GET /narrators?q=&limit=&offset=`.
-`GET /narrators/:id/chains`. `GET /narrators/:id/adjacent`. A `q` parameter on
-`GET /hadiths`.
+**Corpus.** All live (closed 2026-09-23): `GET /chapters?collection_id=`.
+`GET /narrators?q=&limit=&offset=`. Chains come from
+`GET /narrators/:id/hadiths`; neighbours from `GET /narrators/:id/adjacent`.
+A `q` parameter on `GET /hadiths`.
 
 **Study.** Create, read, update, and delete for circles, enrolments, study sets,
 set items, assignments, review sessions, and notes.
@@ -1067,8 +1094,9 @@ Do not write a component test for each screen. Do not add Playwright.
 5. **Browse.** Collections, chapters, and the hadith list.
 6. **The study loop.** Sets, circles, assignments, and the review runner.
 7. **Analytics.** Q1, Q2, Q3, Q5, and Q6.
-8. **Narrators and search.** Last, because both need a new endpoint and search
-   needs a database change. **This is the safest work to leave unfinished.**
+8. **Narrators and search.** Closed 2026-09-23: the endpoints and the
+`db/08_search.sql` trigram index all exist, so the old last-place rationale
+(a missing endpoint and a missing database change) is gone.
 
 ---
 
