@@ -13,6 +13,15 @@ export async function listNotesForUser(userId: number): Promise<NoteRow[]> {
   return rows;
 }
 
+export async function listNotesForHadith(userId: number, hadithId: number): Promise<NoteRow[]> {
+  const { rows } = await pool.query<NoteRow>(
+    `SELECT note_id, user_id, hadith_id, body, created_at
+       FROM app.notes WHERE user_id = $1 AND hadith_id = $2 ORDER BY created_at DESC`,
+    [userId, hadithId],
+  );
+  return rows;
+}
+
 export async function createNote(input: CreateNoteInput): Promise<NoteRow> {
   const { rows } = await pool.query<NoteRow>(
     `INSERT INTO app.notes (user_id, hadith_id, body)

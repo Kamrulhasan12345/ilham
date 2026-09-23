@@ -32,9 +32,6 @@ export async function getHadith(req: Request, res: Response, next: NextFunction)
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) throw new BadRequestError('invalid hadith id');
 
-    // PRD §2.6: ?lang=en selects the translation; default is en. Arabic is
-    // always present; missing translation -> translation: null (never
-    // substitute Arabic into an English field).
     const lang = typeof req.query.lang === 'string' ? req.query.lang : 'en';
     const detail = await getHadithDetail(id, lang);
     if (!detail) throw new NotFoundError('hadith not found');

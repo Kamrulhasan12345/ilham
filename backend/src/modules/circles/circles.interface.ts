@@ -4,3 +4,9 @@ export interface CircleRow {
   name: string;
   created_at: string;
 }
+
+export interface StudentInCircleRow {
+  student_id: number;
+  full_name: string;
+  email: string;
+}

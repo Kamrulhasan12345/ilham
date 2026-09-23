@@ -19,3 +19,15 @@ export interface NarratorDetail {
   rank_dhahabi_label: string | null;
   rank_dhahabi_weight: number | null;
 }
+
+export interface NarratorSearchParams {
+  q?: string;
+  limit: number;
+  offset: number;
+}
+
+export interface NarratorHadithParams {
+  narratorId: number;
+  limit: number;
+  offset: number;
+}
