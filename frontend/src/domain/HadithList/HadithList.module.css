@@ -19,16 +19,27 @@
 }
 
 .snippet {
-  font-family: var(--font-ar);
-  font-size: var(--fs-ar-grade);
-  line-height: 1.7;
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-stack);
   color: var(--ink);
   text-decoration-color: var(--rule);
 }
 
 .snippet:hover {
   text-decoration-color: var(--index);
+}
+
+.snippetEn {
+  font-family: var(--font-en);
+  font-size: var(--fs-body);
+}
+
+.snippet :global(.ar) {
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-grade);
+  line-height: 1.7;
+  text-align: right;
 }
 
 .score {

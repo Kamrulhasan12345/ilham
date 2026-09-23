@@ -27,6 +27,7 @@ const hadithRowSchema = z.object({
   hadith_id: z.number(),
   hadith_num: z.string(),
   text_plain: z.string(),
+  text_en: z.string().nullable(),
   sanad_count: z.number(),
   chain_strength: z.coerce.number().nullable(),
 });
@@ -157,6 +158,7 @@ function HadithsInChapterPage() {
           hadith_id: hadith.hadith_id,
           hadith_num: hadith.hadith_num,
           text_plain: hadith.text_plain,
+          text_en: hadith.text_en,
           chain_strength: hadith.chain_strength === null ? null : Number(hadith.chain_strength),
         }))}
       />
