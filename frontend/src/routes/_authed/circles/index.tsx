@@ -5,8 +5,11 @@ import { z } from 'zod';
 import { useAuth } from '../../../auth/AuthContext';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 import { Button } from '../../../ui/Button';
+import { Card } from '../../../ui/Card';
 import { Field } from '../../../ui/Field';
 import { Input } from '../../../ui/Input';
+import { PageHeader } from '../../../ui/PageHeader';
+import styles from './index.module.css';
 
 const circleSchema = z.object({
   circle_id: z.number(),
@@ -57,7 +60,7 @@ function CirclesPage() {
 
   return (
     <div>
-      <h1>Circles</h1>
+      <PageHeader title="Circles" />
 
       {role === 'teacher' && !verifiedTeacher ? (
         <p>
@@ -98,9 +101,9 @@ function CirclesPage() {
       {isError || (!isLoading && !data) ? <p>The circles could not be loaded. Try again.</p> : null}
       {data && data.length === 0 ? <p>No circles yet.</p> : null}
       {data && data.length > 0 ? (
-        <ul>
+        <div>
           {data.map((circle) => (
-            <li key={circle.circle_id}>
+            <Card key={circle.circle_id} className={styles.row}>
               {role === 'teacher' || role === 'admin' ? (
                 <Link to="/circles/$circleId" params={{ circleId: String(circle.circle_id) }}>
                   {circle.name}
@@ -108,9 +111,9 @@ function CirclesPage() {
               ) : (
                 circle.name
               )}
-            </li>
+            </Card>
           ))}
-        </ul>
+        </div>
       ) : null}
     </div>
   );
