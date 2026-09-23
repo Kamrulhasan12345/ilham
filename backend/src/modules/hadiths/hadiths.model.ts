@@ -15,6 +15,7 @@ interface HadithListRow {
   chapter_id: number | null;
   hadith_num: string;
   text_plain: string;
+  text_en: string | null;
   sanad_count: number;
   chain_strength: number | null;
 }
@@ -46,8 +47,10 @@ export async function listHadiths(params: HadithListParams): Promise<HadithListR
 
   const { rows } = await pool.query<HadithListRow & { chain_strength: string | null }>(
     `SELECT h.hadith_id, h.collection_id, h.chapter_id, h.hadith_num, h.text_plain, h.sanad_count,
+            t.text_full AS text_en,
             corpus.chain_strength(h.hadith_id) AS chain_strength
        FROM corpus.hadiths h
+       LEFT JOIN corpus.hadith_translations t ON t.hadith_id = h.hadith_id AND t.lang = 'en'
        ${where}
       ORDER BY h.hadith_id
       LIMIT ${limitPh} OFFSET ${offsetPh}`,
