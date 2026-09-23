@@ -147,3 +147,28 @@ describe('DELETE /study-sets/:id', () => {
     assert.equal(got.status, 404);
   });
 });
+
+describe('set item repeats (PRD 5.7: 409 on a repeat)', () => {
+  test('adding the same hadith twice returns 409 the second time', async () => {
+    const email = uniqueEmail('itemrepeat');
+    const { accessToken } = await registerAndGetToken(app, email, 'teacher');
+    const setRes = await request(app)
+      .post('/study-sets')
+      .set(bearer(accessToken))
+      .send({ name: 'repeat set' });
+    const setId = setRes.body.data.study_set_id;
+    const hadith = await pool.query<{ hadith_id: number }>(
+      'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 1',
+    );
+    const first = await request(app)
+      .post(`/study-sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ hadith_id: hadith.rows[0].hadith_id });
+    assert.equal(first.status, 201);
+    const second = await request(app)
+      .post(`/study-sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ hadith_id: hadith.rows[0].hadith_id });
+    assert.equal(second.status, 409);
+  });
+});

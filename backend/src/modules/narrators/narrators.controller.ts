@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { BadRequestError, NotFoundError } from '../../lib/errors.js';
 import { parsePageParams } from '../../lib/pagination.js';
-import { getNarratorById, listHadithsForNarrator, searchNarrators } from './narrators.model.js';
+import { getNarratorById, listAdjacentNarrators, listHadithsForNarrator, searchNarrators } from './narrators.model.js';
 
 export async function getNarrators(req: Request, res: Response, next: NextFunction) {
   try {
@@ -21,6 +21,19 @@ export async function getNarrator(req: Request, res: Response, next: NextFunctio
     const narrator = await getNarratorById(id);
     if (!narrator) throw new NotFoundError('narrator not found');
     res.json({ data: narrator });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getAdjacentNarrators(req: Request, res: Response, next: NextFunction) {
+  try {
+    const narratorId = Number(req.params.id);
+    if (!Number.isInteger(narratorId)) throw new BadRequestError('invalid narrator id');
+    const narrator = await getNarratorById(narratorId);
+    if (!narrator) throw new NotFoundError('narrator not found');
+    const adjacent = await listAdjacentNarrators(narratorId);
+    res.json({ data: adjacent });
   } catch (e) {
     next(e);
   }

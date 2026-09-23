@@ -633,7 +633,8 @@ name: "Where do the two scholars disagree?", not "Contested narrators".
 
 Horizontal bars, sorted down, capped at 15. **Print the cap.** A silent top-N
 reads as "this is everyone". Exclude placeholders. State the concentration: 178
-narrators hold 16.8% of all positions.
+narrators hold 70.3% of all positions (recomputed 2026-09-23; the old 16.8%
+figure matches no cut of the current corpus).
 
 A sortable table sits under the chart. A chart alone does not reach a screen
 reader.
@@ -770,6 +771,10 @@ confirms.**
 
 **No list endpoint returns a total count.** The responses are bare arrays.
 
+Decided 2026-09-23: the backend keeps returning `page.total` and clients
+ignore it. The rule above stands as a display rule — never render a total —
+not as a claim about the wire format.
+
 Show "Showing 21–40". **Never show "page 3 of 47"**, because that number does
 not exist. Add one line that says the total is not counted, so a reader does not
 think it is hidden.
@@ -904,7 +909,9 @@ first run.
 ### 9.3 Numbers the interface must never present bare
 
 `chain_strength` returns 0 to 1, or NULL. Over the real corpus the average is
-**0.836**, the range is **0.10 to 0.95**, and only **13 distinct values** occur.
+**0.836**, the range is **0.10 to 0.95**, and only **14 distinct values** occur
+(0.10, 0.15, 0.20, 0.25, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.75, 0.80, 0.90,
+0.95; recomputed 2026-09-23).
 
 **A bare number reads as a probability.** A reader who sees `0.95` concludes
 "95% likely true". A reader who sees `0.10` concludes "probably false". Ilham

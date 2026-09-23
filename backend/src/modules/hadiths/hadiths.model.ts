@@ -79,17 +79,42 @@ export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'off
 }
 
 export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<HadithDetail | null> {
-  const { rows: hadithRows } = await pool.query<HadithRow>(
-    `SELECT hadith_id, collection_id, chapter_id, hadith_num, text_plain, text_diac, matn_plain, sanad_count
-       FROM corpus.hadiths
-      WHERE hadith_id = $1`,
+  const { rows: hadithRows } = await pool.query(
+    `SELECT h.hadith_id, h.collection_id, h.chapter_id, h.hadith_num,
+            h.text_plain, h.text_diac, h.matn_plain, h.sanad_count,
+            c.slug AS collection_slug, c.title_ar AS collection_title_ar,
+            c.title_en AS collection_title_en,
+            ch.chapter_id AS chapter_chapter_id, ch.seq AS chapter_seq,
+            ch.title_ar AS chapter_title_ar
+       FROM corpus.hadiths h
+       JOIN corpus.collections c ON c.collection_id = h.collection_id
+       LEFT JOIN corpus.chapters ch ON ch.chapter_id = h.chapter_id
+      WHERE h.hadith_id = $1`,
     [hadithId],
   );
-  const hadith = hadithRows[0];
-  if (!hadith) return null;
+  const detailRow = hadithRows[0];
+  if (!detailRow) return null;
+  const {
+    collection_slug,
+    collection_title_ar,
+    collection_title_en,
+    chapter_chapter_id,
+    chapter_seq,
+    chapter_title_ar,
+    ...hadith
+  } = detailRow;
+  const collection = {
+    slug: collection_slug,
+    title_ar: collection_title_ar,
+    title_en: collection_title_en,
+  };
+  const chapter =
+    chapter_chapter_id == null
+      ? null
+      : { chapter_id: chapter_chapter_id, seq: chapter_seq, title_ar: chapter_title_ar };
 
   const { rows: translationRows } = await pool.query<TranslationRow>(
-    `SELECT lang, text_full, source
+    `SELECT lang, text_full, source, match_via
        FROM corpus.hadith_translations
       WHERE hadith_id = $1 AND lang = $2`,
     [hadithId, lang],
@@ -141,7 +166,9 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
   }
 
   return {
-    hadith,
+    hadith: hadith as HadithRow,
+    collection,
+    chapter,
     translation: translationRows[0] ?? null,
     isnadChain: isnadRows,
     chains,

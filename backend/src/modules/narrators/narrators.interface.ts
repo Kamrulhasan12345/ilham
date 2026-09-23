@@ -26,6 +26,13 @@ export interface NarratorSearchParams {
   offset: number;
 }
 
+export interface AdjacentNarratorRow {
+  direction: 'taught' | 'learned_from';
+  narrator_id: number | null;
+  display_name: string | null;
+  transmission_word: string | null;
+}
+
 export interface NarratorHadithParams {
   narratorId: number;
   limit: number;

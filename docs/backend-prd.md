@@ -451,9 +451,9 @@ the API thin.
 | Q1 | `GET /analytics/top-narrators` | `corpus.v_top_narrators` | Count of chain positions per narrator. Exclude `is_compiler` and `is_placeholder`. Implemented as model SQL (no view file exists); the response carries a `summary` with `total_positions`, `top_count`, and `top_share` for the frontend caption |
 | Q2 | `GET /analytics/contested-narrators` | `corpus.v_contested_narrators` | `rank_levels.ordinal` differs between the two scholars. **Exclude `rank_*_via = 'S'`** — the Companion tabaqa pass sets both columns from one rule, so those narrators are not contested, they are unjudged. Implemented as model SQL; rows carry both `label_ar` glosses for the chart axis |
 | Q3 | `GET /analytics/shared-narrators?a=&b=` | `corpus.shared_narrators(a, b)` | Two hadiths, the narrators in common. A view cannot take a parameter and the self-join over 139k links is not materialisable, so this one is a SQL function |
-| Q4 | `GET /circles/:id/overview` | `app.v_circle_overview` | The teacher dashboard. Per student: assigned, mastered, overdue. `count(DISTINCT hadith_id)` |
+| Q4 | `GET /circles/:id/overview` | `app.v_circle_overview` | The teacher dashboard. Per student: assigned, mastered, overdue. `count(DISTINCT hadith_id)`. Implemented as model SQL (no view file exists) |
 | Q5 | `GET /analytics/weakest-chains` | `corpus.v_weakest_chains` | Ordered by `chain_strength`. Join to the collection and the chapter for display. Implemented as model SQL over the `corpus.chain_strength` function; the response carries a `summary` with the `unscored` hadith count for the caption |
-| Q6 | `GET /assignments/:id/completion` | `app.v_assignment_completion` | Per student: due, done, percentage |
+| Q6 | `GET /assignments/:id/completion` | `app.v_assignment_completion` | Per student: due, done, percentage. Implemented as model SQL (no view file exists) |
 
 Q4 and Q6 are views in `app`, filtered by the caller's circle in the model. Q1,
 Q2, Q3 and Q5 read the corpus only, and need no special role — a student may

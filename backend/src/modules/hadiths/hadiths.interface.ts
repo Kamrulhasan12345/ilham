@@ -21,6 +21,19 @@ export interface TranslationRow {
   lang: string;
   text_full: string;
   source: string;
+  match_via: string | null;
+}
+
+export interface HadithCollection {
+  slug: string;
+  title_ar: string;
+  title_en: string | null;
+}
+
+export interface HadithChapter {
+  chapter_id: number;
+  seq: number;
+  title_ar: string;
 }
 
 export interface IsnadLinkRow {
@@ -48,6 +61,8 @@ export interface SanadChain {
 
 export interface HadithDetail {
   hadith: HadithRow;
+  collection: HadithCollection;
+  chapter: HadithChapter | null;
   translation: TranslationRow | null;
   isnadChain: IsnadLinkRow[];
   chains: SanadChain[];

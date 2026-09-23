@@ -265,3 +265,21 @@ describe('overview mastered threshold (frontend PRD: mastery >= 3)', () => {
     assert.equal(await mastered(), 0);
   });
 });
+
+describe('enrolment repeats (PRD 5.6: 409 on a repeat)', () => {
+  test('enrolling the same student twice returns 409 the second time', async () => {
+    const teacher = await verifiedTeacher('enrolrepeat');
+    const student = await registerStudent('enrolrepeatstu');
+    const circleId = await makeCircle(teacher.accessToken, 'enrolrepeat');
+    const first = await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+    assert.equal(first.status, 201);
+    const second = await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+    assert.equal(second.status, 409);
+  });
+});

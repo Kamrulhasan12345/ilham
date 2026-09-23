@@ -373,3 +373,24 @@ describe('GET /hadiths/:id grouped chains (PRD §8.4)', () => {
     assert.equal(typeof res.body.data.chains[0].strength, 'number');
   });
 });
+
+describe('GET /hadiths/:id detail companions (PRD 5.3)', () => {
+  test('carries collection, chapter, and translation provenance', async () => {
+    const token = await tokenFor('detail-companions');
+    const res = await authed(token, request(app).get('/hadiths/5'));
+    assert.equal(res.status, 200);
+    const { collection, chapter, translation } = res.body.data;
+    assert.equal(collection.slug, 'sahih-al-bukhari');
+    assert.equal(typeof collection.title_ar, 'string');
+    assert.ok(chapter === null || typeof chapter.title_ar === 'string');
+    if (chapter !== null) assert.equal(typeof chapter.seq, 'number');
+    if (translation !== null) {
+      assert.equal(translation.lang, 'en');
+      assert.ok(translation.match_via === null || typeof translation.match_via === 'string');
+    }
+  });
+
+  // No live row has chapter_id NULL (verified: zero in this corpus), so the
+  // null branch below is structural only: the LEFT JOIN keeps the detail
+  // working if one ever loads.
+});

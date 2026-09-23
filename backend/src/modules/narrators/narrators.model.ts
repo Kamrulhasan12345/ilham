@@ -1,5 +1,6 @@
 import { pool } from '../../db/pool.js';
 import type {
+  AdjacentNarratorRow,
   NarratorDetail,
   NarratorHadithParams,
   NarratorSearchParams,
@@ -59,6 +60,28 @@ export async function listHadithsForNarrator(
       ORDER BY h.hadith_id
       LIMIT $2 OFFSET $3`,
     [params.narratorId, params.limit, params.offset],
+  );
+  return rows;
+}
+
+// Neighbours in the transmission graph, both directions, read from the
+// edges view (backend PRD §5.3). UNION folds repeat transmissions of the
+// same pair with the same word into one row.
+export async function listAdjacentNarrators(narratorId: number): Promise<AdjacentNarratorRow[]> {
+  const { rows } = await pool.query<AdjacentNarratorRow>(
+    `SELECT 'taught' AS direction, e.to_narrator AS narrator_id,
+            n.display_name, e.transmission_word
+       FROM corpus.isnad_edges e
+       LEFT JOIN corpus.narrators n ON n.narrator_id = e.to_narrator
+      WHERE e.from_narrator = $1
+      UNION
+     SELECT 'learned_from' AS direction, e.from_narrator AS narrator_id,
+            n.display_name, e.transmission_word
+       FROM corpus.isnad_edges e
+       LEFT JOIN corpus.narrators n ON n.narrator_id = e.from_narrator
+      WHERE e.to_narrator = $1
+      ORDER BY direction, narrator_id NULLS LAST`,
+    [narratorId],
   );
   return rows;
 }
