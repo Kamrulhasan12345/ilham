@@ -127,3 +127,121 @@ describe('POST /assignments -- the CALL app.assign_study_set procedure pattern',
     assert.equal(intruderRes.status, 403);
   });
 });
+
+describe('GET /assignments and GET /assignments/:id', () => {
+  async function registeredStudent(tag: string): Promise<{ accessToken: string; userId: number }> {
+    const email = uniqueEmail(tag);
+    const { accessToken } = await registerAndGetToken(app, email, 'student');
+    const { rows } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    return { accessToken, userId: rows[0].user_id };
+  }
+
+  async function latestAssignmentId(circleId: number): Promise<number> {
+    const { rows } = await pool.query<{ assignment_id: number }>(
+      'SELECT assignment_id FROM app.assignments WHERE circle_id = $1 ORDER BY assignment_id DESC LIMIT 1',
+      [circleId],
+    );
+    return rows[0].assignment_id;
+  }
+
+  test('a teacher sees their own assignments but not another teacher\u2019s', async () => {
+    const owner = await verifiedTeacher('getlistowner');
+    const other = await verifiedTeacher('getlistother');
+    const { circleId, studySetId } = await makeCircleAndStudySet(owner.accessToken);
+
+    const created = await request(app)
+      .post('/assignments')
+      .set(bearer(owner.accessToken))
+      .send({ circle_id: circleId, study_set_id: studySetId, due_date: '2027-06-01' });
+    assert.equal(created.status, 201);
+
+    const ownList = await request(app).get('/assignments').set(bearer(owner.accessToken));
+    assert.equal(ownList.status, 200);
+    assert.ok(Array.isArray(ownList.body.data));
+    assert.ok(ownList.body.data.some((a: { circle_id: number }) => a.circle_id === circleId));
+
+    const otherList = await request(app).get('/assignments').set(bearer(other.accessToken));
+    assert.equal(otherList.status, 200);
+    assert.ok(Array.isArray(otherList.body.data));
+    assert.equal(
+      otherList.body.data.some((a: { circle_id: number }) => a.circle_id === circleId),
+      false,
+    );
+  });
+
+  test('an enrolled student sees the assigned list', async () => {
+    const teacher = await verifiedTeacher('getlistenroll');
+    const { circleId, studySetId } = await makeCircleAndStudySet(teacher.accessToken);
+    const student = await registeredStudent('getlistenroll');
+
+    const enrolled = await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+    assert.equal(enrolled.status, 201);
+
+    const assigned = await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({ circle_id: circleId, study_set_id: studySetId, due_date: '2027-06-01' });
+    assert.equal(assigned.status, 201);
+
+    const res = await request(app).get('/assignments').set(bearer(student.accessToken));
+    assert.equal(res.status, 200);
+    assert.ok(Array.isArray(res.body.data));
+    assert.ok(res.body.data.some((a: { circle_id: number }) => a.circle_id === circleId));
+  });
+
+  test('an unenrolled student sees an empty list', async () => {
+    const student = await registeredStudent('getlistempty');
+    const res = await request(app).get('/assignments').set(bearer(student.accessToken));
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.data, []);
+  });
+
+  test('GET /assignments without a token is 401', async () => {
+    const res = await request(app).get('/assignments');
+    assert.equal(res.status, 401);
+  });
+
+  test('GET /:id: owner 200, stranger 404, bad id 400, unauthenticated 401', async () => {
+    const owner = await verifiedTeacher('getbyidowner');
+    const stranger = await verifiedTeacher('getbyidstranger');
+    const outsider = await registeredStudent('getbyidoutsider');
+    const { circleId, studySetId } = await makeCircleAndStudySet(owner.accessToken);
+
+    const created = await request(app)
+      .post('/assignments')
+      .set(bearer(owner.accessToken))
+      .send({ circle_id: circleId, study_set_id: studySetId, due_date: '2027-06-01' });
+    assert.equal(created.status, 201);
+    const assignmentId = await latestAssignmentId(circleId);
+
+    const ownerRes = await request(app)
+      .get(`/assignments/${assignmentId}`)
+      .set(bearer(owner.accessToken));
+    assert.equal(ownerRes.status, 200);
+    assert.equal(ownerRes.body.data.assignment_id, assignmentId);
+
+    const strangerRes = await request(app)
+      .get(`/assignments/${assignmentId}`)
+      .set(bearer(stranger.accessToken));
+    assert.equal(strangerRes.status, 404);
+
+    const outsiderRes = await request(app)
+      .get(`/assignments/${assignmentId}`)
+      .set(bearer(outsider.accessToken));
+    assert.equal(outsiderRes.status, 404);
+
+    const badRes = await request(app)
+      .get('/assignments/not-a-number')
+      .set(bearer(owner.accessToken));
+    assert.equal(badRes.status, 400);
+
+    const anonRes = await request(app).get(`/assignments/${assignmentId}`);
+    assert.equal(anonRes.status, 401);
+  });
+});

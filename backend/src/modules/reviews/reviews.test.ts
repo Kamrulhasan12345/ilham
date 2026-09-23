@@ -177,3 +177,87 @@ describe('GET /review-sessions/:id -- visibility', () => {
     assert.ok(Array.isArray(ownRes.body.data.items));
   });
 });
+
+describe('GET /review-sessions', () => {
+  test('a student lists their own sessions after posting one', async () => {
+    const student = await registerAndGetUserId(uniqueEmail('listown'), 'student');
+    const hadithId = await firstHadithId();
+
+    const created = await request(app)
+      .post('/review-sessions')
+      .set(bearer(student.accessToken))
+      .send({ student_id: student.userId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(created.status, 201);
+    const sessionId = created.body.data.session_id;
+
+    const list = await request(app).get('/review-sessions').set(bearer(student.accessToken));
+    assert.equal(list.status, 200);
+    assert.ok(Array.isArray(list.body.data));
+    assert.ok(list.body.data.some((s: { session_id: number }) => s.session_id === sessionId));
+
+    const detail = await request(app)
+      .get(`/review-sessions/${sessionId}`)
+      .set(bearer(student.accessToken));
+    assert.equal(detail.status, 200);
+    assert.ok(Array.isArray(detail.body.data.items));
+    assert.equal(detail.body.data.items.length, 1);
+    assert.equal(detail.body.data.items[0].hadith_id, hadithId);
+  });
+
+  test('another student sees an empty list', async () => {
+    const poster = await registerAndGetUserId(uniqueEmail('listposter'), 'student');
+    const fresh = await registerAndGetUserId(uniqueEmail('listfresh'), 'student');
+    const hadithId = await firstHadithId();
+
+    const created = await request(app)
+      .post('/review-sessions')
+      .set(bearer(poster.accessToken))
+      .send({ student_id: poster.userId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(created.status, 201);
+
+    const res = await request(app).get('/review-sessions').set(bearer(fresh.accessToken));
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.data, []);
+  });
+
+  test('GET /:id: owner 200 with items, unrelated student 404, bad id 400, missing 404, anonymous 401', async () => {
+    const owner = await registerAndGetUserId(uniqueEmail('listdetail'), 'student');
+    const other = await registerAndGetUserId(uniqueEmail('listdetailother'), 'student');
+    const hadithId = await firstHadithId();
+
+    const created = await request(app)
+      .post('/review-sessions')
+      .set(bearer(owner.accessToken))
+      .send({ student_id: owner.userId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(created.status, 201);
+    const sessionId = created.body.data.session_id;
+
+    const ownRes = await request(app)
+      .get(`/review-sessions/${sessionId}`)
+      .set(bearer(owner.accessToken));
+    assert.equal(ownRes.status, 200);
+    assert.ok(Array.isArray(ownRes.body.data.items));
+    assert.equal(ownRes.body.data.items.length, 1);
+
+    const otherRes = await request(app)
+      .get(`/review-sessions/${sessionId}`)
+      .set(bearer(other.accessToken));
+    assert.equal(otherRes.status, 404);
+
+    const badRes = await request(app)
+      .get('/review-sessions/not-a-number')
+      .set(bearer(owner.accessToken));
+    assert.equal(badRes.status, 400);
+
+    const missingRes = await request(app)
+      .get('/review-sessions/999999999')
+      .set(bearer(owner.accessToken));
+    assert.equal(missingRes.status, 404);
+
+    const anonList = await request(app).get('/review-sessions');
+    assert.equal(anonList.status, 401);
+
+    const anonDetail = await request(app).get(`/review-sessions/${sessionId}`);
+    assert.equal(anonDetail.status, 401);
+  });
+});

@@ -22,7 +22,7 @@ export async function listHadiths(params: HadithListParams): Promise<HadithListR
 
   if (params.collectionId !== undefined) {
     values.push(params.collectionId);
-    conditions.push(`collection_id = $${values.length}`);
+    conditions.push('collection_id = $' + values.length + '::integer');
   }
   if (params.chapterId !== undefined) {
     values.push(params.chapterId);
@@ -57,7 +57,7 @@ export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'off
   const values: unknown[] = [];
   if (params.collectionId !== undefined) {
     values.push(params.collectionId);
-    conditions.push(`collection_id = $${values.length}`);
+    conditions.push('collection_id = $' + values.length + '::integer');
   }
   if (params.chapterId !== undefined) {
     values.push(params.chapterId);

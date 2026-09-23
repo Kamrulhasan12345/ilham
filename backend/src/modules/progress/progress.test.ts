@@ -213,3 +213,102 @@ describe('GET /progress/audit-log -- admin only', () => {
     assert.ok(Array.isArray(res.body.data));
   });
 });
+
+describe('GET /progress', () => {
+  test('a student with a reviewed hadith sees rows', async () => {
+    const email = uniqueEmail('getprogress');
+    const student = await registerAndGetToken(app, email, 'student');
+    const { rows: userRows } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    const studentId = userRows[0].user_id;
+    const hadithId = await firstHadithId();
+
+    const posted = await request(app)
+      .post('/review-sessions')
+      .set(bearer(student.accessToken))
+      .send({ student_id: studentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(posted.status, 201);
+
+    const res = await request(app).get('/progress').set(bearer(student.accessToken));
+    assert.equal(res.status, 200);
+    assert.ok(Array.isArray(res.body.data));
+    assert.ok(res.body.data.length >= 1);
+    assert.ok(res.body.data.every((r: { student_id: number }) => r.student_id === studentId));
+    assert.ok(res.body.data.some((r: { hadith_id: number }) => r.hadith_id === hadithId));
+  });
+
+  test('a student_id query param is ignored for students -- they still see only their own rows', async () => {
+    const teacher = await verifiedTeacherWithCircle('progressfilter');
+    const email = uniqueEmail('progressfilterstudent');
+    const student = await registerAndGetToken(app, email, 'student');
+    const { rows: userRows } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    const studentId = userRows[0].user_id;
+    const hadithId = await firstHadithId();
+
+    const posted = await request(app)
+      .post('/review-sessions')
+      .set(bearer(student.accessToken))
+      .send({ student_id: studentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(posted.status, 201);
+
+    const res = await request(app)
+      .get(`/progress?student_id=${teacher.userId}`)
+      .set(bearer(student.accessToken));
+    assert.equal(res.status, 200);
+    assert.ok(Array.isArray(res.body.data));
+    assert.ok(res.body.data.length >= 1);
+    assert.ok(res.body.data.every((r: { student_id: number }) => r.student_id === studentId));
+  });
+
+  test('actual controller behavior: a teacher CAN read another student\u2019s rows via ?student_id= (no ownership gate)', async () => {
+    const teacher = await verifiedTeacherWithCircle('progressteacher');
+    const { studentId, assignmentId } = await enrollStudentAndAssign(
+      teacher.accessToken,
+      teacher.circleId,
+    );
+
+    const byStudent = await request(app)
+      .get(`/progress?student_id=${studentId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(byStudent.status, 200);
+    assert.ok(Array.isArray(byStudent.body.data));
+    assert.ok(byStudent.body.data.length >= 1);
+    assert.ok(
+      byStudent.body.data.every((r: { student_id: number }) => r.student_id === studentId),
+    );
+
+    const unfiltered = await request(app).get('/progress').set(bearer(teacher.accessToken));
+    assert.equal(unfiltered.status, 200);
+    assert.ok(
+      unfiltered.body.data.some((r: { student_id: number }) => r.student_id === studentId),
+    );
+
+    const byAssignment = await request(app)
+      .get(`/progress?assignment_id=${assignmentId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(byAssignment.status, 200);
+    assert.ok(Array.isArray(byAssignment.body.data));
+    assert.ok(byAssignment.body.data.length >= 1);
+    assert.ok(
+      byAssignment.body.data.every(
+        (r: { assignment_id: number }) => r.assignment_id === assignmentId,
+      ),
+    );
+
+    const missing = await request(app)
+      .get('/progress?assignment_id=999999999')
+      .set(bearer(teacher.accessToken));
+    assert.equal(missing.status, 200);
+    assert.deepEqual(missing.body.data, []);
+  });
+
+  test('GET /progress without a token is 401', async () => {
+    const res = await request(app).get('/progress');
+    assert.equal(res.status, 401);
+  });
+});
