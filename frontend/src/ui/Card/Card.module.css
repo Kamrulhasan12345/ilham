@@ -1,0 +1,8 @@
+.card {
+  border: var(--bw) solid var(--rule);
+  padding: var(--sp-3);
+}
+
+.card + .card {
+  border-top: none;
+}
