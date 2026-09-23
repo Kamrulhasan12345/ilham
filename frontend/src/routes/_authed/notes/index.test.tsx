@@ -61,6 +61,7 @@ describe('Notes page', () => {
       .mockResolvedValueOnce([]);
     renderNotes();
     fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete it' }));
     await waitFor(() =>
       expect(vi.mocked(apiFetch)).toHaveBeenCalledWith('/notes/7', expect.anything(), {
         method: 'DELETE',

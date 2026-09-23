@@ -1,0 +1,17 @@
+.region {
+  position: fixed;
+  inset-block-end: var(--sp-3);
+  inset-inline: var(--sp-3);
+  z-index: 9;
+  display: grid;
+  gap: var(--sp-2);
+  max-width: var(--toast-max);
+}
+
+.toast {
+  border: var(--bw) solid var(--ink);
+  background: var(--ground);
+  padding: var(--sp-2);
+  font-size: var(--fs-rail);
+  margin: 0;
+}

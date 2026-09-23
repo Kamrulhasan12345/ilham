@@ -31,7 +31,11 @@ export const UNNAMED_WEIGHT = 0.15;
 
 export interface GradeInfo {
   sentence: string;
+  /** The anʿana-adjusted weight: link.weight when the reader serves it,
+      else the rank weight recomputed here. Never recompute when served. */
   weight: number | null;
+  /** The unadjusted rank weight, for the plot's arithmetic line. */
+  baseWeight: number | null;
 }
 
 export interface GradedLink {
@@ -40,6 +44,9 @@ export interface GradedLink {
   resolution: string;
   rank_ibn_hajar: string | null;
   rank_ibn_hajar_weight: number | null;
+  /** Served by GET /hadiths/:id only; other readers leave it undefined and
+      the rank weights below stand in. */
+  weight?: number | null;
 }
 
 /**
@@ -49,21 +56,24 @@ export interface GradedLink {
  */
 export function gradeInfo(link: GradedLink): GradeInfo {
   if (link.is_compiler) {
-    return { sentence: 'the collector — not scored', weight: null };
+    return { sentence: 'the collector — not scored', weight: null, baseWeight: null };
   }
   if (link.is_placeholder || link.resolution === 'X' || link.resolution === 'C') {
-    return { sentence: 'the source records no name here', weight: UNNAMED_WEIGHT };
+    return {
+      sentence: 'the source records no name here',
+      weight: link.weight ?? UNNAMED_WEIGHT,
+      baseWeight: UNNAMED_WEIGHT,
+    };
   }
   if (link.rank_ibn_hajar) {
     const gloss = RANK_GLOSS[link.rank_ibn_hajar as RankCode];
-    return {
-      sentence: gloss,
-      weight: link.rank_ibn_hajar_weight ?? RANK_WEIGHT[link.rank_ibn_hajar as RankCode],
-    };
+    const base = link.rank_ibn_hajar_weight ?? RANK_WEIGHT[link.rank_ibn_hajar as RankCode];
+    return { sentence: gloss, weight: link.weight ?? base, baseWeight: base };
   }
   return {
     sentence: 'identified, but no scholar graded him — neutral, not a fault',
-    weight: UNGRADED_WEIGHT,
+    weight: link.weight ?? UNGRADED_WEIGHT,
+    baseWeight: UNGRADED_WEIGHT,
   };
 }
 

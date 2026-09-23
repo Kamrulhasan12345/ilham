@@ -98,6 +98,19 @@
   padding-bottom: var(--underline-w);
 }
 
+/* A raw string that did not resolve is not a link. It stays on screen. */
+.nameRaw {
+  color: var(--ink-app);
+}
+
+.nameLink {
+  color: var(--ink);
+  text-decoration-color: var(--rule);
+}
+.nameLink:hover {
+  text-decoration-color: var(--index);
+}
+
 .translit {
   font-size: var(--fs-rail);
   line-height: 1.35;
@@ -111,6 +124,14 @@
   color: var(--ink-app);
   margin: 0;
   text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 46rem) {
+  .grade {
+    white-space: normal;
+  }
 }
 .gradeAbsent {
   font-style: italic;

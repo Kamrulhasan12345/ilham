@@ -1,4 +1,11 @@
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+} from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { IsnadChain } from './IsnadChain';
 
@@ -10,6 +17,7 @@ const REAL_HADITH_5_CHAIN = [
     raw_name: 'عمر بن الخطاب',
     display_name: 'عمر بن الخطاب',
     name_en: null,
+    generation: 1,
     transmission_word: 'قال',
     is_compiler: false,
     resolution: 'A',
@@ -26,6 +34,7 @@ const REAL_HADITH_5_CHAIN = [
     raw_name: 'يحيى بن سعيد الأنصاري',
     display_name: 'يحيى بن سعيد الأنصاري',
     name_en: null,
+    generation: 5,
     transmission_word: 'أخبرني',
     is_compiler: false,
     resolution: 'B',
@@ -42,6 +51,7 @@ const REAL_HADITH_5_CHAIN = [
     raw_name: 'البخاري',
     display_name: null,
     name_en: null,
+    generation: null,
     transmission_word: 'حدثنا',
     is_compiler: true,
     resolution: 'X',
@@ -94,4 +104,32 @@ describe('IsnadChain', () => {
     expect(screen.getByText(/no chain/i)).toBeInTheDocument();
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
   });
+
+  it('links a resolved name to its narrator when linkHref is given', async () => {
+    await renderInRouter(
+      <IsnadChain links={REAL_HADITH_5_CHAIN} linkHref={(id) => `/narrators/${id}`} />,
+    );
+    const link = screen.getByRole('link', { name: 'يحيى بن سعيد الأنصاري' });
+    expect(link).toHaveAttribute('href', '/narrators/6932');
+  });
+
+  it('leaves the collector and raw names as plain text, never links', async () => {
+    await renderInRouter(
+      <IsnadChain links={REAL_HADITH_5_CHAIN} linkHref={(id) => `/narrators/${id}`} />,
+    );
+    expect(screen.getByText('البخاري').tagName).not.toBe('A');
+    expect(screen.getByRole('link', { name: 'عمر بن الخطاب' })).toBeInTheDocument();
+  });
 });
+
+/** A <Link> throws without a router in context, so link tests render
+    through a minimal real router. */
+async function renderInRouter(ui: ReactElement) {
+  const rootRoute = createRootRoute({ component: () => ui });
+  const router = createRouter({
+    routeTree: rootRoute,
+    history: createMemoryHistory({ initialEntries: ['/'] }),
+  });
+  await router.load();
+  render(<RouterProvider router={router} />);
+}

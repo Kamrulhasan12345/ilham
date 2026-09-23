@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import { ApiError, apiFetch } from '../lib/apiClient';
 import { Button } from '../ui/Button';
+import { Field } from '../ui/Field';
+import { Input } from '../ui/Input';
 import styles from './auth-form.module.css';
 
 const registerResponseSchema = z.object({ accessToken: z.string() });
@@ -73,60 +75,60 @@ function RegisterPage() {
       ) : null}
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.field}>
-          <label htmlFor="register-name">Full name</label>
-          <input
-            id="register-name"
-            className={styles.input}
-            type="text"
-            autoComplete="name"
-            required
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="register-email">Email</label>
-          <input
-            id="register-email"
-            className={styles.input}
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="register-password">Password</label>
-          <div className={styles.passwordRow}>
-            <input
-              id="register-password"
-              className={styles.input}
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
+        <Field label="Full name">
+          {({ controlId }) => (
+            <Input
+              id={controlId}
+              type="text"
+              autoComplete="name"
               required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              aria-describedby={passwordFieldError ? 'register-password-error' : undefined}
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
             />
-            <Button
-              type="button"
-              variant="default"
-              aria-pressed={showPassword}
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              {showPassword ? 'Hide' : 'Show'}
-            </Button>
-          </div>
-          {passwordFieldError ? (
-            <p id="register-password-error" className={styles.fieldError}>
-              {passwordFieldError}
-            </p>
-          ) : null}
-        </div>
+          )}
+        </Field>
+
+        <Field label="Email">
+          {({ controlId }) => (
+            <Input
+              id={controlId}
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          )}
+        </Field>
+
+        <Field
+          label="Password"
+          error={passwordFieldError}
+          hint="Eight characters or more."
+        >
+          {({ controlId, describedBy }) => (
+            <div className={styles.passwordRow}>
+              <Input
+                id={controlId}
+                aria-describedby={describedBy}
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                invalid={passwordFieldError !== null}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <Button
+                type="button"
+                variant="default"
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </Button>
+            </div>
+          )}
+        </Field>
 
         <fieldset className={styles.fieldset}>
           <legend>Role</legend>

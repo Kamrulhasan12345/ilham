@@ -47,8 +47,15 @@ describe('Collections page', () => {
         slug: 'sahih-al-bukhari',
         title_ar: 'صحيح البخاري',
         title_en: 'Sahih al-Bukhari',
+        hadith_count: 7275,
       },
-      { collection_id: 2, slug: 'sahih-muslim', title_ar: 'صحيح مسلم', title_en: 'Sahih Muslim' },
+      {
+        collection_id: 2,
+        slug: 'sahih-muslim',
+        title_ar: 'صحيح مسلم',
+        title_en: 'Sahih Muslim',
+        hadith_count: 7626,
+      },
     ]);
     renderCollections();
     expect(await screen.findByText('صحيح البخاري')).toBeInTheDocument();
@@ -60,7 +67,7 @@ describe('Collections page', () => {
 
   it('falls back to the Arabic title when English is absent', async () => {
     vi.mocked(apiFetch).mockResolvedValue([
-      { collection_id: 3, slug: 'example', title_ar: 'مثال', title_en: null },
+      { collection_id: 3, slug: 'example', title_ar: 'مثال', title_en: null, hadith_count: 0 },
     ]);
     renderCollections();
     expect(await screen.findByText('مثال')).toBeInTheDocument();

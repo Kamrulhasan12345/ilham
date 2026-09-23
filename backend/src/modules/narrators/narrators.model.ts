@@ -8,7 +8,7 @@ import type {
 
 const NARRATOR_DETAIL_COLUMNS = `
   n.narrator_id, n.display_name, n.name, n.name_en, n.kunya, n.lineage,
-  n.relation, n.tabaqa_raw, n.school, n.date_of_death, n.is_placeholder,
+  n.relation, n.tabaqa_raw, n.generation, n.school, n.date_of_death, n.is_placeholder,
   n.rank_ibn_hajar_raw, n.rank_ibn_hajar AS rank_ibn_hajar_code,
   rh.label_ar AS rank_ibn_hajar_label, rh.weight AS rank_ibn_hajar_weight,
   n.rank_dhahabi_raw, n.rank_dhahabi AS rank_dhahabi_code,

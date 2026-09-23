@@ -370,7 +370,8 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
 | GET | `/narrators/:id` | A | The profile, the grades, both raw and coded |
 | GET | `/narrators/:id/hadiths` | A | Paged. The chains the narrator appears in |
 | GET | `/narrators` | A | Search by name. `q` matches `name_norm` or `display_norm` |
-| GET | `/narrators/:id/adjacent` | A | **Missing — must implement.** The neighbours table for frontend PRD §7.10 section 4: teacher rows and student rows from `corpus.isnad_edges`, never a graph. `GET /narrators/:id/hadiths` above already serves the chains list (§7.10 section 3), so no separate chains endpoint is needed |
+| GET | `/narrators/:id/adjacent` | A | The neighbours table for frontend PRD §7.10 section 4: teacher rows and student rows from `corpus.isnad_edges`, never a graph. `GET /narrators/:id/hadiths` above already serves the chains list (§7.10 section 3), so no separate chains endpoint is needed. Closed 2026-09-23 |
+| GET | `/hadiths/strength-distribution` | A | Closed 2026-09-24: 14 buckets over every scored hadith, read off `corpus.sanad_strengths` (same arithmetic, never a copy). The detail page's distribution strip draws it |
 
 **`GET /hadiths/:id` — the response shape:**
 
@@ -389,7 +390,9 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
       "links": [
         { "position": 1, "narrator_id": 4021, "display_name": "…",
           "name_en": "…", "kunya": "…", "lineage": "…", "school": "…",
-          "tabaqa_raw": "…", "raw_name": "…", "transmission_word": null,
+          "tabaqa_raw": "…", "generation": 5,     // db/09, null where unnamed
+          "weight": 0.90,                          // anʿana-adjusted, same CASE
+          "raw_name": "…", "transmission_word": null,
           "is_compiler": false, "resolution": "A",
           "rank_ibn_hajar_raw": "…", "rank_ibn_hajar": "thiqa",
           "rank_ibn_hajar_via": "E" }
@@ -820,6 +823,15 @@ the kind of thing this project has otherwise avoided.
 
 Done: `db/07_sanad_strength.sql` creates the `corpus.sanad_strengths` view,
 and `GET /hadiths/:id` returns grouped `chains` with one strength each.
+
+### 8.5 Generation ordinals (closed 2026-09-24)
+
+`db/09_generation.sql` maps free-text `tabaqa_raw` to `narrators.generation`
+through `corpus.tabaqa_generation`: ordinal words anywhere in the text win
+longest-first (8,690 narrators), Companion-claim markers fall back to 1, and
+21 genuinely unmappable rows stay NULL. Served per link in
+`GET /hadiths/:id` and on `GET /narrators*` for the frontend's generation
+filter, which always shows NULL-generation links and says so.
 
 ---
 

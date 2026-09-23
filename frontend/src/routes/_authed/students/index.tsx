@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { State } from '../../../domain/State';
 import { useAuth } from '../../../auth/AuthContext';
 import { apiFetch } from '../../../lib/apiClient';
 
@@ -54,11 +55,21 @@ function StudentsList() {
   return (
     <div>
       <h1>Students</h1>
-      {isLoading ? <p>Loading the students…</p> : null}
-      {isError || (!isLoading && !data) ? (
-        <p>The students could not be loaded. Try again.</p>
+      {isLoading ? (
+        <State title="Loading the students" quiet>
+          <p>Reading the registry.</p>
+        </State>
       ) : null}
-      {data && data.length === 0 ? <p>No students are registered yet.</p> : null}
+      {isError || (!isLoading && !data) ? (
+        <State title="The students could not be loaded">
+          <p>Try again.</p>
+        </State>
+      ) : null}
+      {data && data.length === 0 ? (
+        <State title="No students yet" quiet>
+          <p>Nobody registered as a student so far.</p>
+        </State>
+      ) : null}
       {data && data.length > 0 ? (
         <ul>
           {data.map((student) => (

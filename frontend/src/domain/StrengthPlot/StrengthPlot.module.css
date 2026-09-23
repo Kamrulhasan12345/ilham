@@ -8,7 +8,7 @@
   border-bottom: var(--bw) solid var(--rule);
   padding-bottom: var(--sp-1);
 }
-.legend b {
+.legendAr {
   font-family: var(--font-ar);
   font-weight: 400;
   color: var(--ink);
@@ -21,7 +21,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 3.5rem 12rem minmax(0, 1fr);
+  grid-template-columns: var(--plot-w-num) var(--plot-w-name) minmax(0, 1fr);
   gap: var(--sp-2);
   align-items: center;
   border-bottom: var(--bw) solid var(--rule);
@@ -74,4 +74,14 @@
   font-size: var(--fs-rail);
   color: var(--ink-app);
   margin: var(--sp-1) 0 0;
+}
+
+.foot {
+  font-size: var(--fs-label);
+  color: var(--machine);
+  margin: var(--sp-1) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  align-items: baseline;
 }

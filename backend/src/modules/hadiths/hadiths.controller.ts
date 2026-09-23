@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { BadRequestError, NotFoundError } from '../../lib/errors.js';
 import { parsePageParams } from '../../lib/pagination.js';
-import { countHadiths, getHadithDetail, listHadiths } from './hadiths.model.js';
+import { countHadiths, getHadithDetail, listHadiths, strengthDistribution } from './hadiths.model.js';
 
 function parseOptionalInt(value: unknown): number | undefined {
   if (value === undefined) return undefined;
@@ -22,6 +22,14 @@ export async function getHadiths(req: Request, res: Response, next: NextFunction
       countHadiths({ collectionId, chapterId, q }),
     ]);
     res.json({ data: hadiths, page: { limit, offset, total } });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getStrengthDistribution(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({ data: await strengthDistribution() });
   } catch (e) {
     next(e);
   }

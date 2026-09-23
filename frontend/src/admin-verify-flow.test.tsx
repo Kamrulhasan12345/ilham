@@ -95,7 +95,7 @@ describe('role switch in one tab', () => {
     ).toBeInTheDocument();
 
     await router.navigate({ to: '/admin/verify' });
-    expect(await screen.findByText(/no teacher waits for review/i)).toBeInTheDocument();
+    expect(await screen.findByText('No teacher waits')).toBeInTheDocument();
     expect(screen.queryByText(/does not hold that role/i)).not.toBeInTheDocument();
   });
 });

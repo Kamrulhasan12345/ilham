@@ -1,0 +1,15 @@
+.tag {
+  font-family: var(--font-en);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--ink-app);
+  border-inline-start: 2px solid var(--ink);
+  padding: var(--underline-w) 0 var(--underline-w) var(--sp-1);
+  display: inline-block;
+}
+
+.accent {
+  border-inline-start-color: var(--index);
+  color: var(--index);
+}

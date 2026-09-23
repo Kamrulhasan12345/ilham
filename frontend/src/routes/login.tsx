@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import { ApiError, apiFetch } from '../lib/apiClient';
 import { Button } from '../ui/Button';
+import { Field } from '../ui/Field';
+import { Input } from '../ui/Input';
 import styles from './auth-form.module.css';
 
 const loginResponseSchema = z.object({ accessToken: z.string() });
@@ -60,41 +62,41 @@ function LoginPage() {
       ) : null}
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.field}>
-          <label htmlFor="login-email">Email</label>
-          <input
-            id="login-email"
-            className={styles.input}
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="login-password">Password</label>
-          <div className={styles.passwordRow}>
-            <input
-              id="login-password"
-              className={styles.input}
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
+        <Field label="Email">
+          {({ controlId }) => (
+            <Input
+              id={controlId}
+              type="email"
+              autoComplete="email"
               required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
             />
-            <Button
-              type="button"
-              variant="default"
-              aria-pressed={showPassword}
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              {showPassword ? 'Hide' : 'Show'}
-            </Button>
-          </div>
-        </div>
+          )}
+        </Field>
+
+        <Field label="Password">
+          {({ controlId }) => (
+            <div className={styles.passwordRow}>
+              <Input
+                id={controlId}
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <Button
+                type="button"
+                variant="default"
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </Button>
+            </div>
+          )}
+        </Field>
 
         <Button type="submit" variant="primary" disabled={submitting}>
           Sign in

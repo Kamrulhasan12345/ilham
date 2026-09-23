@@ -3,6 +3,7 @@ import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { apiFetch } from '../../../lib/apiClient';
 import { Pager } from '../../../ui/Pager';
+import { State } from '../../../domain/State';
 
 const collectionSchema = z.object({
   collection_id: z.number(),
@@ -50,15 +51,52 @@ function ChaptersPage() {
     enabled: collectionId !== undefined,
   });
 
-  if (collections.isLoading) return <p>Loading…</p>;
-  if (collections.isError) return <p>The collection could not be loaded. Try again.</p>;
-  if (collectionId === undefined) return <p>This collection could not be found.</p>;
-  if (chapters.isLoading) return <p>Loading chapters…</p>;
-  if (chapters.isError || !chapters.data)
-    return <p>The chapters could not be loaded. Try again.</p>;
+  if (collections.isLoading) {
+    return (
+      <State title="Loading" quiet>
+        <p>Reading the collection.</p>
+      </State>
+    );
+  }
+  if (collections.isError) {
+    return (
+      <State title="The collection could not be loaded">
+        <p>Try again.</p>
+      </State>
+    );
+  }
+  if (collectionId === undefined) {
+    return (
+      <State title="No such collection">
+        <p>
+          <Link to="/collections">Return to the collections.</Link>
+        </p>
+      </State>
+    );
+  }
+  if (chapters.isLoading) {
+    return (
+      <State title="Loading chapters" quiet>
+        <p>Reading the chapter list.</p>
+      </State>
+    );
+  }
+  if (chapters.isError || !chapters.data) {
+    return (
+      <State title="The chapters could not be loaded">
+        <p>Try again.</p>
+      </State>
+    );
+  }
 
   const data = chapters.data;
-  if (data.length === 0 && offset === 0) return <p>This collection has no chapters yet.</p>;
+  if (data.length === 0 && offset === 0) {
+    return (
+      <State title="This collection has no chapters yet" quiet>
+        <p>The collection stands empty in the corpus.</p>
+      </State>
+    );
+  }
 
   return (
     <div>

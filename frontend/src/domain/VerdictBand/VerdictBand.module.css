@@ -1,0 +1,32 @@
+.verdict {
+  border-inline-start: 2px solid var(--index);
+  padding: 0 0 0 var(--sp-2);
+  margin: 0 0 var(--sp-3);
+}
+
+.head {
+  font-size: var(--fs-lead);
+  line-height: 1.45;
+  margin: 0 0 var(--sp-1);
+  font-weight: 400;
+}
+
+.head b {
+  font-weight: 600;
+}
+
+.body {
+  font-size: var(--fs-rail);
+  line-height: 1.55;
+  color: var(--ink-app);
+  margin: 0 0 var(--sp-2);
+  max-width: 62ch;
+}
+
+.note {
+  font-size: var(--fs-label);
+  line-height: 1.5;
+  color: var(--ink-app);
+  margin: 0;
+  max-width: 68ch;
+}

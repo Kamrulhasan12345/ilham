@@ -3,7 +3,7 @@ import styles from './Button.module.css';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?: 'default' | 'primary';
+  variant?: 'default' | 'primary' | 'destructive';
   size?: 'default' | 'small';
 }
 
@@ -18,6 +18,7 @@ export function Button({
   const classes = [
     styles.button,
     variant === 'primary' ? styles.primary : null,
+    variant === 'destructive' ? styles.destructive : null,
     size === 'small' ? styles.small : null,
     className,
   ]

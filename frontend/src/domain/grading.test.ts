@@ -31,7 +31,11 @@ describe('gradeInfo', () => {
       rank_ibn_hajar: null,
       rank_ibn_hajar_weight: null,
     });
-    expect(info).toEqual({ sentence: 'the collector — not scored', weight: null });
+    expect(info).toEqual({
+      sentence: 'the collector — not scored',
+      weight: null,
+      baseWeight: null,
+    });
   });
 
   it('glosses a graded narrator with the canonical single-word gloss and its real weight', () => {
@@ -42,7 +46,7 @@ describe('gradeInfo', () => {
       rank_ibn_hajar: 'thiqa',
       rank_ibn_hajar_weight: 0.95,
     });
-    expect(info).toEqual({ sentence: 'trustworthy', weight: 0.95 });
+    expect(info).toEqual({ sentence: 'trustworthy', weight: 0.95, baseWeight: 0.95 });
   });
 
   it('names a resolved-but-ungraded narrator as neutral, at weight 0.50', () => {
@@ -56,7 +60,20 @@ describe('gradeInfo', () => {
     expect(info).toEqual({
       sentence: 'identified, but no scholar graded him — neutral, not a fault',
       weight: 0.5,
+      baseWeight: 0.5,
     });
+  });
+
+  it('prefers the served anʿana-adjusted weight and keeps the rank weight as the base', () => {
+    const info = gradeInfo({
+      is_compiler: false,
+      is_placeholder: false,
+      resolution: 'A',
+      rank_ibn_hajar: 'thiqa',
+      rank_ibn_hajar_weight: 0.95,
+      weight: 0.9,
+    });
+    expect(info).toEqual({ sentence: 'trustworthy', weight: 0.9, baseWeight: 0.95 });
   });
 
   it('names a placeholder as unnamed, at weight 0.15', () => {
@@ -67,7 +84,11 @@ describe('gradeInfo', () => {
       rank_ibn_hajar: null,
       rank_ibn_hajar_weight: null,
     });
-    expect(info).toEqual({ sentence: 'the source records no name here', weight: 0.15 });
+    expect(info).toEqual({
+      sentence: 'the source records no name here',
+      weight: 0.15,
+      baseWeight: 0.15,
+    });
   });
 
   it('names an unresolved link (resolution X, no placeholder flag) as unnamed too', () => {

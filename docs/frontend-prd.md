@@ -186,9 +186,13 @@ the theme changes. §4.5 gives the rule.
 | `@tanstack/react-router` | Routing, typed params |
 | `@tanstack/react-query` | Server state |
 | `zod` | Validate every API response at the boundary |
-| `@phosphor-icons/react` | Icons, regular weight |
 | `vitest`, `@testing-library/react` | Tests |
 | `@biomejs/biome` | Lint and format |
+
+Icons are inline SVG drawn from `docs/design/specimen.html`'s own `.icon`
+set (20px, currentColor stroke). Decided 2026-09-24: the specimen never
+installed an icon package, so neither does the frontend — no
+`@phosphor-icons/react`, no new dependency for what a path element does.
 
 Nothing else without a written reason.
 
@@ -446,6 +450,10 @@ The file tree is the route table.
 | `/circles/$circleId/assign` | Assign a set | verifiedTeacher |
 | `/assignments/$assignmentId` | Completion (Q6) | teacher |
 | `/review/$sessionId` | The review runner | signedIn |
+
+Starting a review uses the literal id `new` with `?student_id=&assignment_id=`:
+`/review/new` records every verdict locally, submits once, and lands on the
+created session's record page. (Closed 2026-09-24.)
 | `/notes` | Notes | signedIn |
 | `/me` | Account | signedIn |
 | `/admin/verify` | Verification queue | admin |
@@ -824,9 +832,10 @@ Closed 2026-09-23: every row below exists, plus the §8.2 list.
 | `GET /collections` | none. Rows carry `hadith_count` |
 | `GET /chapters` | `collection_id` (required), `limit`, `offset` |
 | `GET /hadiths` | `collection_id`, `chapter_id`, `q`, `limit`, `offset`. Rows carry `chain_strength` |
-| `GET /hadiths/:id` | `lang`, default `en`. Detail carries collection, chapter, grouped `chains`, and link biography with grade provenance |
-| `GET /narrators` | `q`, `limit`, `offset` |
-| `GET /narrators/:id` | none |
+| `GET /hadiths/strength-distribution` | none. 14 buckets over every scored hadith (closed 2026-09-24) |
+| `GET /hadiths/:id` | `lang`, default `en`. Detail carries collection, chapter, grouped `chains`, and link biography with grade provenance. Links carry `weight` (anʿana-adjusted, closed 2026-09-24) and `generation` (closed 2026-09-24) |
+| `GET /narrators` | `q`, `limit`, `offset`. Rows carry `generation` (closed 2026-09-24) |
+| `GET /narrators/:id` | none. Profile carries `generation` (closed 2026-09-24) |
 | `GET /narrators/:id/hadiths` | `limit`, `offset` |
 | `GET /narrators/:id/adjacent` | none |
 

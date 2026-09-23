@@ -72,6 +72,52 @@
   --p-button-v: 13px;
   --p-button-small-v: 8px;
 
+  /* Shell nav links and icons, measured off docs/design/specimen.html.
+     The nav link reuses --h-button for its 44px target floor. */
+  --p-nav-v: 10px;
+  --icon-size: 20px;
+  --icon-size-sm: 16px;
+
+  /* Fields, chips, sliders, dialogs, toasts, state blocks. Measured off
+     docs/design/specimen.html and docs/design/demo.html. */
+  --h-chip: 28px;
+  --field-max: 26rem;
+  --auth-max: 28rem;
+  --dialog-max: 32rem;
+  --toast-max: 32rem;
+  --state-max: 42rem;
+  --track-h: 4px;
+  --thumb-size: 18px;
+  --step-min: 40px;
+
+  /* Breadcrumb link floor and the rail's narrow auto-fill card, both
+     measured off docs/design/specimen.html. */
+  --crumb-target: 26px;
+  --rail-card-min: 140px;
+
+  /* The corpus distribution strip height, per docs/design/demo.html. */
+  --strip-h: 96px;
+
+  /* Chart geometry, measured off docs/design/specimen.html. A 2px data
+     line is --line-strong; 2px control borders stay border-width lines. */
+  --line-strong: 2px;
+  --bar-w-name: 14rem;
+  --bar-w-val: 4rem;
+  --plot-w-num: 3.5rem;
+  --plot-w-name: 12rem;
+  --db-name-w: 12rem;
+  --db-gap-w: 3rem;
+  --db-track-h: 20px;
+  --db-point: 11px;
+  --db-inset: 6px;
+  --hrow-w-num: 4.5rem;
+  --hrow-w-score: 7rem;
+
+  /* Axis-only Arabic rungs: the six grade words on a chart axis sit
+     smaller than chain Arabic so six words fit one line. */
+  --fs-ar-scale: 1rem;
+  --fs-ar-scale-sm: 0.875rem;
+
   /* Border and radius */
   --bw: 1px;
   --r-chip: 999px;

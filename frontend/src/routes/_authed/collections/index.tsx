@@ -8,6 +8,7 @@ const collectionSchema = z.object({
   slug: z.string(),
   title_ar: z.string(),
   title_en: z.string().nullable(),
+  hadith_count: z.coerce.number(),
 });
 const collectionsSchema = z.array(collectionSchema);
 
@@ -41,7 +42,8 @@ function CollectionsPage() {
                 {collection.title_ar}
               </span>
               {collection.title_en ? <span> — {collection.title_en}</span> : null}
-            </Link>
+            </Link>{' '}
+            <span className="m m--bare">{`[${collection.hadith_count} hadiths]`}</span>
           </li>
         ))}
       </ul>

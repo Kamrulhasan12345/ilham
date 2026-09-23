@@ -36,10 +36,10 @@ body {
 a {
   color: var(--index);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: var(--underline-w);
 }
 a:hover {
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: var(--underline-w);
 }
 
 /* Arabic never takes letter-spacing at any size — it is a joined script and
@@ -89,8 +89,8 @@ a:hover {
 
 .vh {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: var(--bw);
+  height: var(--bw);
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;

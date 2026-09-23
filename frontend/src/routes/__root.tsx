@@ -1,4 +1,4 @@
-import { Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router';
+import { Link, Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { Shell } from '../app/Shell';
 import type { AuthContextValue } from '../auth/AuthContext';
@@ -34,8 +34,9 @@ function NotFound() {
   return (
     <div>
       <h1>That page does not exist</h1>
+      <p>Nothing lives at this address.</p>
       <p>
-        <a href="/">Return home.</a>
+        <Link to="/collections">Return to the collections.</Link>
       </p>
     </div>
   );
@@ -48,7 +49,7 @@ export function RouteError({ error }: { error: Error }) {
       <h1>Something went wrong</h1>
       <p>{message}</p>
       <p>
-        <a href="/">Return home.</a>
+        <Link to="/collections">Return to the collections.</Link>
       </p>
     </div>
   );

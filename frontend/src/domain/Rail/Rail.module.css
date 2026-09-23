@@ -1,0 +1,57 @@
+.doc {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.rail {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.tint {
+  background: var(--rail);
+  padding: var(--sp-2);
+}
+
+.row {
+  display: grid;
+  gap: var(--gap-stack);
+}
+
+.key {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--ink-app);
+}
+
+.value {
+  font-size: var(--fs-rail);
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.valueAr {
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-grade);
+  line-height: 1.6;
+}
+
+.absent {
+  color: var(--ink-app);
+  font-style: italic;
+}
+
+@media (max-width: 62rem) {
+  .doc {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-3);
+  }
+  .rail {
+    grid-template-columns: repeat(auto-fill, minmax(var(--rail-card-min), 1fr));
+    border-block: var(--bw) solid var(--rule);
+    padding-block: var(--sp-2);
+  }
+}

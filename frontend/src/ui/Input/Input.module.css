@@ -1,0 +1,28 @@
+.input {
+  font-family: var(--font-en);
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  padding: var(--sp-2);
+  min-height: var(--h-button);
+  border: var(--bw) solid var(--edge);
+  border-radius: 0;
+  background: var(--ground);
+  color: var(--ink);
+  width: 100%;
+}
+
+textarea.input {
+  min-height: calc(var(--h-button) * 2);
+  resize: vertical;
+}
+
+.input:disabled {
+  background: var(--rail);
+  color: var(--ink-app);
+}
+
+/* An invalid field doubles its border and says the word. */
+.input[aria-invalid="true"] {
+  border-width: 2px;
+  border-color: var(--ink);
+}

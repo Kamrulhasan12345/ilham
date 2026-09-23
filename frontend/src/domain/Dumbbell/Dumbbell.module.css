@@ -1,0 +1,113 @@
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  margin: 0 0 var(--sp-2);
+}
+
+.dot {
+  display: inline-block;
+  width: var(--pdot-size);
+  height: var(--pdot-size);
+  border-radius: 50%;
+  background: var(--ink);
+  margin-inline-end: var(--sp-1);
+}
+
+.diamond {
+  border-radius: 0;
+  rotate: 45deg;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--db-name-w) minmax(0, 1fr) var(--db-gap-w);
+  gap: var(--sp-2);
+  align-items: center;
+  border-bottom: var(--bw) solid var(--rule);
+  padding-block: var(--sp-2);
+}
+
+.name {
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-grade);
+  text-align: right;
+}
+
+.track {
+  position: relative;
+  height: var(--db-track-h);
+  margin-inline: var(--db-inset);
+}
+
+.axis {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--bw);
+  background: var(--rule);
+}
+
+.link {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  height: var(--line-strong);
+  background: var(--ink);
+}
+
+.point {
+  position: absolute;
+  top: 50%;
+  width: var(--db-point);
+  height: var(--db-point);
+  translate: -50% -50%;
+  background: var(--ink);
+}
+
+.pointA {
+  border-radius: 50%;
+}
+
+.pointB {
+  rotate: 45deg;
+}
+
+.gap {
+  text-align: end;
+}
+
+.scale {
+  display: grid;
+  grid-template-columns: var(--db-name-w) minmax(0, 1fr) var(--db-gap-w);
+  gap: var(--sp-2);
+  align-items: center;
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-scale);
+  color: var(--ink-app);
+  padding-top: var(--sp-1);
+}
+
+.scale > span:nth-child(2) {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gloss {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  margin: var(--sp-1) 0 0;
+}
+
+@media (max-width: 46rem) {
+  .scale {
+    font-size: var(--fs-ar-scale-sm);
+  }
+  .scale > span:nth-child(2) {
+    flex-wrap: wrap;
+    gap: var(--underline-w) var(--sp-1);
+    justify-content: flex-start;
+  }
+}

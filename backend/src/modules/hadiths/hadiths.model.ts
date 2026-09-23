@@ -85,6 +85,28 @@ export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'off
   return Number(rows[0].count);
 }
 
+export interface StrengthBucket {
+  bucket: number;
+  count: number;
+}
+
+/**
+ * The corpus distribution strip: 14 buckets over every scored hadith.
+ * Reads the sanad_strengths view's own arithmetic — never a second copy
+ * of it — so the strip and the scores cannot disagree. Empty buckets come
+ * back as zero, because the strip draws all 14.
+ */
+export async function strengthDistribution(): Promise<StrengthBucket[]> {
+  const { rows } = await pool.query<{ bucket: string; count: string }>(
+    `SELECT width_bucket(s, 0, 1, 14) AS bucket, count(*) AS count
+       FROM (SELECT max(strength) AS s FROM corpus.sanad_strengths GROUP BY hadith_id) t
+      WHERE s IS NOT NULL
+      GROUP BY 1 ORDER BY 1`,
+  );
+  const byBucket = new Map(rows.map((r) => [Number(r.bucket), Number(r.count)] as const));
+  return Array.from({ length: 14 }, (_, i) => ({ bucket: i + 1, count: byBucket.get(i + 1) ?? 0 }));
+}
+
 export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<HadithDetail | null> {
   const { rows: hadithRows } = await pool.query(
     `SELECT h.hadith_id, h.collection_id, h.chapter_id, h.hadith_num,
@@ -128,14 +150,26 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
   );
 
   const { rows: isnadRows } = await pool.query<IsnadLinkRow>(
+    // weight repeats corpus.chain_strength's own per-link arithmetic inline
+    // (same CASE, same anʿana penalty) so a reader never recomputes it and
+    // the two cannot disagree. The ETL aligns transmission words for
+    // single-sanad hadiths only, so the penalty fires exactly where the
+    // function sees it fire.
     `SELECT l.sanad_no, l.position, l.narrator_id, l.raw_name, n.display_name,
-            n.name_en, n.kunya, n.lineage, n.school, n.tabaqa_raw,
+            n.name_en, n.kunya, n.lineage, n.school, n.tabaqa_raw, n.generation,
             l.transmission_word, l.is_compiler, l.resolution,
             coalesce(n.is_placeholder, false) AS is_placeholder,
             n.rank_ibn_hajar_raw, n.rank_ibn_hajar, n.rank_ibn_hajar_via,
             rlh.weight AS rank_ibn_hajar_weight,
             n.rank_dhahabi_raw, n.rank_dhahabi, n.rank_dhahabi_via,
-            rld.weight AS rank_dhahabi_weight
+            rld.weight AS rank_dhahabi_weight,
+            CASE
+              WHEN l.narrator_id IS NULL OR n.is_placeholder THEN 0.15
+              WHEN n.rank_ibn_hajar IS NULL AND n.rank_dhahabi IS NULL THEN 0.50
+              ELSE least(coalesce(rlh.weight, 1), coalesce(rld.weight, 1))
+            END
+            - CASE WHEN l.transmission_norm IN ('عن', 'وعن') THEN 0.05 ELSE 0 END
+            AS weight
        FROM corpus.isnad_links l
        LEFT JOIN corpus.narrators n ON n.narrator_id = l.narrator_id
        LEFT JOIN corpus.rank_levels rlh ON rlh.rank_code = n.rank_ibn_hajar
@@ -144,6 +178,11 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
       ORDER BY l.sanad_no, l.position`,
     [hadithId],
   );
+
+  // numeric comes back as text; the detail contract carries numbers.
+  for (const link of isnadRows) {
+    link.weight = link.weight != null ? Number(link.weight) : null;
+  }
 
   const { rows: strengthRows } = await pool.query<{ chain_strength: string | null }>(
     `SELECT corpus.chain_strength($1) AS chain_strength`,

@@ -65,8 +65,20 @@ function mockApiFetch(chapters: unknown[], hadiths: unknown[]) {
 describe('Hadiths-in-chapter page', () => {
   it('resolves slug -> collection_id -> (via seq) chapter_id, then fetches and renders hadiths, linking each to its hadith detail page', async () => {
     mockApiFetch(CHAPTERS, [
-      { hadith_id: 100, hadith_num: '1', text_plain: 'إنما الأعمال بالنيات', sanad_count: 3 },
-      { hadith_id: 101, hadith_num: '2', text_plain: 'الدين النصيحة', sanad_count: 0 },
+      {
+        hadith_id: 100,
+        hadith_num: '1',
+        text_plain: 'إنما الأعمال بالنيات',
+        sanad_count: 3,
+        chain_strength: 0.95,
+      },
+      {
+        hadith_id: 101,
+        hadith_num: '2',
+        text_plain: 'الدين النصيحة',
+        sanad_count: 0,
+        chain_strength: null,
+      },
     ]);
     renderAt('/collections/sahih-muslim/1');
 
@@ -86,7 +98,13 @@ describe('Hadiths-in-chapter page', () => {
 
   it('shows the pager and its "Showing X–Y" text', async () => {
     mockApiFetch(CHAPTERS, [
-      { hadith_id: 100, hadith_num: '1', text_plain: 'إنما الأعمال بالنيات', sanad_count: 3 },
+      {
+        hadith_id: 100,
+        hadith_num: '1',
+        text_plain: 'إنما الأعمال بالنيات',
+        sanad_count: 3,
+        chain_strength: 0.95,
+      },
     ]);
     renderAt('/collections/sahih-muslim/1');
 
@@ -97,11 +115,17 @@ describe('Hadiths-in-chapter page', () => {
 
   it('shows a plain error message when the requested seq does not match any real chapter', async () => {
     mockApiFetch(CHAPTERS, [
-      { hadith_id: 100, hadith_num: '1', text_plain: 'إنما الأعمال بالنيات', sanad_count: 3 },
+      {
+        hadith_id: 100,
+        hadith_num: '1',
+        text_plain: 'إنما الأعمال بالنيات',
+        sanad_count: 3,
+        chain_strength: 0.95,
+      },
     ]);
     renderAt('/collections/sahih-muslim/999');
 
-    expect(await screen.findByText('This chapter could not be found.')).toBeInTheDocument();
+    expect(await screen.findByText('No such chapter')).toBeInTheDocument();
     expect(screen.queryByText(/hadith list could not be loaded/i)).not.toBeInTheDocument();
   });
 
@@ -109,17 +133,23 @@ describe('Hadiths-in-chapter page', () => {
     mockApiFetch(CHAPTERS, []);
     renderAt('/collections/sahih-muslim/1');
 
-    expect(await screen.findByText('This chapter has no hadiths yet.')).toBeInTheDocument();
+    expect(await screen.findByText('This chapter has no hadiths yet')).toBeInTheDocument();
   });
 
-  it('truncates a long text_plain snippet to roughly 80 characters plus an ellipsis', async () => {
+  it('truncates a long text_plain snippet plus an ellipsis', async () => {
     const longText = 'ب'.repeat(200);
     mockApiFetch(CHAPTERS, [
-      { hadith_id: 100, hadith_num: '1', text_plain: longText, sanad_count: 3 },
+      {
+        hadith_id: 100,
+        hadith_num: '1',
+        text_plain: longText,
+        sanad_count: 3,
+        chain_strength: 0.8,
+      },
     ]);
     renderAt('/collections/sahih-muslim/1');
 
-    const link = await screen.findByRole('link', { name: /1/ });
+    const link = await screen.findByRole('link', { name: /ب+/ });
     const rendered = link.textContent ?? '';
     expect(rendered).toContain('…');
     expect(rendered.length).toBeLessThan(longText.length);

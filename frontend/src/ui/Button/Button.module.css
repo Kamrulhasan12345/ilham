@@ -32,6 +32,12 @@
   border-color: var(--edge);
 }
 
+/* A destructive action carries no colour. It is named exactly, and the
+   dialog states the consequence. */
+.destructive {
+  border-width: 2px;
+}
+
 .small {
   min-height: var(--h-compact);
   padding: var(--p-button-small-v) var(--sp-1);

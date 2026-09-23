@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 import { Button } from '../../../ui/Button';
+import { Dialog } from '../../../ui/Dialog';
+import { Field } from '../../../ui/Field';
+import { Input } from '../../../ui/Input';
 
 // A note has no title, no privacy flag, no updated_at, and no soft delete
 // (docs/frontend-prd.md §7.22), so the UI offers none of those controls.
@@ -26,6 +29,7 @@ function NotesPage() {
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['notes'],
@@ -64,6 +68,8 @@ function NotesPage() {
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -79,26 +85,31 @@ function NotesPage() {
       <h1>Notes</h1>
 
       <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="note-hadith">Hadith number</label>
-          <input
-            id="note-hadith"
-            type="number"
-            required
-            value={hadithId}
-            onChange={(event) => setHadithId(event.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="note-body">Note</label>
-          <input
-            id="note-body"
-            type="text"
-            required
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-          />
-        </div>
+        <Field label="Hadith ID" hint="The database identifier of the hadith.">
+          {({ controlId, describedBy }) => (
+            <Input
+              id={controlId}
+              aria-describedby={describedBy}
+              type="number"
+              required
+              value={hadithId}
+              onChange={(event) => setHadithId(event.target.value)}
+            />
+          )}
+        </Field>
+        <Field label="Note">
+          {({ controlId, describedBy }) => (
+            <Input
+              id={controlId}
+              aria-describedby={describedBy}
+              multiline
+              rows={3}
+              required
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+            />
+          )}
+        </Field>
         {error ? <p>{error}</p> : null}
         <Button type="submit" variant="primary" disabled={submitting}>
           Add note
@@ -119,7 +130,12 @@ function NotesPage() {
             {notes.map((note) => (
               <li key={note.note_id}>
                 {note.body}{' '}
-                <Button type="button" variant="default" onClick={() => handleDelete(note.note_id)}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="small"
+                  onClick={() => setDeleting(note.note_id)}
+                >
                   Delete
                 </Button>
               </li>
@@ -127,6 +143,26 @@ function NotesPage() {
           </ul>
         </section>
       ))}
+      <Dialog
+        open={deleting !== null}
+        title="Delete this note?"
+        onClose={() => setDeleting(null)}
+        actions={
+          <>
+            <Button variant="default" onClick={() => setDeleting(null)}>
+              Keep it
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleting !== null && handleDelete(deleting)}
+            >
+              Delete it
+            </Button>
+          </>
+        }
+      >
+        <p>Deleting a note is final. The hadith stays where it is.</p>
+      </Dialog>
     </div>
   );
 }

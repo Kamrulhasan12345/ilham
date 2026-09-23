@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { type Chain, type FlatIsnadLink, gradeInfo, groupIsnadChains } from '../grading';
 import styles from './IsnadChain.module.css';
 
@@ -6,19 +7,31 @@ export interface IsnadLinkData extends FlatIsnadLink {
   raw_name: string;
   display_name: string | null;
   name_en: string | null;
+  kunya?: string | null;
+  lineage?: string | null;
+  school?: string | null;
+  tabaqa_raw?: string | null;
+  generation: number | null;
   transmission_word: string | null;
   is_compiler: boolean;
   resolution: string;
   is_placeholder: boolean;
+  rank_ibn_hajar_raw?: string | null;
   rank_ibn_hajar: string | null;
+  rank_ibn_hajar_via?: string | null;
   rank_ibn_hajar_weight: number | null;
+  rank_dhahabi_raw?: string | null;
   rank_dhahabi: string | null;
+  rank_dhahabi_via?: string | null;
   rank_dhahabi_weight: number | null;
+  weight?: number | null;
 }
 
 export interface IsnadChainProps {
   links: IsnadLinkData[];
   strongestSanadNo?: number;
+  /** Render each resolved name as a link through this function. */
+  linkHref?: (narratorId: number) => string;
 }
 
 // docs/design/DESIGN.md §4's "never a bare number" rule: every machine value
@@ -62,13 +75,28 @@ function markClassName(link: IsnadLinkData): string {
   return `${styles.mark} ${styles.markUnresolved}`;
 }
 
-function LinkRow({ link, setsScore }: { link: IsnadLinkData; setsScore: boolean }) {
+function LinkRow({
+  link,
+  setsScore,
+  linkHref,
+}: {
+  link: IsnadLinkData;
+  setsScore: boolean;
+  linkHref?: (narratorId: number) => string;
+}) {
   const { sentence, weight } = gradeInfo(link);
   const secondSentence =
     !link.is_compiler && link.rank_dhahabi_weight != null
       ? `al-Dhahabī's grade also stands at [${link.rank_dhahabi_weight.toFixed(2)}]`
       : null;
   const gloss = link.transmission_word ? TRANSMISSION_GLOSS[link.transmission_word] : null;
+  // A resolved name links to its narrator. A raw string that did not
+  // resolve is not a link — it stays on screen, quieter, per the specimen.
+  const resolved = !link.is_compiler && !link.is_placeholder && link.narrator_id !== null;
+  const nameText = link.display_name ?? link.raw_name;
+  const nameClasses = [setsScore ? styles.nameSetsScore : '', resolved ? '' : styles.nameRaw]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <li className={styles.link}>
@@ -79,10 +107,16 @@ function LinkRow({ link, setsScore }: { link: IsnadLinkData; setsScore: boolean 
         <p className={`${styles.name} ar`} dir="rtl">
           {link.is_compiler ? (
             link.raw_name
-          ) : setsScore ? (
-            <span className={styles.nameSetsScore}>{link.display_name ?? link.raw_name}</span>
           ) : (
-            (link.display_name ?? link.raw_name)
+            <span className={nameClasses || undefined}>
+              {resolved && linkHref ? (
+                <Link className={styles.nameLink} to={linkHref(link.narrator_id as number)}>
+                  {nameText}
+                </Link>
+              ) : (
+                nameText
+              )}
+            </span>
           )}
         </p>
         {link.name_en ? <p className={styles.translit}>{link.name_en}</p> : null}
@@ -120,7 +154,7 @@ function LinkRow({ link, setsScore }: { link: IsnadLinkData; setsScore: boolean 
   );
 }
 
-export function IsnadChain({ links, strongestSanadNo }: IsnadChainProps) {
+export function IsnadChain({ links, strongestSanadNo, linkHref }: IsnadChainProps) {
   if (links.length === 0) {
     return <p className={styles.empty}>This hadith carries no chain.</p>;
   }
@@ -138,6 +172,7 @@ export function IsnadChain({ links, strongestSanadNo }: IsnadChainProps) {
               <LinkRow
                 key={`${chain.sanadNo}-${link.position}`}
                 link={link}
+                linkHref={linkHref}
                 setsScore={
                   chain.sanadNo === strongestSanadNo && weakestLinkPosition(chain) === link.position
                 }

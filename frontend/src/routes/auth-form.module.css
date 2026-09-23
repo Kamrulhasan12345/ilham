@@ -1,9 +1,9 @@
-/* Shared, small, scoped to /login and /register only. Not a general-purpose
-   Input primitive — see docs/frontend-prd.md §7.1-7.2 and the task note that
-   asked for plain markup here instead of a reusable component. */
+/* Page layout for /login and /register only. Fields and inputs render
+   through the Layer 1 primitives; this file holds the page column, the
+   password row, the role fieldset, and the form error. */
 
 .page {
-  max-width: 28rem;
+  max-width: var(--auth-max);
   margin-inline: auto;
   padding-block: var(--sp-4);
   display: flex;
@@ -17,36 +17,13 @@
   gap: var(--sp-3);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
-}
-
-.field label {
-  font-size: var(--fs-label);
-  color: var(--ink-app);
-  letter-spacing: var(--track-label);
-}
-
-.input {
-  min-height: var(--h-button);
-  border: var(--bw) solid var(--ink-app);
-  border-radius: 0;
-  background: var(--ground);
-  color: var(--ink);
-  font-family: var(--font-en);
-  font-size: var(--fs-body);
-  padding-inline: var(--sp-2);
-}
-
 .passwordRow {
   display: flex;
   align-items: stretch;
   gap: var(--sp-1);
 }
 
-.passwordRow .input {
+.passwordRow > :first-child {
   flex: 1;
 }
 
@@ -60,6 +37,8 @@
 
 .fieldset legend {
   font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
   color: var(--ink-app);
   padding-inline: var(--sp-1);
 }
@@ -69,6 +48,7 @@
   align-items: center;
   gap: var(--sp-1);
   font-size: var(--fs-rail);
+  min-height: var(--h-button);
 }
 
 .hint {
@@ -81,9 +61,4 @@
   color: var(--ink);
   border-inline-start: 2px solid var(--ink);
   padding-inline-start: var(--sp-2);
-}
-
-.fieldError {
-  font-size: var(--fs-label);
-  color: var(--ink);
 }

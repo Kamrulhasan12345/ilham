@@ -159,3 +159,43 @@ describe('apiFetch', () => {
     }
   });
 });
+
+describe('apiFetchEnvelope', () => {
+  beforeEach(() => {
+    setAccessToken(null);
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps the summary beside the data', async () => {
+    const { apiFetchEnvelope } = await import('./apiClient');
+    vi.mocked(fetch).mockResolvedValueOnce(
+      jsonResponse(200, {
+        data: [{ narrator_id: 1, display_name: 'x', positions: 100 }],
+        summary: { total_positions: 1000, top_count: 15, top_share: 0.5 },
+      }),
+    );
+    const result = await apiFetchEnvelope(
+      '/analytics/top-narrators?limit=15',
+      z.array(z.object({ narrator_id: z.number(), display_name: z.string(), positions: z.number() })),
+      z.object({ total_positions: z.number(), top_count: z.number(), top_share: z.number() }),
+    );
+    expect(result.data).toHaveLength(1);
+    expect(result.summary).toEqual({ total_positions: 1000, top_count: 15, top_share: 0.5 });
+  });
+
+  it('yields a null summary when the envelope carries none', async () => {
+    const { apiFetchEnvelope } = await import('./apiClient');
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(200, { data: [] }));
+    const result = await apiFetchEnvelope(
+      '/analytics/contested-narrators',
+      z.array(z.unknown()),
+      z.object({ unscored: z.number() }),
+    );
+    expect(result.data).toEqual([]);
+    expect(result.summary).toBeNull();
+  });
+});

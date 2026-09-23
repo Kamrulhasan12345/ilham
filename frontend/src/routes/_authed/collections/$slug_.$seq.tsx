@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { HadithList } from '../../../domain/HadithList';
+import { State } from '../../../domain/State';
 import { apiFetch } from '../../../lib/apiClient';
 import { Pager } from '../../../ui/Pager';
 
@@ -9,6 +11,7 @@ const collectionSchema = z.object({
   slug: z.string(),
   title_ar: z.string(),
   title_en: z.string().nullable(),
+  hadith_count: z.coerce.number().optional(),
 });
 const collectionsSchema = z.array(collectionSchema);
 
@@ -25,6 +28,7 @@ const hadithRowSchema = z.object({
   hadith_num: z.string(),
   text_plain: z.string(),
   sanad_count: z.number(),
+  chain_strength: z.coerce.number().nullable(),
 });
 const hadithListSchema = z.array(hadithRowSchema);
 
@@ -47,6 +51,7 @@ function HadithsInChapterPage() {
     staleTime: Number.POSITIVE_INFINITY,
   });
   const collectionId = collections.data?.find((c) => c.slug === slug)?.collection_id;
+  const collection = collections.data?.find((c) => c.slug === slug);
 
   const chapters = useQuery({
     queryKey: ['chapters', { collectionId }],
@@ -54,7 +59,8 @@ function HadithsInChapterPage() {
     enabled: collectionId !== undefined,
     staleTime: Number.POSITIVE_INFINITY,
   });
-  const chapterId = chapters.data?.find((ch) => ch.seq === Number(seq))?.chapter_id;
+  const chapter = chapters.data?.find((ch) => ch.seq === Number(seq));
+  const chapterId = chapter?.chapter_id;
 
   const hadiths = useQuery({
     queryKey: ['hadiths', { chapterId, limit: LIMIT, offset }],
@@ -66,34 +72,94 @@ function HadithsInChapterPage() {
     enabled: chapterId !== undefined,
   });
 
-  if (collections.isLoading) return <p>Loading…</p>;
-  if (collections.isError) return <p>The collection could not be loaded. Try again.</p>;
-  if (collectionId === undefined) return <p>This collection could not be found.</p>;
-  if (chapters.isLoading) return <p>Loading the chapter…</p>;
-  if (chapters.isError) return <p>The chapter could not be loaded. Try again.</p>;
-  if (chapterId === undefined) return <p>This chapter could not be found.</p>;
-  if (hadiths.isLoading) return <p>Loading hadiths…</p>;
-  if (hadiths.isError || !hadiths.data)
-    return <p>The hadith list could not be loaded. Try again.</p>;
+  if (collections.isLoading) {
+    return (
+      <State title="Loading" quiet>
+        <p>Reading the collection.</p>
+      </State>
+    );
+  }
+  if (collections.isError) {
+    return (
+      <State title="The collection could not be loaded">
+        <p>Try again.</p>
+      </State>
+    );
+  }
+  if (collectionId === undefined) {
+    return (
+      <State title="No such collection">
+        <p>
+          <Link to="/collections">Return to the collections.</Link>
+        </p>
+      </State>
+    );
+  }
+  if (chapters.isLoading) {
+    return (
+      <State title="Loading the chapter" quiet>
+        <p>Reading its hadiths.</p>
+      </State>
+    );
+  }
+  if (chapters.isError) {
+    return (
+      <State title="The chapter could not be loaded">
+        <p>Try again.</p>
+      </State>
+    );
+  }
+  if (chapterId === undefined) {
+    return (
+      <State title="No such chapter">
+        <p>
+          <Link to="/collections/$slug" params={{ slug }}>
+            Return to {collection?.title_en ?? collection?.title_ar ?? 'the collection'}.
+          </Link>
+        </p>
+      </State>
+    );
+  }
+  if (hadiths.isLoading) {
+    return (
+      <State title="Loading hadiths" quiet>
+        <p>Reading the chapter.</p>
+      </State>
+    );
+  }
+  if (hadiths.isError || !hadiths.data) {
+    return (
+      <State title="The hadith list could not be loaded">
+        <p>Try again.</p>
+      </State>
+    );
+  }
 
   const data = hadiths.data;
-  if (data.length === 0 && offset === 0) return <p>This chapter has no hadiths yet.</p>;
+  if (data.length === 0 && offset === 0) {
+    return (
+      <State title="This chapter has no hadiths yet" quiet>
+        <p>The chapter stands empty in the corpus.</p>
+      </State>
+    );
+  }
 
   return (
     <div>
-      <h1>Hadiths</h1>
-      <ul>
-        {data.map((hadith) => (
-          <li key={hadith.hadith_id}>
-            <Link to="/hadiths/$hadithId" params={{ hadithId: String(hadith.hadith_id) }}>
-              <span className="m">{hadith.hadith_num}</span>
-              <span className="ar" dir="rtl">
-                {hadith.text_plain.slice(0, 80)}…
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <h1>
+        <span className="ar" dir="rtl">
+          {chapter?.title_ar}
+        </span>{' '}
+        <span className="m m--bare">{`[chapter ${chapter?.seq}]`}</span>
+      </h1>
+      <HadithList
+        items={data.map((hadith) => ({
+          hadith_id: hadith.hadith_id,
+          hadith_num: hadith.hadith_num,
+          text_plain: hadith.text_plain,
+          chain_strength: hadith.chain_strength === null ? null : Number(hadith.chain_strength),
+        }))}
+      />
       <Pager
         offset={offset}
         limit={LIMIT}

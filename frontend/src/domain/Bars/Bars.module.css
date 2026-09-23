@@ -1,0 +1,43 @@
+.bars {
+  display: grid;
+  gap: var(--sp-1);
+  margin: 0 0 var(--sp-3);
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: var(--bar-w-name) minmax(0, 1fr) var(--bar-w-val);
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.name {
+  font-family: var(--font-ar);
+  font-size: var(--fs-ar-grade);
+  text-align: right;
+}
+
+.track {
+  height: var(--sp-2);
+  background: var(--rail);
+  display: block;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.value {
+  text-align: end;
+}
+
+@media (max-width: 46rem) {
+  .bar {
+    grid-template-columns: minmax(0, 1fr) 4rem;
+  }
+  .track {
+    grid-column: 1 / -1;
+  }
+}

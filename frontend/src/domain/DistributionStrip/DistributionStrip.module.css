@@ -1,0 +1,18 @@
+.caption {
+  font-size: var(--fs-rail);
+  color: var(--ink-app);
+  margin: 0 0 var(--sp-2);
+}
+
+.strip {
+  width: 100%;
+  height: var(--strip-h);
+  display: block;
+  margin: 0 0 var(--sp-2);
+}
+
+.note {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  margin: var(--sp-1) 0 0;
+}

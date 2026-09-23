@@ -362,6 +362,30 @@ describe('GET /hadiths/:id grouped chains (PRD §8.4)', () => {
     assert.equal(chainStrength, Math.max(...chains.map((c: { strength: number }) => c.strength)));
   });
 
+  test('every link carries the function\u2019s own an\u02bfana-adjusted weight', async () => {
+    const token = await tokenFor('link-weight');
+    const idRows = await pool.query<{ hadith_id: number }>(
+      `SELECT hadith_id FROM corpus.hadiths WHERE sanad_count >= 3 ORDER BY hadith_id LIMIT 1`,
+    );
+    const id = idRows.rows[0].hadith_id;
+    const res = await authed(token, request(app).get(`/hadiths/${id}`));
+    assert.equal(res.status, 200);
+    const { chains } = res.body.data;
+    for (const chain of chains as { sanad_no: number; strength: number; links: { is_compiler: boolean; weight: unknown }[] }[]) {
+      assert.ok(chain.links.length > 0);
+      for (const link of chain.links) {
+        assert.equal(typeof link.weight, 'number', 'link weight must be a number, not numeric text');
+      }
+      // The weakest adjusted link sets the sanad score: min(weight) over the
+      // served links must equal the served per-sanad strength, which itself
+      // comes from corpus.chain_strength's own arithmetic. The collector is
+      // never scored, so it stays out of the min exactly like the function.
+      const scored = chain.links.filter((l) => !l.is_compiler).map((l) => l.weight as number);
+      const min = Math.min(...scored);
+      assert.equal(Number(min.toFixed(2)), chain.strength);
+    }
+  });
+
   test('a single-sanad hadith returns one chain and an unchanged flat list', async () => {
     const token = await tokenFor('chains-single');
     const idRows = await pool.query<{ hadith_id: number }>(
@@ -439,12 +463,29 @@ describe('frontend page data (closed 2026-09-23)', () => {
       'lineage',
       'school',
       'tabaqa_raw',
+      'generation',
       'rank_ibn_hajar_raw',
       'rank_ibn_hajar_via',
       'rank_dhahabi_raw',
       'rank_dhahabi_via',
     ] as const) {
       assert.ok(field in link, `link missing ${field}`);
+    }
+  });
+
+  test('link generation matches the tabaqa mapping, or is null where the text names none', async () => {
+    const token = await tokenFor('link-generation');
+    const res = await authed(token, request(app).get('/hadiths/5'));
+    assert.equal(res.status, 200);
+    const direct = await pool.query<{ narrator_id: number | null; generation: number | null }>(
+      `SELECT l.narrator_id, n.generation
+         FROM corpus.isnad_links l
+         LEFT JOIN corpus.narrators n ON n.narrator_id = l.narrator_id
+        WHERE l.hadith_id = 5 ORDER BY l.sanad_no, l.position`,
+    );
+    assert.equal(res.body.data.isnadChain.length, direct.rows.length);
+    for (let i = 0; i < direct.rows.length; i++) {
+      assert.equal(res.body.data.isnadChain[i].generation, direct.rows[i].generation);
     }
   });
 });
@@ -466,5 +507,28 @@ describe('detail basis (PRD 5.3: words_aligned flag)', () => {
     const res = await authed(token, request(app).get(`/hadiths/${multi.rows[0].hadith_id}`));
     assert.equal(res.status, 200);
     assert.equal(res.body.data.chainStrengthBasis.words_aligned, false);
+  });
+});
+
+describe('GET /hadiths/strength-distribution', () => {
+  test('returns 14 buckets whose counts sum to every scored hadith', async () => {
+    const token = await tokenFor('distribution');
+    const res = await authed(token, request(app).get('/hadiths/strength-distribution'));
+    assert.equal(res.status, 200);
+    const buckets = res.body.data as { bucket: number; count: number }[];
+    assert.equal(buckets.length, 14);
+    assert.deepEqual(
+      buckets.map((b) => b.bucket),
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+    );
+    const direct = await pool.query<{ scored: string }>(
+      `SELECT count(*) AS scored FROM (
+         SELECT max(strength) AS s FROM corpus.sanad_strengths GROUP BY hadith_id
+       ) t WHERE s IS NOT NULL`,
+    );
+    assert.equal(
+      buckets.reduce((n, b) => n + b.count, 0),
+      Number(direct.rows[0].scored),
+    );
   });
 });

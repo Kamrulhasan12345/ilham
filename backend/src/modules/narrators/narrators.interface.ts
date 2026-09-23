@@ -7,6 +7,7 @@ export interface NarratorDetail {
   lineage: string | null;
   relation: string | null;
   tabaqa_raw: string | null;
+  generation: number | null;
   school: string | null;
   date_of_death: string | null;
   is_placeholder: boolean;

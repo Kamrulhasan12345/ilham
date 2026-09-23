@@ -104,7 +104,7 @@ describe('Chapters page', () => {
     });
     renderAt('/collections/does-not-exist');
 
-    expect(await screen.findByText('This collection could not be found.')).toBeInTheDocument();
+    expect(await screen.findByText('No such collection')).toBeInTheDocument();
     expect(screen.queryByText(/chapters could not be loaded/i)).not.toBeInTheDocument();
   });
 
@@ -112,6 +112,6 @@ describe('Chapters page', () => {
     mockApiFetch([]);
     renderAt('/collections/sahih-muslim');
 
-    expect(await screen.findByText('This collection has no chapters yet.')).toBeInTheDocument();
+    expect(await screen.findByText('This collection has no chapters yet')).toBeInTheDocument();
   });
 });

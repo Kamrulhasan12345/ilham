@@ -72,7 +72,7 @@ describe('role-aware shell', () => {
         is_verified: true,
       },
     });
-    await screen.findByRole('navigation', { name: 'Primary' });
+    await screen.findByRole('navigation', { name: 'Study' });
     expect(screen.queryByText(/waiting for review/i)).not.toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    await screen.findByRole('navigation', { name: 'Primary' });
+    await screen.findByRole('navigation', { name: 'Study' });
     expect(screen.queryByRole('link', { name: 'Verify teachers' })).not.toBeInTheDocument();
   });
 
@@ -113,7 +113,7 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    await screen.findByRole('navigation', { name: 'Primary' });
+    await screen.findByRole('navigation', { name: 'Study' });
     expect(screen.queryByRole('link', { name: 'Students' })).not.toBeInTheDocument();
   });
 

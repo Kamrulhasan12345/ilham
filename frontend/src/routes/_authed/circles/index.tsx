@@ -1,10 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { z } from 'zod';
 import { useAuth } from '../../../auth/AuthContext';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 import { Button } from '../../../ui/Button';
+import { Field } from '../../../ui/Field';
+import { Input } from '../../../ui/Input';
 
 const circleSchema = z.object({
   circle_id: z.number(),
@@ -72,17 +74,19 @@ function CirclesPage() {
 
       {role === 'teacher' ? (
         <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="circle-name">New circle name</label>
-            <input
-              id="circle-name"
-              type="text"
-              required
-              disabled={!verifiedTeacher || submitting}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </div>
+          <Field label="New circle name">
+            {({ controlId, describedBy }) => (
+              <Input
+                id={controlId}
+                aria-describedby={describedBy}
+                type="text"
+                required
+                disabled={!verifiedTeacher || submitting}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            )}
+          </Field>
           {error ? <p>{error}</p> : null}
           <Button type="submit" variant="primary" disabled={!verifiedTeacher || submitting}>
             Open circle
@@ -96,7 +100,15 @@ function CirclesPage() {
       {data && data.length > 0 ? (
         <ul>
           {data.map((circle) => (
-            <li key={circle.circle_id}>{circle.name}</li>
+            <li key={circle.circle_id}>
+              {role === 'teacher' || role === 'admin' ? (
+                <Link to="/circles/$circleId" params={{ circleId: String(circle.circle_id) }}>
+                  {circle.name}
+                </Link>
+              ) : (
+                circle.name
+              )}
+            </li>
           ))}
         </ul>
       ) : null}

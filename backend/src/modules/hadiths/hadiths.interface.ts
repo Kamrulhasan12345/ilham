@@ -46,6 +46,9 @@ export interface IsnadLinkRow {
   lineage: string | null;
   school: string | null;
   tabaqa_raw: string | null;
+  /** Generation ordinal from corpus.tabaqa_generation. NULL where the text
+      names no generation; the filter always shows such links. */
+  generation: number | null;
   raw_name: string;
   transmission_word: string | null;
   is_compiler: boolean;
@@ -59,6 +62,10 @@ export interface IsnadLinkRow {
   rank_dhahabi: string | null;
   rank_dhahabi_via: string | null;
   rank_dhahabi_weight: number | null;
+  /** Per-link anʿana-adjusted weight: corpus.chain_strength's own arithmetic,
+      served so no reader recomputes it. numeric arrives as text; the route
+      contract carries numbers like the neighbouring rank weights. */
+  weight: number | null;
 }
 
 export interface SanadChain {

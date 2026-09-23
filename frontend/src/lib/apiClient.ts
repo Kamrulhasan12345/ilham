@@ -150,3 +150,51 @@ export async function apiFetch<T>(
   }
   return parsed.data;
 }
+
+/**
+ * The same contract, keeping the envelope's `summary` beside `data`.
+ * Analytics endpoints carry their captions there (a top-N cap, a share,
+ * an unscored count) — printing them is a PRD requirement, so they are
+ * typed, not dropped.
+ */
+export async function apiFetchEnvelope<T, S>(
+  path: string,
+  schema: ZodSchema<T>,
+  summarySchema: ZodSchema<S>,
+  options: ApiFetchOptions = {},
+): Promise<{ data: T; summary: S | null }> {
+  const send = () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    return fetch(`${API_BASE}${path}`, {
+      method: options.method ?? 'GET',
+      headers,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      credentials: 'include',
+    });
+  };
+
+  let res = await send();
+
+  if (res.status === 401 && !NO_RETRY_PATHS.has(path)) {
+    await refreshAccessToken();
+    res = await send();
+  }
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const code = (json as { error?: { code?: string } } | null)?.error?.code ?? 'internal_error';
+    const message =
+      (json as { error?: { message?: string } } | null)?.error?.message ?? 'request failed';
+    throw new ApiError(res.status, code, message);
+  }
+
+  const envelope = json as { data?: unknown; summary?: unknown } | null;
+  const parsed = schema.safeParse(envelope?.data);
+  if (!parsed.success) {
+    throw new ApiError(res.status, 'contract_error', 'response did not match the expected shape');
+  }
+  const summaryParsed = summarySchema.safeParse(envelope?.summary ?? null);
+  return { data: parsed.data, summary: summaryParsed.success ? summaryParsed.data : null };
+}

@@ -157,9 +157,19 @@ and its order.
 
 ### App shell
 
-A sticky top bar, a 15rem sidebar, then the rail layout inside the main region.
-Below 62rem the sidebar becomes one horizontal scrolling strip with the same
-links in the same order. The placement never changes by page type.
+Two tiers, one sticky block: utility above, destinations below on a rail
+ground, grouped and labelled (Corpus, Study, Account). The current tab
+carries three signals — weight, a 2px index underline, and `aria-current` —
+and every link clears a 44px target. Below 62rem the group labels drop away
+and the tiers scroll horizontally with the same links in the same order.
+
+The earlier draft put the destinations in a 15rem sidebar. It cost the
+Arabic a sixth of the measure on every screen and set two columns of small
+English text down the left — one navigation, one apparatus rail — with
+nothing to tell them apart. Horizontal nav gives the rail sole claim on the
+left edge, so the sidebar is gone on purpose. (Changed 2026-09-24: this
+file said “sidebar” until the specimen's own shell section was read
+properly. The specimen wins.)
 
 ---
 

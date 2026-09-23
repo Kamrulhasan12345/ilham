@@ -13,13 +13,28 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedMeRouteImport } from './routes/_authed/me'
+import { Route as AuthedSearchRouteImport } from './routes/_authed/search'
 import { Route as AuthedAdminVerifyRouteImport } from './routes/_authed/admin/verify'
+import { Route as AuthedAnalyticsIndexRouteImport } from './routes/_authed/analytics/index'
+import { Route as AuthedAnalyticsContestedRouteImport } from './routes/_authed/analytics/contested'
+import { Route as AuthedAnalyticsSharedRouteImport } from './routes/_authed/analytics/shared'
+import { Route as AuthedAnalyticsTopNarratorsRouteImport } from './routes/_authed/analytics/top-narrators'
+import { Route as AuthedAnalyticsWeakestChainsRouteImport } from './routes/_authed/analytics/weakest-chains'
+import { Route as AuthedAssignmentsAssignmentIdRouteImport } from './routes/_authed/assignments/$assignmentId'
 import { Route as AuthedCirclesIndexRouteImport } from './routes/_authed/circles/index'
+import { Route as AuthedCirclesCircleIdRouteImport } from './routes/_authed/circles/$circleId'
 import { Route as AuthedCollectionsIndexRouteImport } from './routes/_authed/collections/index'
 import { Route as AuthedCollectionsSlugRouteImport } from './routes/_authed/collections/$slug'
 import { Route as AuthedHadithsHadithIdRouteImport } from './routes/_authed/hadiths/$hadithId'
+import { Route as AuthedNarratorsIndexRouteImport } from './routes/_authed/narrators/index'
+import { Route as AuthedNarratorsNarratorIdRouteImport } from './routes/_authed/narrators/$narratorId'
 import { Route as AuthedNotesIndexRouteImport } from './routes/_authed/notes/index'
+import { Route as AuthedReviewSessionIdRouteImport } from './routes/_authed/review/$sessionId'
+import { Route as AuthedSetsIndexRouteImport } from './routes/_authed/sets/index'
+import { Route as AuthedSetsSetIdRouteImport } from './routes/_authed/sets/$setId'
 import { Route as AuthedStudentsIndexRouteImport } from './routes/_authed/students/index'
+import { Route as AuthedCirclesCircleIdAssignRouteImport } from './routes/_authed/circles/$circleId.assign'
 import { Route as AuthedCollectionsSlugSeqRouteImport } from './routes/_authed/collections/$slug_.$seq'
 
 const AuthedRoute = AuthedRouteImport.update({
@@ -41,14 +56,63 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedMeRoute = AuthedMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSearchRoute = AuthedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedAdminVerifyRoute = AuthedAdminVerifyRouteImport.update({
   id: '/admin/verify',
   path: '/admin/verify',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAnalyticsIndexRoute = AuthedAnalyticsIndexRouteImport.update({
+  id: '/analytics/',
+  path: '/analytics/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAnalyticsContestedRoute =
+  AuthedAnalyticsContestedRouteImport.update({
+    id: '/analytics/contested',
+    path: '/analytics/contested',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedAnalyticsSharedRoute = AuthedAnalyticsSharedRouteImport.update({
+  id: '/analytics/shared',
+  path: '/analytics/shared',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAnalyticsTopNarratorsRoute =
+  AuthedAnalyticsTopNarratorsRouteImport.update({
+    id: '/analytics/top-narrators',
+    path: '/analytics/top-narrators',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedAnalyticsWeakestChainsRoute =
+  AuthedAnalyticsWeakestChainsRouteImport.update({
+    id: '/analytics/weakest-chains',
+    path: '/analytics/weakest-chains',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedAssignmentsAssignmentIdRoute =
+  AuthedAssignmentsAssignmentIdRouteImport.update({
+    id: '/assignments/$assignmentId',
+    path: '/assignments/$assignmentId',
+    getParentRoute: () => AuthedRoute,
+  } as any)
 const AuthedCirclesIndexRoute = AuthedCirclesIndexRouteImport.update({
   id: '/circles/',
   path: '/circles/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedCirclesCircleIdRoute = AuthedCirclesCircleIdRouteImport.update({
+  id: '/circles/$circleId',
+  path: '/circles/$circleId',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedCollectionsIndexRoute = AuthedCollectionsIndexRouteImport.update({
@@ -66,9 +130,35 @@ const AuthedHadithsHadithIdRoute = AuthedHadithsHadithIdRouteImport.update({
   path: '/hadiths/$hadithId',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedNarratorsIndexRoute = AuthedNarratorsIndexRouteImport.update({
+  id: '/narrators/',
+  path: '/narrators/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedNarratorsNarratorIdRoute =
+  AuthedNarratorsNarratorIdRouteImport.update({
+    id: '/narrators/$narratorId',
+    path: '/narrators/$narratorId',
+    getParentRoute: () => AuthedRoute,
+  } as any)
 const AuthedNotesIndexRoute = AuthedNotesIndexRouteImport.update({
   id: '/notes/',
   path: '/notes/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedReviewSessionIdRoute = AuthedReviewSessionIdRouteImport.update({
+  id: '/review/$sessionId',
+  path: '/review/$sessionId',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSetsIndexRoute = AuthedSetsIndexRouteImport.update({
+  id: '/sets/',
+  path: '/sets/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSetsSetIdRoute = AuthedSetsSetIdRouteImport.update({
+  id: '/sets/$setId',
+  path: '/sets/$setId',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedStudentsIndexRoute = AuthedStudentsIndexRouteImport.update({
@@ -76,6 +166,12 @@ const AuthedStudentsIndexRoute = AuthedStudentsIndexRouteImport.update({
   path: '/students/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedCirclesCircleIdAssignRoute =
+  AuthedCirclesCircleIdAssignRouteImport.update({
+    id: '/assign',
+    path: '/assign',
+    getParentRoute: () => AuthedCirclesCircleIdRoute,
+  } as any)
 const AuthedCollectionsSlugSeqRoute =
   AuthedCollectionsSlugSeqRouteImport.update({
     id: '/collections/$slug_/$seq',
@@ -87,26 +183,56 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/me': typeof AuthedMeRoute
+  '/search': typeof AuthedSearchRoute
   '/admin/verify': typeof AuthedAdminVerifyRoute
+  '/analytics/contested': typeof AuthedAnalyticsContestedRoute
+  '/analytics/shared': typeof AuthedAnalyticsSharedRoute
+  '/analytics/top-narrators': typeof AuthedAnalyticsTopNarratorsRoute
+  '/analytics/weakest-chains': typeof AuthedAnalyticsWeakestChainsRoute
+  '/assignments/$assignmentId': typeof AuthedAssignmentsAssignmentIdRoute
+  '/circles/$circleId': typeof AuthedCirclesCircleIdRouteWithChildren
   '/collections/$slug': typeof AuthedCollectionsSlugRoute
   '/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
+  '/narrators/$narratorId': typeof AuthedNarratorsNarratorIdRoute
+  '/review/$sessionId': typeof AuthedReviewSessionIdRoute
+  '/sets/$setId': typeof AuthedSetsSetIdRoute
+  '/analytics/': typeof AuthedAnalyticsIndexRoute
   '/circles/': typeof AuthedCirclesIndexRoute
   '/collections/': typeof AuthedCollectionsIndexRoute
+  '/narrators/': typeof AuthedNarratorsIndexRoute
   '/notes/': typeof AuthedNotesIndexRoute
+  '/sets/': typeof AuthedSetsIndexRoute
   '/students/': typeof AuthedStudentsIndexRoute
+  '/circles/$circleId/assign': typeof AuthedCirclesCircleIdAssignRoute
   '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/me': typeof AuthedMeRoute
+  '/search': typeof AuthedSearchRoute
   '/': typeof AuthedIndexRoute
   '/admin/verify': typeof AuthedAdminVerifyRoute
+  '/analytics/contested': typeof AuthedAnalyticsContestedRoute
+  '/analytics/shared': typeof AuthedAnalyticsSharedRoute
+  '/analytics/top-narrators': typeof AuthedAnalyticsTopNarratorsRoute
+  '/analytics/weakest-chains': typeof AuthedAnalyticsWeakestChainsRoute
+  '/assignments/$assignmentId': typeof AuthedAssignmentsAssignmentIdRoute
+  '/circles/$circleId': typeof AuthedCirclesCircleIdRouteWithChildren
   '/collections/$slug': typeof AuthedCollectionsSlugRoute
   '/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
+  '/narrators/$narratorId': typeof AuthedNarratorsNarratorIdRoute
+  '/review/$sessionId': typeof AuthedReviewSessionIdRoute
+  '/sets/$setId': typeof AuthedSetsSetIdRoute
+  '/analytics': typeof AuthedAnalyticsIndexRoute
   '/circles': typeof AuthedCirclesIndexRoute
   '/collections': typeof AuthedCollectionsIndexRoute
+  '/narrators': typeof AuthedNarratorsIndexRoute
   '/notes': typeof AuthedNotesIndexRoute
+  '/sets': typeof AuthedSetsIndexRoute
   '/students': typeof AuthedStudentsIndexRoute
+  '/circles/$circleId/assign': typeof AuthedCirclesCircleIdAssignRoute
   '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRoutesById {
@@ -114,14 +240,29 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/_authed/me': typeof AuthedMeRoute
+  '/_authed/search': typeof AuthedSearchRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/admin/verify': typeof AuthedAdminVerifyRoute
+  '/_authed/analytics/contested': typeof AuthedAnalyticsContestedRoute
+  '/_authed/analytics/shared': typeof AuthedAnalyticsSharedRoute
+  '/_authed/analytics/top-narrators': typeof AuthedAnalyticsTopNarratorsRoute
+  '/_authed/analytics/weakest-chains': typeof AuthedAnalyticsWeakestChainsRoute
+  '/_authed/assignments/$assignmentId': typeof AuthedAssignmentsAssignmentIdRoute
+  '/_authed/circles/$circleId': typeof AuthedCirclesCircleIdRouteWithChildren
   '/_authed/collections/$slug': typeof AuthedCollectionsSlugRoute
   '/_authed/hadiths/$hadithId': typeof AuthedHadithsHadithIdRoute
+  '/_authed/narrators/$narratorId': typeof AuthedNarratorsNarratorIdRoute
+  '/_authed/review/$sessionId': typeof AuthedReviewSessionIdRoute
+  '/_authed/sets/$setId': typeof AuthedSetsSetIdRoute
+  '/_authed/analytics/': typeof AuthedAnalyticsIndexRoute
   '/_authed/circles/': typeof AuthedCirclesIndexRoute
   '/_authed/collections/': typeof AuthedCollectionsIndexRoute
+  '/_authed/narrators/': typeof AuthedNarratorsIndexRoute
   '/_authed/notes/': typeof AuthedNotesIndexRoute
+  '/_authed/sets/': typeof AuthedSetsIndexRoute
   '/_authed/students/': typeof AuthedStudentsIndexRoute
+  '/_authed/circles/$circleId/assign': typeof AuthedCirclesCircleIdAssignRoute
   '/_authed/collections/$slug_/$seq': typeof AuthedCollectionsSlugSeqRoute
 }
 export interface FileRouteTypes {
@@ -130,40 +271,85 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/me'
+    | '/search'
     | '/admin/verify'
+    | '/analytics/contested'
+    | '/analytics/shared'
+    | '/analytics/top-narrators'
+    | '/analytics/weakest-chains'
+    | '/assignments/$assignmentId'
+    | '/circles/$circleId'
     | '/collections/$slug'
     | '/hadiths/$hadithId'
+    | '/narrators/$narratorId'
+    | '/review/$sessionId'
+    | '/sets/$setId'
+    | '/analytics/'
     | '/circles/'
     | '/collections/'
+    | '/narrators/'
     | '/notes/'
+    | '/sets/'
     | '/students/'
+    | '/circles/$circleId/assign'
     | '/collections/$slug/$seq'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/register'
+    | '/me'
+    | '/search'
     | '/'
     | '/admin/verify'
+    | '/analytics/contested'
+    | '/analytics/shared'
+    | '/analytics/top-narrators'
+    | '/analytics/weakest-chains'
+    | '/assignments/$assignmentId'
+    | '/circles/$circleId'
     | '/collections/$slug'
     | '/hadiths/$hadithId'
+    | '/narrators/$narratorId'
+    | '/review/$sessionId'
+    | '/sets/$setId'
+    | '/analytics'
     | '/circles'
     | '/collections'
+    | '/narrators'
     | '/notes'
+    | '/sets'
     | '/students'
+    | '/circles/$circleId/assign'
     | '/collections/$slug/$seq'
   id:
     | '__root__'
     | '/_authed'
     | '/login'
     | '/register'
+    | '/_authed/me'
+    | '/_authed/search'
     | '/_authed/'
     | '/_authed/admin/verify'
+    | '/_authed/analytics/contested'
+    | '/_authed/analytics/shared'
+    | '/_authed/analytics/top-narrators'
+    | '/_authed/analytics/weakest-chains'
+    | '/_authed/assignments/$assignmentId'
+    | '/_authed/circles/$circleId'
     | '/_authed/collections/$slug'
     | '/_authed/hadiths/$hadithId'
+    | '/_authed/narrators/$narratorId'
+    | '/_authed/review/$sessionId'
+    | '/_authed/sets/$setId'
+    | '/_authed/analytics/'
     | '/_authed/circles/'
     | '/_authed/collections/'
+    | '/_authed/narrators/'
     | '/_authed/notes/'
+    | '/_authed/sets/'
     | '/_authed/students/'
+    | '/_authed/circles/$circleId/assign'
     | '/_authed/collections/$slug_/$seq'
   fileRoutesById: FileRoutesById
 }
@@ -203,6 +389,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/me': {
+      id: '/_authed/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof AuthedMeRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/search': {
+      id: '/_authed/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthedSearchRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/admin/verify': {
       id: '/_authed/admin/verify'
       path: '/admin/verify'
@@ -210,11 +410,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminVerifyRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/analytics/': {
+      id: '/_authed/analytics/'
+      path: '/analytics'
+      fullPath: '/analytics/'
+      preLoaderRoute: typeof AuthedAnalyticsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/analytics/contested': {
+      id: '/_authed/analytics/contested'
+      path: '/analytics/contested'
+      fullPath: '/analytics/contested'
+      preLoaderRoute: typeof AuthedAnalyticsContestedRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/analytics/shared': {
+      id: '/_authed/analytics/shared'
+      path: '/analytics/shared'
+      fullPath: '/analytics/shared'
+      preLoaderRoute: typeof AuthedAnalyticsSharedRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/analytics/top-narrators': {
+      id: '/_authed/analytics/top-narrators'
+      path: '/analytics/top-narrators'
+      fullPath: '/analytics/top-narrators'
+      preLoaderRoute: typeof AuthedAnalyticsTopNarratorsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/analytics/weakest-chains': {
+      id: '/_authed/analytics/weakest-chains'
+      path: '/analytics/weakest-chains'
+      fullPath: '/analytics/weakest-chains'
+      preLoaderRoute: typeof AuthedAnalyticsWeakestChainsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/assignments/$assignmentId': {
+      id: '/_authed/assignments/$assignmentId'
+      path: '/assignments/$assignmentId'
+      fullPath: '/assignments/$assignmentId'
+      preLoaderRoute: typeof AuthedAssignmentsAssignmentIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/circles/': {
       id: '/_authed/circles/'
       path: '/circles'
       fullPath: '/circles/'
       preLoaderRoute: typeof AuthedCirclesIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/circles/$circleId': {
+      id: '/_authed/circles/$circleId'
+      path: '/circles/$circleId'
+      fullPath: '/circles/$circleId'
+      preLoaderRoute: typeof AuthedCirclesCircleIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/collections/': {
@@ -238,11 +487,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedHadithsHadithIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/narrators/': {
+      id: '/_authed/narrators/'
+      path: '/narrators'
+      fullPath: '/narrators/'
+      preLoaderRoute: typeof AuthedNarratorsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/narrators/$narratorId': {
+      id: '/_authed/narrators/$narratorId'
+      path: '/narrators/$narratorId'
+      fullPath: '/narrators/$narratorId'
+      preLoaderRoute: typeof AuthedNarratorsNarratorIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/notes/': {
       id: '/_authed/notes/'
       path: '/notes'
       fullPath: '/notes/'
       preLoaderRoute: typeof AuthedNotesIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/review/$sessionId': {
+      id: '/_authed/review/$sessionId'
+      path: '/review/$sessionId'
+      fullPath: '/review/$sessionId'
+      preLoaderRoute: typeof AuthedReviewSessionIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/sets/': {
+      id: '/_authed/sets/'
+      path: '/sets'
+      fullPath: '/sets/'
+      preLoaderRoute: typeof AuthedSetsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/sets/$setId': {
+      id: '/_authed/sets/$setId'
+      path: '/sets/$setId'
+      fullPath: '/sets/$setId'
+      preLoaderRoute: typeof AuthedSetsSetIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/students/': {
@@ -251,6 +535,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/students/'
       preLoaderRoute: typeof AuthedStudentsIndexRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/_authed/circles/$circleId/assign': {
+      id: '/_authed/circles/$circleId/assign'
+      path: '/assign'
+      fullPath: '/circles/$circleId/assign'
+      preLoaderRoute: typeof AuthedCirclesCircleIdAssignRouteImport
+      parentRoute: typeof AuthedCirclesCircleIdRoute
     }
     '/_authed/collections/$slug_/$seq': {
       id: '/_authed/collections/$slug_/$seq'
@@ -262,26 +553,67 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedCirclesCircleIdRouteChildren {
+  AuthedCirclesCircleIdAssignRoute: typeof AuthedCirclesCircleIdAssignRoute
+}
+
+const AuthedCirclesCircleIdRouteChildren: AuthedCirclesCircleIdRouteChildren = {
+  AuthedCirclesCircleIdAssignRoute: AuthedCirclesCircleIdAssignRoute,
+}
+
+const AuthedCirclesCircleIdRouteWithChildren =
+  AuthedCirclesCircleIdRoute._addFileChildren(
+    AuthedCirclesCircleIdRouteChildren,
+  )
+
 interface AuthedRouteChildren {
+  AuthedMeRoute: typeof AuthedMeRoute
+  AuthedSearchRoute: typeof AuthedSearchRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedAdminVerifyRoute: typeof AuthedAdminVerifyRoute
+  AuthedAnalyticsContestedRoute: typeof AuthedAnalyticsContestedRoute
+  AuthedAnalyticsSharedRoute: typeof AuthedAnalyticsSharedRoute
+  AuthedAnalyticsTopNarratorsRoute: typeof AuthedAnalyticsTopNarratorsRoute
+  AuthedAnalyticsWeakestChainsRoute: typeof AuthedAnalyticsWeakestChainsRoute
+  AuthedAssignmentsAssignmentIdRoute: typeof AuthedAssignmentsAssignmentIdRoute
+  AuthedCirclesCircleIdRoute: typeof AuthedCirclesCircleIdRouteWithChildren
   AuthedCollectionsSlugRoute: typeof AuthedCollectionsSlugRoute
   AuthedHadithsHadithIdRoute: typeof AuthedHadithsHadithIdRoute
+  AuthedNarratorsNarratorIdRoute: typeof AuthedNarratorsNarratorIdRoute
+  AuthedReviewSessionIdRoute: typeof AuthedReviewSessionIdRoute
+  AuthedSetsSetIdRoute: typeof AuthedSetsSetIdRoute
+  AuthedAnalyticsIndexRoute: typeof AuthedAnalyticsIndexRoute
   AuthedCirclesIndexRoute: typeof AuthedCirclesIndexRoute
   AuthedCollectionsIndexRoute: typeof AuthedCollectionsIndexRoute
+  AuthedNarratorsIndexRoute: typeof AuthedNarratorsIndexRoute
   AuthedNotesIndexRoute: typeof AuthedNotesIndexRoute
+  AuthedSetsIndexRoute: typeof AuthedSetsIndexRoute
   AuthedStudentsIndexRoute: typeof AuthedStudentsIndexRoute
   AuthedCollectionsSlugSeqRoute: typeof AuthedCollectionsSlugSeqRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedMeRoute: AuthedMeRoute,
+  AuthedSearchRoute: AuthedSearchRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedAdminVerifyRoute: AuthedAdminVerifyRoute,
+  AuthedAnalyticsContestedRoute: AuthedAnalyticsContestedRoute,
+  AuthedAnalyticsSharedRoute: AuthedAnalyticsSharedRoute,
+  AuthedAnalyticsTopNarratorsRoute: AuthedAnalyticsTopNarratorsRoute,
+  AuthedAnalyticsWeakestChainsRoute: AuthedAnalyticsWeakestChainsRoute,
+  AuthedAssignmentsAssignmentIdRoute: AuthedAssignmentsAssignmentIdRoute,
+  AuthedCirclesCircleIdRoute: AuthedCirclesCircleIdRouteWithChildren,
   AuthedCollectionsSlugRoute: AuthedCollectionsSlugRoute,
   AuthedHadithsHadithIdRoute: AuthedHadithsHadithIdRoute,
+  AuthedNarratorsNarratorIdRoute: AuthedNarratorsNarratorIdRoute,
+  AuthedReviewSessionIdRoute: AuthedReviewSessionIdRoute,
+  AuthedSetsSetIdRoute: AuthedSetsSetIdRoute,
+  AuthedAnalyticsIndexRoute: AuthedAnalyticsIndexRoute,
   AuthedCirclesIndexRoute: AuthedCirclesIndexRoute,
   AuthedCollectionsIndexRoute: AuthedCollectionsIndexRoute,
+  AuthedNarratorsIndexRoute: AuthedNarratorsIndexRoute,
   AuthedNotesIndexRoute: AuthedNotesIndexRoute,
+  AuthedSetsIndexRoute: AuthedSetsIndexRoute,
   AuthedStudentsIndexRoute: AuthedStudentsIndexRoute,
   AuthedCollectionsSlugSeqRoute: AuthedCollectionsSlugSeqRoute,
 }
