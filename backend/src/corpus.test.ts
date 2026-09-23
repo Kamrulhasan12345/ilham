@@ -335,3 +335,41 @@ describe('out-of-range ids match nothing instead of 500', () => {
     assert.deepEqual(res.body.data, []);
   });
 });
+
+describe('GET /hadiths/:id grouped chains (PRD §8.4)', () => {
+  test('a multi-sanad hadith returns one chain per sanad with view strengths', async () => {
+    const token = await tokenFor('chains-multi');
+    const idRows = await pool.query<{ hadith_id: number }>(
+      `SELECT hadith_id FROM corpus.hadiths WHERE sanad_count >= 3 ORDER BY hadith_id LIMIT 1`,
+    );
+    const id = idRows.rows[0].hadith_id;
+    const res = await authed(token, request(app).get(`/hadiths/${id}`));
+    assert.equal(res.status, 200);
+    const { chains, isnadChain, chainStrength } = res.body.data;
+    assert.ok(Array.isArray(chains) && chains.length >= 3);
+    const flat = await pool.query<{ sanad_no: number; strength: string }>(
+      `SELECT sanad_no, strength FROM corpus.sanad_strengths WHERE hadith_id = $1 ORDER BY sanad_no`,
+      [id],
+    );
+    assert.equal(chains.length, flat.rows.length);
+    for (let i = 0; i < flat.rows.length; i++) {
+      assert.equal(chains[i].sanad_no, flat.rows[i].sanad_no);
+      assert.equal(chains[i].strength, Number(flat.rows[i].strength));
+      assert.ok(chains[i].links.length > 0);
+      assert.ok(chains[i].links.every((l: { sanad_no: number }) => l.sanad_no === chains[i].sanad_no));
+    }
+    assert.equal(isnadChain.length, chains.reduce((n: number, c: { links: unknown[] }) => n + c.links.length, 0));
+    assert.equal(chainStrength, Math.max(...chains.map((c: { strength: number }) => c.strength)));
+  });
+
+  test('a single-sanad hadith returns one chain and an unchanged flat list', async () => {
+    const token = await tokenFor('chains-single');
+    const idRows = await pool.query<{ hadith_id: number }>(
+      `SELECT hadith_id FROM corpus.hadiths WHERE sanad_count = 1 ORDER BY hadith_id LIMIT 1`,
+    );
+    const res = await authed(token, request(app).get(`/hadiths/${idRows.rows[0].hadith_id}`));
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.chains.length, 1);
+    assert.equal(typeof res.body.data.chains[0].strength, 'number');
+  });
+});

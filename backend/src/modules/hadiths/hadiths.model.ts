@@ -4,6 +4,7 @@ import type {
   HadithListParams,
   HadithRow,
   IsnadLinkRow,
+  SanadChain,
   TranslationRow,
 } from './hadiths.interface.js';
 
@@ -115,10 +116,35 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
   );
   const rawStrength = strengthRows[0]?.chain_strength;
 
+  // Per-sanad strength comes from the corpus view (§8.4), not a second
+  // function duplicating the arithmetic. Links group in application code;
+  // isnadChain stays flat so existing readers keep working.
+  const { rows: sanadRows } = await pool.query<{ sanad_no: number; strength: string | null }>(
+    `SELECT sanad_no, strength FROM corpus.sanad_strengths WHERE hadith_id = $1 ORDER BY sanad_no`,
+    [hadithId],
+  );
+  const strengthBySanad = new Map(
+    sanadRows.map((r) => [r.sanad_no, r.strength != null ? Number(r.strength) : null] as const),
+  );
+  const chains: SanadChain[] = [];
+  for (const link of isnadRows) {
+    const current = chains[chains.length - 1];
+    if (current && current.sanad_no === link.sanad_no) {
+      current.links.push(link);
+    } else {
+      chains.push({
+        sanad_no: link.sanad_no,
+        strength: strengthBySanad.get(link.sanad_no) ?? null,
+        links: [link],
+      });
+    }
+  }
+
   return {
     hadith,
     translation: translationRows[0] ?? null,
     isnadChain: isnadRows,
+    chains,
     chainStrength: rawStrength != null ? Number(rawStrength) : null,
   };
 }

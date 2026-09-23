@@ -813,6 +813,9 @@ expose the per-sanad `min` in a view. Prefer the view — req 8 grades
 restraint, and a second function duplicating the first one's arithmetic is
 the kind of thing this project has otherwise avoided.
 
+Done: `db/07_sanad_strength.sql` creates the `corpus.sanad_strengths` view,
+and `GET /hadiths/:id` returns grouped `chains` with one strength each.
+
 ---
 
 ## 9. Requirement map

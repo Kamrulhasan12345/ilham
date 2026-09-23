@@ -40,9 +40,16 @@ export interface IsnadLinkRow {
   rank_dhahabi_weight: number | null;
 }
 
+export interface SanadChain {
+  sanad_no: number;
+  strength: number | null;
+  links: IsnadLinkRow[];
+}
+
 export interface HadithDetail {
   hadith: HadithRow;
   translation: TranslationRow | null;
   isnadChain: IsnadLinkRow[];
+  chains: SanadChain[];
   chainStrength: number | null;
 }
