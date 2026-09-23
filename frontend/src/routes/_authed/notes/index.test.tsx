@@ -68,4 +68,48 @@ describe('Notes page', () => {
       }),
     );
   });
+
+  it('picks a hadith through the type-ahead, then submits the note against its id', async () => {
+    vi.mocked(apiFetch).mockImplementation(async (path: string) => {
+      if (path.startsWith('/hadiths')) {
+        return [
+          {
+            hadith_id: 42,
+            hadith_num: '42',
+            text_plain: 'إنما الأعمال بالنيات',
+            text_en: 'Actions are judged by intentions.',
+            sanad_count: 1,
+            chain_strength: 0.9,
+          },
+        ] as never;
+      }
+      if (path === '/notes') return [] as never;
+      return null as never;
+    });
+    renderNotes();
+
+    fireEvent.change(await screen.findByLabelText(/find a hadith/i), {
+      target: { value: 'intentions' },
+    });
+    const match = await screen.findByRole('button', { name: /actions are judged by intentions/i });
+    fireEvent.click(match);
+    expect(await screen.findByText(/attaching to hadith/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'a note' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add note' }));
+
+    await waitFor(() =>
+      expect(vi.mocked(apiFetch)).toHaveBeenCalledWith(
+        '/notes',
+        expect.anything(),
+        expect.objectContaining({ method: 'POST', body: { hadith_id: 42, body: 'a note' } }),
+      ),
+    );
+  });
+
+  it('disables Add note until a hadith is picked', async () => {
+    vi.mocked(apiFetch).mockResolvedValue([]);
+    renderNotes();
+    expect(await screen.findByRole('button', { name: 'Add note' })).toBeDisabled();
+  });
 });

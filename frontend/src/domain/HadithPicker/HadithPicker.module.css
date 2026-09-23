@@ -1,0 +1,40 @@
+.picker {
+  margin-bottom: var(--sp-3);
+}
+
+.matches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: var(--bw) solid var(--rule);
+  border-top: none;
+}
+
+.match {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-2);
+  background: none;
+  border: none;
+  border-bottom: var(--bw) solid var(--rule);
+  text-align: start;
+  cursor: pointer;
+}
+
+.match:hover,
+.match:focus-visible {
+  background: var(--rail);
+}
+
+.num {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  white-space: nowrap;
+}
+
+.matchEn {
+  font-family: var(--font-en);
+  font-size: var(--fs-rail);
+}

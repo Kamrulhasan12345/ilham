@@ -2,11 +2,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { z } from 'zod';
+import { HadithPicker, type HadithMatch } from '../../../domain/HadithPicker';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 import { Button } from '../../../ui/Button';
+import { Card } from '../../../ui/Card';
 import { Dialog } from '../../../ui/Dialog';
 import { Field } from '../../../ui/Field';
 import { Input } from '../../../ui/Input';
+import { PageHeader } from '../../../ui/PageHeader';
+import styles from './index.module.css';
 
 // A note has no title, no privacy flag, no updated_at, and no soft delete
 // (docs/frontend-prd.md §7.22), so the UI offers none of those controls.
@@ -25,7 +29,7 @@ export const Route = createFileRoute('/_authed/notes/')({
 
 function NotesPage() {
   const queryClient = useQueryClient();
-  const [hadithId, setHadithId] = useState('');
+  const [selectedHadith, setSelectedHadith] = useState<HadithMatch | null>(null);
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,14 +46,15 @@ function NotesPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!selectedHadith) return;
     setSubmitting(true);
     setError(null);
     try {
       await apiFetch('/notes', noteSchema, {
         method: 'POST',
-        body: { hadith_id: Number(hadithId), body },
+        body: { hadith_id: selectedHadith.hadith_id, body },
       });
-      setHadithId('');
+      setSelectedHadith(null);
       setBody('');
       await refresh();
     } catch (err) {
@@ -82,21 +87,16 @@ function NotesPage() {
 
   return (
     <div>
-      <h1>Notes</h1>
+      <PageHeader title="Notes" />
 
       <form onSubmit={handleSubmit}>
-        <Field label="Hadith ID" hint="The database identifier of the hadith.">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              type="number"
-              required
-              value={hadithId}
-              onChange={(event) => setHadithId(event.target.value)}
-            />
-          )}
-        </Field>
+        <HadithPicker onSelect={setSelectedHadith} />
+        {selectedHadith ? (
+          <p className={styles.selected}>
+            Attaching to hadith <span className="m">{selectedHadith.hadith_num}</span>:{' '}
+            {selectedHadith.text_en ?? selectedHadith.text_plain}
+          </p>
+        ) : null}
         <Field label="Note">
           {({ controlId, describedBy }) => (
             <Input
@@ -111,7 +111,7 @@ function NotesPage() {
           )}
         </Field>
         {error ? <p>{error}</p> : null}
-        <Button type="submit" variant="primary" disabled={submitting}>
+        <Button type="submit" variant="primary" disabled={!selectedHadith || submitting}>
           Add note
         </Button>
       </form>
@@ -119,11 +119,11 @@ function NotesPage() {
       {isLoading ? <p>Loading the notes…</p> : null}
       {isError || (!isLoading && !data) ? <p>The notes could not be loaded. Try again.</p> : null}
       {data && data.length === 0 ? <p>No notes yet. Add the first one above.</p> : null}
-      {[...grouped].map(([hadithId, notes]) => (
-        <section key={hadithId}>
+      {[...grouped].map(([groupHadithId, notes]) => (
+        <Card key={groupHadithId} className={styles.group}>
           <h2>
-            <Link to="/hadiths/$hadithId" params={{ hadithId: String(hadithId) }}>
-              Hadith <span className="m">[{hadithId}]</span>
+            <Link to="/hadiths/$hadithId" params={{ hadithId: String(groupHadithId) }}>
+              Hadith <span className="m">[{groupHadithId}]</span>
             </Link>
           </h2>
           <ul>
@@ -141,7 +141,7 @@ function NotesPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </Card>
       ))}
       <Dialog
         open={deleting !== null}
