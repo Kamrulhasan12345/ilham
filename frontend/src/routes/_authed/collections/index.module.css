@@ -1,0 +1,28 @@
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  color: var(--ink);
+}
+
+.titleEn {
+  font-size: var(--fs-lead);
+}
+
+.titleAr {
+  font-size: var(--fs-ar-name);
+  color: var(--ink-app);
+}
+
+.count {
+  font-size: var(--fs-label);
+  color: var(--ink-app);
+  white-space: nowrap;
+}

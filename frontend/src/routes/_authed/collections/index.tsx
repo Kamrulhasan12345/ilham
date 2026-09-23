@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { apiFetch } from '../../../lib/apiClient';
+import { Card } from '../../../ui/Card';
+import { PageHeader } from '../../../ui/PageHeader';
+import styles from './index.module.css';
 
 const collectionSchema = z.object({
   collection_id: z.number(),
@@ -33,20 +36,26 @@ function CollectionsPage() {
 
   return (
     <div>
-      <h1>Collections</h1>
-      <ul>
+      <PageHeader title="Collections" />
+      <div>
         {data.map((collection) => (
-          <li key={collection.collection_id}>
-            <Link to="/collections/$slug" params={{ slug: collection.slug }}>
-              <span className="ar" dir="rtl">
-                {collection.title_ar}
-              </span>
-              {collection.title_en ? <span> — {collection.title_en}</span> : null}
-            </Link>{' '}
-            <span className="m m--bare">{`[${collection.hadith_count} hadiths]`}</span>
-          </li>
+          <Card key={collection.collection_id} className={styles.row}>
+            <Link
+              to="/collections/$slug"
+              params={{ slug: collection.slug }}
+              className={styles.link}
+            >
+              <span className={styles.titleEn}>{collection.title_en ?? collection.title_ar}</span>
+              {collection.title_en ? (
+                <span className={`ar ${styles.titleAr}`} dir="rtl">
+                  {collection.title_ar}
+                </span>
+              ) : null}
+            </Link>
+            <span className={`m m--bare ${styles.count}`}>{`[${collection.hadith_count} hadiths]`}</span>
+          </Card>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
