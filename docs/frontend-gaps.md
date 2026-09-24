@@ -56,12 +56,64 @@ encode by hue.
 chain marks, the plot foot, the filter readout, Seg, VerdictBand, and the
 API envelope, plus the review-submit integration test.
 
+## Closed 2026-09-24 (frontend redesign)
+
+A live browser pass on the running app found several pages that never
+used the design system above: bare `<ul><li>` lists with no width
+constraint, no `Card`, no hierarchy, and the query boxes on `/search` and
+`/narrators` rendering the literal string `undefined`. Fixed:
+
+1. **The `q=undefined` bug.** `z.coerce.string().catch('')` coerces a
+   missing param to the *valid* string `"undefined"` before `.catch`
+   ever runs. Both routes now use plain `z.string().catch('')`.
+2. **`Card` and `PageHeader`** (new `ui/` primitives) replace every bare
+   list and `<h1>` on collections, chapters, circles, and notes.
+3. **English-first hadith text.** `hadiths.model.ts` now `LEFT JOIN`s
+   `corpus.hadith_translations`; `HadithList` shows the English
+   translation ahead of the Arabic snippet when one exists, Arabic-only
+   otherwise. Chapter titles stay Arabic-only — no `title_en` column
+   exists on `corpus.chapters`.
+4. **Nav overhaul.** The flat topbar links became three `Menu` dropdowns
+   (Corpus, Study, Account — new `ui/Menu` primitive), consolidating the
+   loose Sign-out button and adding a new `/settings` route that now
+   holds the theme switch.
+5. **Notes.** The raw numeric Hadith ID field is gone; a new
+   `HadithPicker` type-ahead (queries the existing `/hadiths?q=` endpoint)
+   replaces it.
+
+12 tasks, each with its own test, on `feat/frontend-redesign`. See
+`docs/superpowers/specs/2026-09-24-frontend-redesign-design.md` and
+`docs/superpowers/plans/2026-09-24-frontend-redesign.md`.
+
 ## Remaining, by choice
 
 - No Storybook (§16 decision 6): `specimen.html` is the living reference.
 - No route animation: motion is allowed, never required.
 - The `/students` page exists with no PRD section that specifies it.
 - Notes have no edit control. The PRD does not ask for one.
+
+## Browser pass 2026-09-24 (real Chromium against the containers)
+
+Login, collections, hadith detail, grading disclosure, search, analytics,
+and account pass end to end. The pass caught three bugs no mocked suite
+could see, all fixed and covered:
+
+1. The Docker build passes an empty `VITE_API_BASE`, and `??` kept it —
+   every app request missed `/api` (405). Now `resolveApiBase` with unit
+   tests.
+2. The API mounted `/study-sets` while the frontend calls `/sets` — every
+   set call 404'd. Mount renamed (backend PRD §5.7 updated).
+3. `$circleId.assign.tsx` nests under `$circleId.tsx`, which rendered no
+   `<Outlet/>` — the overview answered the assign URL. Restructured to
+   `$circleId/route.tsx` + `index.tsx` + `assign.tsx`, pinned by a nesting
+   test.
+4. `requireRole('teacher')` excluded the admin, against PRD §2. Admins now
+   pass any role check (backend PRD §3.2 updated), pinned by a test.
+
+The full study loop (register ×2, admin verify, circle, set, add-to-set,
+enrol, assign) passes in the browser. The verify queue gained the missing
+pager (§7.24) after the pass showed new teachers falling off the first
+page.
 
 ## Closed backend gaps
 

@@ -70,7 +70,7 @@ describe('role switch in one tab', () => {
         if (me === null) throw new ApiError(401, 'unauthenticated', 'no session');
         return me as never;
       }
-      if (path === '/teachers/unverified') return [] as never;
+      if (path.startsWith('/teachers/unverified')) return [] as never;
       if (path === '/collections') return [] as never;
       throw new Error(`unexpected apiFetch path in test: ${path}`);
     });

@@ -223,12 +223,12 @@ describe('overview mastered threshold (frontend PRD: mastery >= 3)', () => {
       'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 1',
     );
     const setRes = await request(app)
-      .post('/study-sets')
+      .post('/sets')
       .set(bearer(teacher.accessToken))
       .send({ name: 'ovth set' });
     const setId = setRes.body.data.study_set_id;
     await request(app)
-      .post(`/study-sets/${setId}/items`)
+      .post(`/sets/${setId}/items`)
       .set(bearer(teacher.accessToken))
       .send({ hadith_id: hadith.rows[0].hadith_id });
     await request(app)

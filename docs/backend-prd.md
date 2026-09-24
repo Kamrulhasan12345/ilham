@@ -253,7 +253,14 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction) {
 // middleware/requireRole.ts
 export const requireRole = (...roles: Role[]) =>
   (req: Request, _res: Response, next: NextFunction) =>
-    roles.includes(req.user!.role) ? next() : next(new ForbiddenError());
+    req.user && (req.user.role === 'admin' || roles.includes(req.user.role))
+      ? next()
+      : next(new ForbiddenError());
+// Roles are disjoint but hierarchical: an admin does everything a teacher
+// does (frontend PRD §2), so an admin passes any role check. Fixed
+// 2026-09-24: the old exact-match version 403'd admins on every
+// teacher-only route (circle overview, students, completion), which the
+// browser pass caught.
 ```
 
 `req.user` needs declaration merging, in `src/types/express.d.ts`:
@@ -482,13 +489,17 @@ read the corpus analytics.
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
-| GET | `/study-sets` | A | Owned by the caller |
-| POST | `/study-sets` | A | `owner_id` from the token. The `assert_user_exists` trigger checks it |
-| GET | `/study-sets/:id` | A + owner | With the items joined to the hadith |
-| PATCH | `/study-sets/:id` | A + owner | Rename |
-| DELETE | `/study-sets/:id` | A + owner | Refuse with 422 if an assignment references it |
-| POST | `/study-sets/:id/items` | A + owner | `{ hadith_id }`. 409 on a repeat |
-| DELETE | `/study-sets/:id/items/:hid` | A + owner | |
+| GET | `/sets` | A | Owned by the caller |
+| POST | `/sets` | A | `owner_id` from the token. The `assert_user_exists` trigger checks it |
+| GET | `/sets/:id` | A + owner | With the items joined to the hadith |
+| PATCH | `/sets/:id` | A + owner | Rename |
+| DELETE | `/sets/:id` | A + owner | Refuse with 422 if an assignment references it |
+| POST | `/sets/:id/items` | A + owner | `{ hadith_id }`. 409 on a repeat |
+| DELETE | `/sets/:id/items/:hid` | A + owner |
+
+(Renamed from `/study-sets` on 2026-09-24: the browser pass proved the
+frontend calls `/sets` while the API mounted `/study-sets`, so every
+set call 404'd. Short mounts match `/circles`, `/notes`, `/assignments`.)
 
 A teacher owns the sets they assign; a student owns their own. `owner_id` is
 polymorphic, so the trigger, not a foreign key, checks it. An unverified

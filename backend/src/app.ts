@@ -56,7 +56,7 @@ app.get('/students/:id/stats', requireAuth, getStudentStatsHandler);
 app.use('/circles', requireAuth, circlesRoutes);
 app.use('/teachers', requireAuth, requireRole('admin'), teachersRoutes);
 app.use('/analytics', requireAuth, analyticsRoutes);
-app.use('/study-sets', requireAuth, studySetsRoutes);
+app.use('/sets', requireAuth, studySetsRoutes);
 app.use('/assignments', requireAuth, assignmentsRoutes);
 app.use('/review-sessions', requireAuth, reviewsRoutes);
 app.use('/progress', requireAuth, progressRoutes);

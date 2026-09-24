@@ -33,7 +33,7 @@ async function makeCircleAndStudySet(
     .set(bearer(teacherToken))
     .send({ name: `Circle ${uniqueEmail('c')}` });
   const studySet = await request(app)
-    .post('/study-sets')
+    .post('/sets')
     .set(bearer(teacherToken))
     .send({ name: `Set ${uniqueEmail('s')}` });
   return { circleId: circle.body.data.circle_id, studySetId: studySet.body.data.study_set_id };
@@ -254,7 +254,7 @@ describe('completion mastered threshold (frontend PRD: mastery >= 3)', () => {
       'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 1',
     );
     await request(app)
-      .post(`/study-sets/${studySetId}/items`)
+      .post(`/sets/${studySetId}/items`)
       .set(bearer(teacher.accessToken))
       .send({ hadith_id: hadith.rows[0].hadith_id });
 

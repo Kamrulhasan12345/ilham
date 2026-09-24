@@ -62,7 +62,7 @@ async function enrollStudentAndAssign(
     .send({ student_id: studentId });
 
   const studySet = await request(app)
-    .post('/study-sets')
+    .post('/sets')
     .set(bearer(teacherToken))
     .send({ name: `Override test set ${circleId}` });
   const studySetId = studySet.body.data.study_set_id;

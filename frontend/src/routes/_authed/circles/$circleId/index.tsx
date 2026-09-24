@@ -2,15 +2,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { z } from 'zod';
-import { useAuth } from '../../../auth/AuthContext';
-import { State } from '../../../domain/State';
-import { ApiError, apiFetch } from '../../../lib/apiClient';
-import { Button } from '../../../ui/Button';
-import { Dialog } from '../../../ui/Dialog';
-import { Field } from '../../../ui/Field';
-import { Input } from '../../../ui/Input';
-import { Table } from '../../../ui/Table';
-import { toast } from '../../../ui/Toast';
+import { useAuth } from '../../../../auth/AuthContext';
+import { State } from '../../../../domain/State';
+import { ApiError, apiFetch } from '../../../../lib/apiClient';
+import { Button } from '../../../../ui/Button';
+import { Dialog } from '../../../../ui/Dialog';
+import { Field } from '../../../../ui/Field';
+import { Input } from '../../../../ui/Input';
+import { Table } from '../../../../ui/Table';
+import { toast } from '../../../../ui/Toast';
 
 const circleSchema = z.object({ circle_id: z.number(), teacher_id: z.number(), name: z.string() });
 const overviewSchema = z.array(
@@ -42,7 +42,7 @@ const assignmentsSchema = z.array(
   }),
 );
 
-export const Route = createFileRoute('/_authed/circles/$circleId')({
+export const Route = createFileRoute('/_authed/circles/$circleId/')({
   component: CircleOverviewPage,
 });
 

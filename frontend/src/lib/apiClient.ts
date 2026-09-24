@@ -7,7 +7,21 @@ import { type ZodSchema, z } from 'zod';
 // VITE_API_BASE overrides it for a static-host deployment, where no proxy
 // exists and the API has its own absolute URL. Vite inlines the value at build
 // time — see frontend/.env.example for what that costs.
-const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+//
+// `||`, not `??`: the Docker build passes an empty VITE_API_BASE for the
+// same-origin default, and an empty string is not nullish — `??` kept it and
+// every request went to /auth/* instead of /api/auth/* (405 from nginx).
+/**
+ * An explicitly set base wins, even when it names another origin. An empty
+ * or missing base means the same-origin proxy. The Docker build passes an
+ * empty VITE_API_BASE for exactly that default, so empty must fall back
+ * too — `??` kept it and every request missed the /api prefix (405).
+ */
+export function resolveApiBase(raw: string | undefined): string {
+  return raw || '/api';
+}
+
+const API_BASE = resolveApiBase(import.meta.env.VITE_API_BASE);
 
 const refreshResponseSchema = z.object({ accessToken: z.string() });
 

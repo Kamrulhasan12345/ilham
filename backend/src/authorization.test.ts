@@ -163,9 +163,19 @@ describe('every role can log in, and the verified-teacher flow works end to end'
     );
     const teacherId = rows[0].user_id;
 
-    const queue = await request(app).get('/teachers/unverified').set(bearer(admin.token));
-    assert.equal(queue.status, 200);
-    assert.ok(queue.body.data.some((t: { user_id: number }) => t.user_id === teacherId));
+    // Paginated and ordered by created_at: page through rather than assume
+    // this teacher lands on page 1 (see the identical note further down).
+    let foundInQueue = false;
+    for (let offset = 0; !foundInQueue; offset += 100) {
+      const queue = await request(app)
+        .get(`/teachers/unverified?limit=100&offset=${offset}`)
+        .set(bearer(admin.token));
+      assert.equal(queue.status, 200);
+      const page: { user_id: number }[] = queue.body.data;
+      foundInQueue = page.some((t) => t.user_id === teacherId);
+      if (page.length < 100) break;
+    }
+    assert.ok(foundInQueue, 'expected the new teacher to appear in the unverified queue');
 
     const verify = await request(app).post(`/teachers/${teacherId}/verify`).set(bearer(admin.token));
     assert.equal(verify.status, 200);
@@ -178,6 +188,30 @@ describe('every role can log in, and the verified-teacher flow works end to end'
 
     const list = await request(app).get('/circles').set(bearer(teacher.accessToken));
     assert.ok(list.body.data.some((c: { name: string }) => c.name === 'First halaqa'));
+  });
+
+  test('an admin reads teacher-only routes: admin does everything a teacher does', async () => {
+    const admin = await seedAdmin('adminreads');
+    const teacherEmail = uniqueEmail('teachreads');
+    const teacher = await registerAndGetToken(app, teacherEmail, 'teacher');
+    const { rows } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [teacherEmail],
+    );
+    await request(app).post(`/teachers/${rows[0].user_id}/verify`).set(bearer(admin.token));
+    const circle = await request(app)
+      .post('/circles')
+      .set(bearer(teacher.accessToken))
+      .send({ name: 'Readable circle' });
+    assert.equal(circle.status, 201);
+    const circleId = circle.body.data.circle_id;
+
+    // Teacher-only mounts. Before the fix these answered 403 for admins,
+    // against docs/frontend-prd.md §2 ("everything a teacher does").
+    for (const path of [`/circles/${circleId}/overview`, `/circles/${circleId}/students`]) {
+      const res = await request(app).get(path).set(bearer(admin.token));
+      assert.equal(res.status, 200, `admin blocked from teacher-only ${path}`);
+    }
   });
 
   test('a verified teacher can create a circle immediately, no queue wait', async () => {
@@ -216,8 +250,20 @@ describe('declining a teacher (DELETE /teachers/:id/verify)', () => {
     assert.equal(declined.status, 200);
     assert.equal(declined.body.data.is_verified, false);
 
-    const queue = await request(app).get('/teachers/unverified').set(bearer(adminToken));
-    assert.ok(queue.body.data.some((r: { user_id: number }) => r.user_id === teacherId));
+    // The queue is paginated (ORDER BY created_at) and the rest of the suite
+    // registers many teachers before this one runs, so this teacher is not
+    // guaranteed to land on the first page — page through instead of
+    // assuming page 1, the same way corpus.test.ts finds a specific hadith.
+    let found = false;
+    for (let offset = 0; !found; offset += 100) {
+      const queue = await request(app)
+        .get(`/teachers/unverified?limit=100&offset=${offset}`)
+        .set(bearer(adminToken));
+      const page: { user_id: number }[] = queue.body.data;
+      found = page.some((r) => r.user_id === teacherId);
+      if (page.length < 100) break;
+    }
+    assert.ok(found, 'expected the declined teacher to reappear in the unverified queue');
   });
 
   test('rules: bad id 400, missing teacher 404, non-admin 403, anonymous 401', async () => {

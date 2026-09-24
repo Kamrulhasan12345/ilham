@@ -2,11 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { z } from 'zod';
-import { useAuth } from '../../../auth/AuthContext';
 import { State } from '../../../domain/State';
+import { useAuth } from '../../../auth/AuthContext';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 import { Button } from '../../../ui/Button';
 import { Dialog } from '../../../ui/Dialog';
+import { Pager } from '../../../ui/Pager';
 
 const teacherSchema = z.object({
   user_id: z.number(),
@@ -19,6 +20,7 @@ const teacherSchema = z.object({
 const queueSchema = z.array(teacherSchema);
 
 export const Route = createFileRoute('/_authed/admin/verify')({
+  validateSearch: z.object({ offset: z.number().catch(0) }),
   component: VerifyPage,
 });
 
@@ -73,9 +75,12 @@ function VerifyQueue({
   setVerifying: (id: number | null) => void;
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
+  const { offset } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const LIMIT = 20;
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['teachers', 'unverified'],
-    queryFn: () => apiFetch('/teachers/unverified', queueSchema),
+    queryKey: ['teachers', 'unverified', { limit: LIMIT, offset }],
+    queryFn: () => apiFetch(`/teachers/unverified?limit=${LIMIT}&offset=${offset}`, queueSchema),
   });
   const [declining, setDeclining] = useState<{ id: number; name: string } | null>(null);
 
@@ -132,31 +137,40 @@ function VerifyQueue({
         </State>
       ) : null}
       {data && data.length > 0 ? (
-        <ul>
-          {data.map((teacher) => (
-            <li key={teacher.user_id}>
-              {teacher.full_name} — {teacher.email}
-              {teacher.institution ? ` — ${teacher.institution}` : null}
-              {teacher.specialization ? ` — ${teacher.specialization}` : null}{' '}
-              <Button
-                type="button"
-                variant="primary"
-                disabled={verifying === teacher.user_id}
-                onClick={() => handleVerify(teacher.user_id)}
-              >
-                Verify
-              </Button>{' '}
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={verifying === teacher.user_id}
-                onClick={() => setDeclining({ id: teacher.user_id, name: teacher.full_name })}
-              >
-                Decline
-              </Button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul>
+            {data.map((teacher) => (
+              <li key={teacher.user_id}>
+                {teacher.full_name} — {teacher.email}
+                {teacher.institution ? ` — ${teacher.institution}` : null}
+                {teacher.specialization ? ` — ${teacher.specialization}` : null}{' '}
+                <Button
+                  type="button"
+                  variant="primary"
+                  disabled={verifying === teacher.user_id}
+                  onClick={() => handleVerify(teacher.user_id)}
+                >
+                  Verify
+                </Button>{' '}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={verifying === teacher.user_id}
+                  onClick={() => setDeclining({ id: teacher.user_id, name: teacher.full_name })}
+                >
+                  Decline
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <Pager
+            offset={offset}
+            limit={LIMIT}
+            count={data.length}
+            onPrev={() => navigate({ search: { offset: Math.max(0, offset - LIMIT) } })}
+            onNext={() => navigate({ search: { offset: offset + LIMIT } })}
+          />
+        </>
       ) : null}
 
       <Dialog

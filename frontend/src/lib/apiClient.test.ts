@@ -199,3 +199,16 @@ describe('apiFetchEnvelope', () => {
     expect(result.summary).toBeNull();
   });
 });
+
+describe('resolveApiBase', () => {
+  it('falls back to the same-origin proxy for an empty or missing base', async () => {
+    const { resolveApiBase } = await import('./apiClient');
+    expect(resolveApiBase(undefined)).toBe('/api');
+    expect(resolveApiBase('')).toBe('/api');
+  });
+
+  it('keeps an explicitly set base, even cross-origin', async () => {
+    const { resolveApiBase } = await import('./apiClient');
+    expect(resolveApiBase('https://api.example.com')).toBe('https://api.example.com');
+  });
+});
