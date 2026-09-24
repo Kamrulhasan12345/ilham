@@ -93,6 +93,16 @@ describe('GET /chapters', () => {
     assert.equal(res.status, 400);
   });
 
+  test('returns 400 when seq is not an integer', async () => {
+    const token = await tokenFor('chapters-bad-seq');
+    const collectionId = await firstCollectionId(token);
+    const res = await authed(
+      token,
+      request(app).get(`/chapters?collection_id=${collectionId}&seq=abc`),
+    );
+    assert.equal(res.status, 400);
+  });
+
   test('returns 200 with chapters for a real collection id from the API', async () => {
     const token = await tokenFor('chapters-ok');
     const collectionId = await firstCollectionId(token);
@@ -109,6 +119,31 @@ describe('GET /chapters', () => {
     for (const row of res.body.data) {
       assert.equal(row.collection_id, collectionId);
     }
+  });
+
+  test('filters to one chapter when seq is given', async () => {
+    const token = await tokenFor('chapters-seq');
+    const collectionId = await firstCollectionId(token);
+    const res = await authed(
+      token,
+      request(app).get(`/chapters?collection_id=${collectionId}&seq=2`),
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.length, 1);
+    assert.equal(res.body.data[0].collection_id, collectionId);
+    assert.equal(res.body.data[0].seq, 2);
+    assert.equal(res.body.page.total, 1);
+  });
+
+  test('returns 200 with an empty array for an unknown seq', async () => {
+    const token = await tokenFor('chapters-seq-unknown');
+    const collectionId = await firstCollectionId(token);
+    const res = await authed(
+      token,
+      request(app).get(`/chapters?collection_id=${collectionId}&seq=9999`),
+    );
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.data, []);
   });
 
   test('returns 200 with an empty array for an unknown collection id (no 404 in controller)', async () => {

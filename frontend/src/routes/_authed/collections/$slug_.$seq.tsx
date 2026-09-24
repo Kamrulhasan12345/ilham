@@ -56,12 +56,13 @@ function HadithsInChapterPage() {
   const collection = collections.data?.find((c) => c.slug === slug);
 
   const chapters = useQuery({
-    queryKey: ['chapters', { collectionId }],
-    queryFn: () => apiFetch(`/chapters?collection_id=${collectionId}&limit=100`, chaptersSchema),
+    queryKey: ['chapters', { collectionId, seq }],
+    queryFn: () =>
+      apiFetch(`/chapters?collection_id=${collectionId}&seq=${seq}`, chaptersSchema),
     enabled: collectionId !== undefined,
     staleTime: Number.POSITIVE_INFINITY,
   });
-  const chapter = chapters.data?.find((ch) => ch.seq === Number(seq));
+  const chapter = chapters.data?.[0];
   const chapterId = chapter?.chapter_id;
 
   const hadiths = useQuery({

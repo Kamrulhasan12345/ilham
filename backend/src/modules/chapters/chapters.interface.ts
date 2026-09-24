@@ -8,6 +8,7 @@ export interface ChapterRow {
 
 export interface ChapterListParams {
   collectionId: number;
+  seq?: number;
   limit: number;
   offset: number;
 }
