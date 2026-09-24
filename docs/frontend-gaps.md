@@ -4,6 +4,32 @@ Status of the frontend against `docs/frontend-prd.md` on 2026-09-24. The
 backend serves every endpoint this document needs, and the frontend now
 renders every page in the route table.
 
+## Closed 2026-09-24 (shadcn rewrite)
+
+**Design language.** The frontend now uses shadcn Nova on Radix primitives
+with Tailwind v4. The hand-rolled `src/ui/*` layer is gone, with every CSS
+module in the project. The old tokens file stays for the page base and the
+canvas chart. Arabic keeps one theme token (`--font-arabic`). A preset change
+replaces the shadcn theme and keeps the application code. The product
+requirements do not change. All behaviours in this ledger still hold.
+
+**Shell.** A sidebar holds Corpus, Study, and Account groups with role gates.
+A header holds a search trigger, a theme toggle, and the brand. `⌘K` opens a
+palette with corpus search and page jumps. The home route is a dashboard, not
+a redirect. The theme toggle drives the `.dark` class and the legacy
+`data-theme` together.
+
+**Pages.** Every route renders shadcn composition: Card, Table, Dialog and
+AlertDialog, Field and InputGroup, Select, ToggleGroup, Accordion, Empty,
+Skeleton, and Sonner toasts. Notes is a library now. It lists and deletes.
+Writing moved to the hadith page. Hadith English sits in its own card at
+display size. Charts (Bars, Dumbbell, ChainPair, StrengthPlot,
+DistributionStrip, IsnadChain) keep their data rules under new styling.
+
+**Tests.** 133 green. The suite grew shadcn needs: `matchMedia`,
+`ResizeObserver`, and `scrollIntoView` stubs, an 8s async budget, lazy route
+chunks off under Vitest, and Tailwind off under Vitest.
+
 ## Closed 2026-09-24
 
 **Design language.** The shell follows the specimen, not the stale sidebar

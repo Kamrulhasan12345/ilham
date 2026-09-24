@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { onSessionLost } from './lib/apiClient';
 import { router } from './router';
+import './index.css';
 import './styles/tokens.css';
 import './styles/reset.css';
 import './styles/base.css';

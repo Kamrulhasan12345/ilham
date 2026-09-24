@@ -1,6 +1,13 @@
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { Link } from '@tanstack/react-router';
 import { Fragment } from 'react';
-import styles from './Crumbs.module.css';
 
 export interface Crumb {
   label: string;
@@ -13,37 +20,37 @@ export interface Crumb {
     trail still reads. */
 export function Crumbs({ trail }: { trail: Crumb[] }) {
   return (
-    <nav aria-label="Breadcrumb" className={styles.crumbs}>
-      <ol className={styles.list}>
+    <Breadcrumb>
+      <BreadcrumbList>
         {trail.map((crumb, i) => (
-          <li key={`${crumb.label}-${crumb.href ?? 'here'}`} className={styles.item}>
-            {i > 0 ? (
-              <span aria-hidden="true" className={styles.sep}>
-                /
-              </span>
-            ) : null}
-            {crumb.href ? (
-              <Link to={crumb.href}>
-                {crumb.label}{' '}
-                {crumb.arabic ? (
-                  <span className="ar" dir="rtl">
-                    {crumb.arabic}
-                  </span>
-                ) : null}
-              </Link>
-            ) : (
-              <Fragment>
-                <span aria-current="page">{crumb.label}</span>{' '}
-                {crumb.arabic ? (
-                  <span className="ar" dir="rtl">
-                    {crumb.arabic}
-                  </span>
-                ) : null}
-              </Fragment>
-            )}
-          </li>
+          <Fragment key={`${crumb.label}-${crumb.href ?? 'here'}`}>
+            {i > 0 ? <BreadcrumbSeparator /> : null}
+            <BreadcrumbItem>
+              {crumb.href ? (
+                <BreadcrumbLink asChild>
+                  <Link to={crumb.href}>
+                    {crumb.label}{' '}
+                    {crumb.arabic ? (
+                      <span dir="rtl" lang="ar" className="font-arabic">
+                        {crumb.arabic}
+                      </span>
+                    ) : null}
+                  </Link>
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage>
+                  {crumb.label}{' '}
+                  {crumb.arabic ? (
+                    <span dir="rtl" lang="ar" className="font-arabic">
+                      {crumb.arabic}
+                    </span>
+                  ) : null}
+                </BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </Fragment>
         ))}
-      </ol>
-    </nav>
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 }

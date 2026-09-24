@@ -96,7 +96,9 @@ describe('the register page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
     const message = await screen.findByText('already exists');
-    await waitFor(() => expect(message).toHaveFocus());
+    // Focus lands on the error region wrapping the Alert (the generated
+    // Alert takes no ref), not on the text node itself.
+    await waitFor(() => expect(message.closest('[tabindex="-1"]')).toHaveFocus());
   });
 
   it('never offers an admin role option', async () => {

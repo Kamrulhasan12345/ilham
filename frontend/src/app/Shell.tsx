@@ -1,120 +1,83 @@
-import { Link, useRouter, useRouterState } from '@tanstack/react-router';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Search } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { Menu, MenuButton, MenuText } from '../ui/Menu';
-import { ToastRegion } from '../ui/Toast';
-import styles from './Shell.module.css';
-
-const CORPUS_PATHS = ['/collections', '/search', '/narrators'];
-const STUDY_PATHS = ['/circles', '/sets', '/notes', '/students'];
-const ACCOUNT_PATHS = ['/analytics', '/me', '/settings', '/admin/verify'];
-
-function startsWithAny(pathname: string, prefixes: string[]): boolean {
-  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
+import { AppSidebar } from './AppSidebar';
+import { CommandPalette } from './CommandPalette';
+import { ThemeSwitch } from './ThemeSwitch';
 
 export function Shell({ children }: { children: ReactNode }) {
-  const { state, signOut } = useAuth();
-  const router = useRouter();
-  const pathname = useRouterState({ select: (routerState) => routerState.location.pathname });
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    try {
-      await signOut();
-      await router.navigate({ to: '/login' });
-    } finally {
-      setIsSigningOut(false);
-    }
-  };
-
+  const { state } = useAuth();
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const role = state.status === 'signed-in' ? state.user.role : null;
-  const isTeacher = role === 'teacher' || role === 'admin';
 
   return (
-    <>
-      <a className={styles.skip} href="#main">
-        Skip to content
-      </a>
-      <div className={styles.shell}>
-        <header className={styles.topbar}>
-          <span className={styles.brand}>
-            Ilham{' '}
-            <span className={`ar ${styles.brandAr}`} dir="rtl">
-              إلهام
+    <TooltipProvider>
+      <SidebarProvider>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-background focus:p-2"
+        >
+          Skip to content
+        </a>
+        {state.status === 'signed-in' ? <AppSidebar /> : null}
+        <SidebarInset id="main" tabIndex={-1} className="outline-none">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+            {state.status === 'signed-in' ? <SidebarTrigger /> : null}
+            <Separator orientation="vertical" className="h-4" />
+            <span className="text-sm font-semibold">
+              Ilham{' '}
+              <span dir="rtl" lang="ar" className="font-arabic">
+                إلهام
+              </span>
             </span>
-          </span>
-          <span className={styles.spacer} />
-          {state.status === 'signed-in' && (
-            <nav className={styles.navTier} aria-label="Primary">
-              <Menu label="Corpus" current={startsWithAny(pathname, CORPUS_PATHS)}>
-                <Link role="menuitem" className={styles.menuItem} to="/collections">
-                  Collections
-                </Link>
-                <Link role="menuitem" className={styles.menuItem} to="/search" search={{ q: '' }}>
-                  Search
-                </Link>
-                <Link role="menuitem" className={styles.menuItem} to="/narrators" search={{ q: '' }}>
-                  Narrators
-                </Link>
-              </Menu>
-              <Menu label="Study" current={startsWithAny(pathname, STUDY_PATHS)}>
-                <Link role="menuitem" className={styles.menuItem} to="/circles">
-                  Circles
-                </Link>
-                <Link role="menuitem" className={styles.menuItem} to="/sets">
-                  Study sets
-                </Link>
-                <Link role="menuitem" className={styles.menuItem} to="/notes">
-                  Notes
-                </Link>
-                {isTeacher ? (
-                  <Link role="menuitem" className={styles.menuItem} to="/students">
-                    Students
-                  </Link>
-                ) : null}
-              </Menu>
-              <Menu label="Account" current={startsWithAny(pathname, ACCOUNT_PATHS)}>
-                {state.status === 'signed-in' ? (
-                  <MenuText>
-                    {state.user.full_name} · {state.user.role}
-                  </MenuText>
-                ) : null}
-                <Link role="menuitem" className={styles.menuItem} to="/analytics">
-                  Analytics
-                </Link>
-                <Link role="menuitem" className={styles.menuItem} to="/me">
-                  Account
-                </Link>
-                <Link role="menuitem" className={styles.menuItem} to="/settings">
-                  Settings
-                </Link>
-                {role === 'admin' ? (
-                  <Link role="menuitem" className={styles.menuItem} to="/admin/verify">
-                    Verify teachers
-                  </Link>
-                ) : null}
-                <MenuButton onClick={() => void handleSignOut()} disabled={isSigningOut}>
-                  {isSigningOut ? 'Signing out...' : 'Sign out'}
-                </MenuButton>
-              </Menu>
-            </nav>
-          )}
-        </header>
-        {state.status === 'signed-in' && role === 'teacher' && state.user.is_verified !== true && (
-          <p role="note" className={styles.banner}>
-            Your teaching account is waiting for review. You can build study sets, write notes, and
-            review students. You cannot open a circle yet.
-          </p>
-        )}
-      </div>
-      <div className={styles.body}>
-        <main id="main" tabIndex={-1} className={styles.main}>
-          {children}
-        </main>
-      </div>
-      <ToastRegion />
-    </>
+            <span className="flex-1" />
+            {state.status === 'signed-in' ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setPaletteOpen(true)}
+                  className="hidden max-w-md flex-1 justify-start font-normal text-muted-foreground md:flex"
+                >
+                  <Search data-icon="inline-start" />
+                  <span className="flex-1 text-left">Search hadiths, narrators, pages…</span>
+                  <kbd className="text-xs opacity-60">⌘K</kbd>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => setPaletteOpen(true)}
+                  aria-label="Search and go to"
+                  className="md:hidden"
+                >
+                  <Search />
+                </Button>
+              </>
+            ) : null}
+            <ThemeSwitch />
+          </header>
+          {state.status === 'signed-in' && role === 'teacher' && state.user.is_verified !== true ? (
+            <Alert className="rounded-none border-x-0 border-t-0">
+              <AlertDescription>
+                Your teaching account is waiting for review. You can build study sets, write notes,
+                and review students. You cannot open a circle yet.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+          {/* The single page column for every route: centered, capped,
+              evenly padded. Pages must not add their own outer padding. */}
+          <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 p-4 md:p-6">
+            {children}
+          </div>
+        </SidebarInset>
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+        <Toaster />
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }

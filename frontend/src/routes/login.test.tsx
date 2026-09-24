@@ -73,7 +73,9 @@ describe('the login page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     const message = await screen.findByText('invalid email or password');
-    await waitFor(() => expect(message).toHaveFocus());
+    // Focus lands on the error region wrapping the Alert (the generated
+    // Alert takes no ref), not on the text node itself.
+    await waitFor(() => expect(message.closest('[tabindex="-1"]')).toHaveFocus());
   });
 
   it('disables the submit button, keeping its label, while the request is in flight', async () => {

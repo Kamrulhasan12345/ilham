@@ -1,9 +1,18 @@
+import { Badge } from '@/components/ui/badge';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
-import { State } from '../../../domain/State';
 import { apiFetchEnvelope } from '../../../lib/apiClient';
-import { Table } from '../../../ui/Table';
 
 const weakestSchema = z.array(
   z.object({
@@ -32,77 +41,89 @@ function WeakestChainsPage() {
 
   if (isLoading) {
     return (
-      <State title="Scoring every chain" quiet>
-        <p>An ordered query recomputes every row. It takes a moment.</p>
-      </State>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-64 w-full" />
+      </div>
     );
   }
   if (isError || !data) {
     return (
-      <State title="The ranking could not be loaded">
-        <p>Try again.</p>
-      </State>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>The ranking could not be loaded</EmptyTitle>
+          <EmptyDescription>Try again.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <div>
-      <h1>Which chains score lowest?</h1>
-      <p className="label">
-        Sorted up by chain strength, capped at {LIMIT} — the cap is printed because an ordered query
-        recomputes for every row.
-        {data.summary !== null ? (
-          <> {data.summary.unscored} more hadiths carry no chain and cannot be scored.</>
-        ) : null}
-      </p>
-      <Table
-        caption={`The ${LIMIT} lowest-scoring chains. A word first, the number second — never a bare number.`}
-      >
-        <thead>
-          <tr>
-            <th scope="col">Hadith</th>
-            <th scope="col">Collection</th>
-            <th scope="col">Strength</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-2xl font-semibold">Which chains score lowest?</h1>
+        <p className="text-muted-foreground">
+          Sorted up by chain strength, capped at {LIMIT} — the cap is printed because an ordered
+          query recomputes for every row.
+          {data.summary !== null ? (
+            <> {data.summary.unscored} more hadiths carry no chain and cannot be scored.</>
+          ) : null}
+        </p>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-24">Hadith</TableHead>
+            <TableHead>Collection</TableHead>
+            <TableHead className="w-32">Strength</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {data.data.map((row) => (
-            <tr key={row.hadith_id}>
-              <td>
-                <Link to="/hadiths/$hadithId" params={{ hadithId: String(row.hadith_id) }}>
-                  <span className="m">{row.hadith_num}</span>
+            <TableRow key={row.hadith_id}>
+              <TableCell>
+                <Link
+                  to="/hadiths/$hadithId"
+                  params={{ hadithId: String(row.hadith_id) }}
+                  className="hover:underline"
+                >
+                  <span className="font-mono tabular-nums">{row.hadith_num}</span>
                 </Link>
-              </td>
-              <td>
-                <span className="ar" dir="rtl">
+              </TableCell>
+              <TableCell>
+                <span dir="rtl" lang="ar" className="font-arabic">
                   {row.collection_title}
                 </span>
                 {row.chapter_title ? (
                   <>
                     {' '}
-                    <span className="ar" dir="rtl">
+                    <span dir="rtl" lang="ar" className="font-arabic">
                       {row.chapter_title}
                     </span>
                   </>
                 ) : null}
-              </td>
-              <td>
+              </TableCell>
+              <TableCell>
                 {row.chain_strength === null ? (
-                  'no chain'
+                  <span className="text-muted-foreground">no chain</span>
                 ) : (
-                  <>
-                    {row.chain_strength >= 0.8
-                      ? 'strong'
-                      : row.chain_strength >= 0.5
-                        ? 'mixed'
-                        : 'weak'}{' '}
-                    <span className="m m--bare">{`[${Number(row.chain_strength).toFixed(2)}]`}</span>
-                  </>
+                  <span className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      {row.chain_strength >= 0.8
+                        ? 'strong'
+                        : row.chain_strength >= 0.5
+                          ? 'mixed'
+                          : 'weak'}
+                    </Badge>
+                    <span className="font-mono tabular-nums">
+                      {Number(row.chain_strength).toFixed(2)}
+                    </span>
+                  </span>
                 )}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
+        </TableBody>
       </Table>
     </div>
   );

@@ -1,19 +1,29 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { NotebookPen } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { z } from 'zod';
-import { HadithPicker, type HadithMatch } from '../../../domain/HadithPicker';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
-import { Button } from '../../../ui/Button';
-import { Card } from '../../../ui/Card';
-import { Dialog } from '../../../ui/Dialog';
-import { Field } from '../../../ui/Field';
-import { Input } from '../../../ui/Input';
-import { PageHeader } from '../../../ui/PageHeader';
-import styles from './index.module.css';
 
 // A note has no title, no privacy flag, no updated_at, and no soft delete
 // (docs/frontend-prd.md §7.22), so the UI offers none of those controls.
+// This page is a library: it lists and deletes. Writing happens on the
+// hadith page, at the point of study.
 const noteSchema = z.object({
   note_id: z.number(),
   user_id: z.number(),
@@ -29,50 +39,19 @@ export const Route = createFileRoute('/_authed/notes/')({
 
 function NotesPage() {
   const queryClient = useQueryClient();
-  const [selectedHadith, setSelectedHadith] = useState<HadithMatch | null>(null);
-  const [body, setBody] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
-
   const { data, isLoading, isError } = useQuery({
     queryKey: ['notes'],
     queryFn: () => apiFetch('/notes', notesSchema),
   });
 
-  async function refresh() {
-    await queryClient.invalidateQueries({ queryKey: ['notes'] });
-  }
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedHadith) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      await apiFetch('/notes', noteSchema, {
-        method: 'POST',
-        body: { hadith_id: selectedHadith.hadith_id, body },
-      });
-      setSelectedHadith(null);
-      setBody('');
-      await refresh();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   async function handleDelete(noteId: number) {
-    setError(null);
     try {
-      await apiFetch(`/notes/${noteId}`, z.unknown(), {
-        method: 'DELETE',
-      });
-      await refresh();
+      await apiFetch(`/notes/${noteId}`, z.unknown(), { method: 'DELETE' });
+      await queryClient.invalidateQueries({ queryKey: ['notes'] });
+      toast.success('Note deleted.');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
+      toast.error(err instanceof ApiError ? err.message : 'Could not delete the note. Try again.');
     } finally {
       setDeleting(null);
     }
@@ -86,83 +65,97 @@ function NotesPage() {
   }
 
   return (
-    <div>
-      <PageHeader title="Notes" />
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <NotebookPen className="size-6" />
+          Notes
+        </h1>
+        <p className="text-muted-foreground">
+          Everything you wrote, grouped by hadith. Write new notes from a hadith page.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <HadithPicker onSelect={setSelectedHadith} />
-        {selectedHadith ? (
-          <p className={styles.selected}>
-            Attaching to hadith <span className="m">{selectedHadith.hadith_num}</span>:{' '}
-            {selectedHadith.text_en ?? selectedHadith.text_plain}
-          </p>
-        ) : null}
-        <Field label="Note">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              multiline
-              rows={3}
-              required
-              value={body}
-              onChange={(event) => setBody(event.target.value)}
-            />
-          )}
-        </Field>
-        {error ? <p>{error}</p> : null}
-        <Button type="submit" variant="primary" disabled={!selectedHadith || submitting}>
-          Add note
-        </Button>
-      </form>
+      {isLoading ? (
+        <div className="flex flex-col gap-4">
+          {[0, 1].map((n) => (
+            <Card key={n}>
+              <CardHeader>
+                <Skeleton className="h-5 w-1/3" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : isError || !data ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>The notes could not be loaded</EmptyTitle>
+            <EmptyDescription>Try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : data.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No notes yet</EmptyTitle>
+            <EmptyDescription>Open any hadith and write the first one there.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {[...grouped].map(([groupHadithId, notes]) => (
+            <Card key={groupHadithId}>
+              <CardHeader>
+                <CardTitle>
+                  <Link
+                    to="/hadiths/$hadithId"
+                    params={{ hadithId: String(groupHadithId) }}
+                    className="hover:underline"
+                  >
+                    Hadith {groupHadithId}
+                  </Link>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="flex flex-col gap-2">
+                  {notes.map((note) => (
+                    <li key={note.note_id} className="flex items-start justify-between gap-2">
+                      <span>{note.body}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleting(note.note_id)}
+                      >
+                        Delete
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {isLoading ? <p>Loading the notes…</p> : null}
-      {isError || (!isLoading && !data) ? <p>The notes could not be loaded. Try again.</p> : null}
-      {data && data.length === 0 ? <p>No notes yet. Add the first one above.</p> : null}
-      {[...grouped].map(([groupHadithId, notes]) => (
-        <Card key={groupHadithId} className={styles.group}>
-          <h2>
-            <Link to="/hadiths/$hadithId" params={{ hadithId: String(groupHadithId) }}>
-              Hadith <span className="m">[{groupHadithId}]</span>
-            </Link>
-          </h2>
-          <ul>
-            {notes.map((note) => (
-              <li key={note.note_id}>
-                {note.body}{' '}
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="small"
-                  onClick={() => setDeleting(note.note_id)}
-                >
-                  Delete
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ))}
-      <Dialog
-        open={deleting !== null}
-        title="Delete this note?"
-        onClose={() => setDeleting(null)}
-        actions={
-          <>
-            <Button variant="default" onClick={() => setDeleting(null)}>
-              Keep it
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => deleting !== null && handleDelete(deleting)}
-            >
+      <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deleting a note is final. The hadith stays where it is.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleting !== null && handleDelete(deleting)}>
               Delete it
-            </Button>
-          </>
-        }
-      >
-        <p>Deleting a note is final. The hadith stays where it is.</p>
-      </Dialog>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,6 +1,12 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useEffect, useRef } from 'react';
-import { Table } from '../../ui/Table';
-import styles from './DistributionStrip.module.css';
 
 export interface StrengthBucket {
   bucket: number;
@@ -72,7 +78,7 @@ export function DistributionStrip({
 
   return (
     <div>
-      <p className={styles.caption}>
+      <p className="text-sm text-muted-foreground">
         Every scored hadith in the corpus, in 14 buckets.
         {strength !== null ? (
           <>
@@ -84,29 +90,31 @@ export function DistributionStrip({
       </p>
       <canvas
         ref={canvasRef}
-        className={styles.strip}
+        className="h-24 w-full"
         role="img"
         aria-label="Distribution of chain strengths across the corpus"
       />
-      <Table caption="Scored hadiths per strength bucket. Buckets with no hadiths are listed as zero.">
-        <thead>
-          <tr>
-            <th scope="col">Bucket</th>
-            <th scope="col">Strength range</th>
-            <th scope="col">Hadiths</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Bucket</TableHead>
+            <TableHead>Strength range</TableHead>
+            <TableHead>Hadiths</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {buckets.map((b) => (
-            <tr key={b.bucket}>
-              <td className="m m--bare">{`[${b.bucket}]`}</td>
-              <td className="m m--bare">{`[${((b.bucket - 1) / 14).toFixed(2)}–${(b.bucket / 14).toFixed(2)}]`}</td>
-              <td className="m m--bare">{`[${b.count}]`}</td>
-            </tr>
+            <TableRow key={b.bucket}>
+              <TableCell className="font-mono tabular-nums">{b.bucket}</TableCell>
+              <TableCell className="font-mono tabular-nums">{`[${((b.bucket - 1) / 14).toFixed(2)}–${(b.bucket / 14).toFixed(2)}]`}</TableCell>
+              <TableCell className="font-mono tabular-nums">{b.count}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
+        </TableBody>
       </Table>
-      <p className={styles.note}>{nonEmpty.length} of the 14 buckets hold at least one hadith.</p>
+      <p className="text-sm text-muted-foreground">
+        {nonEmpty.length} of the 14 buckets hold at least one hadith.
+      </p>
     </div>
   );
 }

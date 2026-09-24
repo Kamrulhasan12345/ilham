@@ -1,15 +1,24 @@
+import { Button } from '@/components/ui/button';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import { useAuth } from '../../../../auth/AuthContext';
-import { State } from '../../../../domain/State';
 import { ApiError, apiFetch } from '../../../../lib/apiClient';
-import { Button } from '../../../../ui/Button';
-import { Field } from '../../../../ui/Field';
-import { Input } from '../../../../ui/Input';
-import { Seg } from '../../../../ui/Seg';
-import { toast } from '../../../../ui/Toast';
 
 const setsSchema = z.array(z.object({ study_set_id: z.number(), name: z.string() }));
 const setItemsSchema = z.object({
@@ -55,16 +64,18 @@ function AssignPage() {
   // redirecting in silence (docs/frontend-prd.md §5.4).
   if (!verifiedTeacher) {
     return (
-      <div>
-        <h1>Assign a set</h1>
-        <p>
-          Only a verified teacher assigns work. An unverified account builds sets, writes notes, and
-          reviews students — it does not open obligations.
-        </p>
-        <p>
-          <Link to="/circles">Return to the circles.</Link>
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>Assign a set</EmptyTitle>
+          <EmptyDescription>
+            Only a verified teacher assigns work. An unverified account builds sets, writes notes,
+            and reviews students — it does not open obligations.{' '}
+            <Link to="/circles" className="underline">
+              Return to the circles.
+            </Link>
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -82,73 +93,98 @@ function AssignPage() {
         body: { circle_id: Number(circleId), study_set_id: Number(setId), due_date: dueDate },
       });
       await queryClient.invalidateQueries({ queryKey: ['assignments'] });
-      toast(fanOut !== null ? `Assigned: ${fanOut} obligations created.` : 'Assigned.');
+      toast.success(fanOut !== null ? `Assigned: ${fanOut} obligations created.` : 'Assigned.');
       await router.navigate({ to: '/circles/$circleId', params: { circleId } });
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : 'Could not assign the set. Try again.');
+      toast.error(err instanceof ApiError ? err.message : 'Could not assign the set. Try again.');
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div>
-      <h1>Assign a set</h1>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-2xl font-semibold">Assign a set</h1>
+        <p className="text-muted-foreground">
+          The call is atomic: one result, not a per-student tick.
+        </p>
+      </div>
       {sets.isLoading || students.isLoading ? (
-        <State title="Loading" quiet>
-          <p>Reading your sets and the circle.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Loading</EmptyTitle>
+            <EmptyDescription>Reading your sets and the circle.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : sets.isError || students.isError || !sets.data || !students.data ? (
-        <State title="The assignment form could not be loaded">
-          <p>Try again.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>The assignment form could not be loaded</EmptyTitle>
+            <EmptyDescription>Try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <form onSubmit={handleSubmit}>
-          <h2 className="label">The set</h2>
-          {sets.data.length === 0 ? (
-            <p className="label">No sets yet — create one from the study sets page first.</p>
-          ) : (
-            <Seg
-              label="The set"
-              options={sets.data.map((set) => ({
-                value: String(set.study_set_id),
-                label: set.name,
-              }))}
-              value={setId}
-              onChange={setSetId}
-            />
-          )}
-          <Field
-            label="Due date"
-            hint="A date only. Overdue, due soon, and upcoming are computed from it."
-          >
-            {({ controlId, describedBy }) => (
-              <Input
-                id={controlId}
-                aria-describedby={describedBy}
-                type="date"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-                required
-              />
-            )}
-          </Field>
-          {fanOut !== null ? (
-            <p>
-              This creates {fanOut} obligations: {studentCount}{' '}
-              {studentCount === 1 ? 'student' : 'students'} by {hadithCount}{' '}
-              {hadithCount === 1 ? 'hadith' : 'hadiths'}.
-              {studentCount === 0 ? ' A set assigned to an empty circle reaches nobody.' : ''}{' '}
-              Assigning the same set again is separate: work done for the first assignment does not
-              close the second.
-            </p>
-          ) : null}
-          <Button type="submit" variant="primary" disabled={busy || !setId || !dueDate}>
-            Assign the set
-          </Button>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="assign-set">The set</FieldLabel>
+              {sets.data.length === 0 ? (
+                <FieldDescription>
+                  No sets yet — create one from the study sets page first.
+                </FieldDescription>
+              ) : (
+                <Select value={setId} onValueChange={setSetId}>
+                  <SelectTrigger id="assign-set">
+                    <SelectValue placeholder="Choose a set" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Study sets</SelectLabel>
+                      {sets.data.map((set) => (
+                        <SelectItem key={set.study_set_id} value={String(set.study_set_id)}>
+                          {set.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="assign-due">Due date</FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  id="assign-due"
+                  type="date"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
+                  required
+                />
+              </InputGroup>
+              <FieldDescription>
+                A date only. Overdue, due soon, and upcoming are computed from it.
+              </FieldDescription>
+            </Field>
+            {fanOut !== null ? (
+              <p className="text-sm text-muted-foreground">
+                This creates {fanOut} obligations: {studentCount}{' '}
+                {studentCount === 1 ? 'student' : 'students'} by {hadithCount}{' '}
+                {hadithCount === 1 ? 'hadith' : 'hadiths'}.
+                {studentCount === 0 ? ' A set assigned to an empty circle reaches nobody.' : ''}{' '}
+                Assigning the same set again is separate: work done for the first assignment does
+                not close the second.
+              </p>
+            ) : null}
+            <Field orientation="horizontal">
+              <Button type="submit" disabled={busy || !setId || !dueDate}>
+                {busy ? <Spinner data-icon="inline-start" /> : null}
+                Assign the set
+              </Button>
+            </Field>
+          </FieldGroup>
         </form>
       )}
-      <p className="label">The call is atomic: one result, not a per-student tick.</p>
     </div>
   );
 }

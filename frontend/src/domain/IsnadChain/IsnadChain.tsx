@@ -1,6 +1,6 @@
+import { Badge } from '@/components/ui/badge';
 import { Link } from '@tanstack/react-router';
 import { type Chain, type FlatIsnadLink, gradeInfo, groupIsnadChains } from '../grading';
-import styles from './IsnadChain.module.css';
 
 export interface IsnadLinkData extends FlatIsnadLink {
   narrator_id: number | null;
@@ -36,9 +36,7 @@ export interface IsnadChainProps {
 
 // docs/design/DESIGN.md §4's "never a bare number" rule: every machine value
 // is bracketed. The brackets are literal characters here — not CSS generated
-// content (`.m::before`/`::after` in reset.css) — so the distinction survives
-// a screen reader and a plain-text copy, and `.m .m--bare` here only borrows
-// the mono styling without doubling the bracket.
+// content — so the distinction survives a screen reader and a plain-text copy.
 const TRANSMISSION_GLOSS: Record<string, string> = {
   حدثنا: 'he narrated to us',
   حدثني: 'he narrated to me',
@@ -67,12 +65,11 @@ function weakestLinkPosition(chain: Chain<IsnadLinkData>): number | null {
 }
 
 function markClassName(link: IsnadLinkData): string {
-  if (link.is_compiler) return `${styles.mark} ${styles.markCollector}`;
-  if (link.is_placeholder) return `${styles.mark} ${styles.markPlaceholder}`;
-  if (link.resolution === 'A' || link.resolution === 'B')
-    return `${styles.mark} ${styles.markPerson}`;
-  if (link.resolution === 'C') return `${styles.mark} ${styles.markAmbiguous}`;
-  return `${styles.mark} ${styles.markUnresolved}`;
+  if (link.is_compiler) return 'border-primary bg-primary';
+  if (link.is_placeholder) return 'border-dashed border-muted-foreground bg-transparent';
+  if (link.resolution === 'A' || link.resolution === 'B') return 'border-primary bg-background';
+  if (link.resolution === 'C') return 'border-muted-foreground bg-muted';
+  return 'border-destructive bg-transparent';
 }
 
 function LinkRow({
@@ -94,23 +91,27 @@ function LinkRow({
   // resolve is not a link — it stays on screen, quieter, per the specimen.
   const resolved = !link.is_compiler && !link.is_placeholder && link.narrator_id !== null;
   const nameText = link.display_name ?? link.raw_name;
-  const nameClasses = [setsScore ? styles.nameSetsScore : '', resolved ? '' : styles.nameRaw]
-    .filter(Boolean)
-    .join(' ');
 
   return (
-    <li className={styles.link}>
-      <div className={styles.markCell}>
-        <span className={markClassName(link)} aria-hidden="true" />
+    <li className="relative flex gap-3 pb-5 last:pb-0">
+      <div className="flex flex-col items-center">
+        <span
+          className={`mt-1.5 size-3 shrink-0 rounded-full border-2 ${markClassName(link)}`}
+          aria-hidden="true"
+        />
       </div>
-      <div className={styles.body}>
-        <p className={`${styles.name} ar`} dir="rtl">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p dir="rtl" lang="ar" className="text-right font-arabic text-xl leading-snug">
           {link.is_compiler ? (
             link.raw_name
           ) : (
-            <span className={nameClasses || undefined}>
+            <span
+              className={
+                setsScore ? 'font-semibold' : resolved ? undefined : 'text-muted-foreground'
+              }
+            >
               {resolved && linkHref ? (
-                <Link className={styles.nameLink} to={linkHref(link.narrator_id as number)}>
+                <Link to={linkHref(link.narrator_id as number)} className="hover:underline">
                   {nameText}
                 </Link>
               ) : (
@@ -119,35 +120,34 @@ function LinkRow({
             </span>
           )}
         </p>
-        {link.name_en ? <p className={styles.translit}>{link.name_en}</p> : null}
-        <p className={weight === null ? `${styles.grade} ${styles.gradeAbsent}` : styles.grade}>
+        {link.name_en ? <p className="text-sm text-muted-foreground">{link.name_en}</p> : null}
+        <p className="text-sm text-muted-foreground">
           {sentence}
-          {weight !== null ? <span className="m m--bare">{`[${weight.toFixed(2)}]`}</span> : null}
+          {weight !== null ? (
+            <span className="font-mono tabular-nums">{`[${weight.toFixed(2)}]`}</span>
+          ) : null}
           {secondSentence ? (
             <>
-              <span className={styles.sep} aria-hidden="true">
-                {' '}
-                /{' '}
-              </span>
+              <span aria-hidden="true"> / </span>
               <i>{secondSentence}</i>
             </>
           ) : null}
         </p>
-        <span className={styles.vals}>
+        <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
           {link.is_compiler ? (
-            <span className="m m--bare">[compiler]</span>
+            <span className="font-mono">[compiler]</span>
           ) : (
             <>
               {weight !== null ? (
-                <span className="m m--bare">{`[wt ${weight.toFixed(2)}]`}</span>
+                <span className="font-mono tabular-nums">{`[wt ${weight.toFixed(2)}]`}</span>
               ) : null}
               {link.transmission_word ? (
-                <span className="m m--bare">{`[${link.transmission_word}]`}</span>
+                <span className="font-mono">{`[${link.transmission_word}]`}</span>
               ) : null}
-              {gloss ? <span className={styles.gloss}>{`"${gloss}"`}</span> : null}
+              {gloss ? <span>{`"${gloss}"`}</span> : null}
             </>
           )}
-          {setsScore ? <span className={styles.setsScore}>sets the score</span> : null}
+          {setsScore ? <Badge variant="secondary">sets the score</Badge> : null}
         </span>
       </div>
     </li>
@@ -156,7 +156,7 @@ function LinkRow({
 
 export function IsnadChain({ links, strongestSanadNo, linkHref }: IsnadChainProps) {
   if (links.length === 0) {
-    return <p className={styles.empty}>This hadith carries no chain.</p>;
+    return <p className="text-muted-foreground">This hadith carries no chain.</p>;
   }
 
   const chains = groupIsnadChains(links);
@@ -165,9 +165,9 @@ export function IsnadChain({ links, strongestSanadNo, linkHref }: IsnadChainProp
   return (
     <>
       {chains.map((chain) => (
-        <div key={chain.sanadNo}>
-          {showSanadLabels ? <p className={styles.sanadLabel}>Sanad {chain.sanadNo}</p> : null}
-          <ol className={styles.chain}>
+        <div key={chain.sanadNo} className="flex flex-col gap-2">
+          {showSanadLabels ? <p className="text-sm font-semibold">Sanad {chain.sanadNo}</p> : null}
+          <ol>
             {chain.links.map((link) => (
               <LinkRow
                 key={`${chain.sanadNo}-${link.position}`}

@@ -76,29 +76,22 @@ describe('role switch in one tab', () => {
     });
 
     // Startup restores the student session from the refresh cookie.
+    // The sidebar shows the signed-in identity directly — no menu to open.
     const router = renderAppWithAuth('/collections');
-    fireEvent.click(await screen.findByRole('button', { name: 'Account' }));
-    expect(
-      await screen.findByText((_, el) => el?.textContent === 'Amina · student'),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Amina · student' })).toBeInTheDocument();
 
     await router.navigate({ to: '/admin/verify' });
     expect(await screen.findByText(/does not hold that role/i)).toBeInTheDocument();
 
-    // Switch accounts without reloading. The Account menu opened above stays
-    // open across the navigate() call (Shell does not remount on route
-    // change), so Sign out is already reachable without reopening it.
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }));
+    // Switch accounts without reloading. Sign out sits in the sidebar
+    // footer and stays mounted across route changes.
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     me = ADMIN;
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
     await signInAs('demo-admin@example.com', 'password123');
-    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
-    // The nav (and with it, the Account menu's open state) unmounted while
-    // signed out, so it needs reopening for the new session.
-    fireEvent.click(await screen.findByRole('button', { name: 'Account' }));
-    expect(
-      await screen.findByText((_, el) => el?.textContent === 'Demo Admin · admin'),
-    ).toBeInTheDocument();
+    // Post-login landing is the dashboard ('/'), not /collections.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(await screen.findByRole('link', { name: 'Demo Admin · admin' })).toBeInTheDocument();
 
     await router.navigate({ to: '/admin/verify' });
     expect(await screen.findByText('No teacher waits')).toBeInTheDocument();

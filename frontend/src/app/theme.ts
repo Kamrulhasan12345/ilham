@@ -19,8 +19,16 @@ export function setStoredTheme(theme: Theme): void {
   }
 }
 
+// Drives both systems while the rewrite is in flight: the `.dark` class for
+// shadcn/Tailwind, and `data-theme` for the legacy tokens.css variables.
 export function applyTheme(theme: Theme): void {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
   document.documentElement.dataset.theme = theme;
+  try {
+    document.documentElement.style.colorScheme = theme;
+  } catch {
+    // Headless DOM without style support — the class and attribute stand.
+  }
 }
 
 export function detectSystemTheme(): Theme {

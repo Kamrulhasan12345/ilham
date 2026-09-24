@@ -4,6 +4,11 @@ This folder holds the design system for the Ilham frontend.
 
 This document uses ASD-STE100 Simplified Technical English.
 
+> Implementation note (2026-09-24). The frontend now renders shadcn Nova,
+> not the components in `specimen.html`. The direction in this folder stays
+> as the record. The Arabic-first rules still hold: Arabic leads, English
+> stays quiet, no colour carries meaning, every chart keeps its table.
+
 The chosen direction is **Apparatus**: one system on two grounds. **1c** is
 the light default and **2a** is the dark alternate. `Ilham Directions.dc.html`
 in this folder holds the full report, and it also holds the two rejected

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from '../../../auth/AuthContext';
 import { AuthContext } from '../../../auth/AuthContext';
@@ -167,11 +167,11 @@ describe('Hadith detail page', () => {
 
     expect(await screen.findByText('إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Plain' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Plain' }));
     expect(screen.getByText('إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ')).toBeInTheDocument();
     expect(screen.queryByText('إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Vowelled' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Vowelled' }));
     expect(screen.getByText('إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ')).toBeInTheDocument();
     expect(screen.queryByText('إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ')).not.toBeInTheDocument();
   });
@@ -190,14 +190,12 @@ describe('Hadith detail page', () => {
     renderAt('/hadiths/5');
 
     expect(await screen.findByText('strong')).toBeInTheDocument();
-    const summary = screen.getByText('Show grading detail');
-    expect(summary).toBeInTheDocument();
-    // jsdom renders <details> children in the DOM even when collapsed (no
-    // `open` attribute), so we assert the disclosure control exists and is
-    // closed by default rather than asserting the plot's absence from the DOM.
-    const details = summary.closest('details');
-    expect(details).not.toBeNull();
-    expect(details).not.toHaveAttribute('open');
+    // The disclosure is an accordion item, collapsed by default: the
+    // trigger exists and the ledger table stays out of the DOM until opened.
+    const trigger = await screen.findByRole('button', { name: 'Show grading detail' });
+    expect(trigger).toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('Ibn Hajar')).not.toBeInTheDocument();
   });
 
   it('shows a plain error message when the request fails', async () => {
@@ -211,7 +209,12 @@ describe('Hadith detail page', () => {
     vi.mocked(apiFetch).mockResolvedValue(REAL_HADITH_5 as never);
     renderAt('/hadiths/5');
 
-    const items = await screen.findAllByRole('listitem');
+    // The breadcrumb trail renders its own <li>s (and the sidebar more
+    // outside <main>) the moment any data lands, so findAllByRole would
+    // resolve before the chain paints. Wait for the chain heading first.
+    await screen.findByText('Chain of transmission');
+    // The sidebar renders its own <li>s instantly, so scope to the page.
+    const items = await within(screen.getByRole('main')).findAllByRole('listitem');
     const texts = items.map((li) => li.textContent ?? '');
     const collectorIndex = texts.findIndex((t) => t.includes('البخاري'));
     const companionIndex = texts.findIndex((t) => t.includes('عمر بن الخطاب'));

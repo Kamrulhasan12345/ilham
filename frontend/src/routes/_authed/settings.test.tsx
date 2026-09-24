@@ -35,10 +35,15 @@ describe('Settings page', () => {
   it('renders the Settings title and the theme switch', async () => {
     renderSettings();
     expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
-    // Scoped to the Appearance section: until Task 10 removes the shell's own
-    // ThemeSwitch, an unscoped query would match both copies and fail with
-    // "multiple elements found."
-    const appearance = screen.getByRole('region', { name: 'Appearance' });
-    expect(within(appearance).getByRole('group', { name: 'Ground' })).toBeInTheDocument();
+    // One toggle button, not the old two-ground segmented control. Scoped
+    // out of necessity: the shell header holds its own ThemeSwitch, so an
+    // unscoped query would match both copies.
+    const card = (await screen.findByText('Light or dark. The app remembers your choice.')).closest(
+      '[data-slot="card"]',
+    );
+    expect(card).not.toBeNull();
+    expect(
+      within(card as HTMLElement).getByRole('button', { name: /switch to (light|dark) theme/i }),
+    ).toBeInTheDocument();
   });
 });

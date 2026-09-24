@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from './auth/AuthContext';
 import { AuthContext } from './auth/AuthContext';
@@ -14,16 +14,16 @@ vi.mock('./lib/apiClient', async () => {
 
 import { apiFetch } from './lib/apiClient';
 
-// The signed-in home ('/') redirects to /collections (Task 7), which fetches
-// real collections data. These tests only exercise routing/auth/focus
-// behavior, not the Collections page's own data states (that's
-// collections/index.test.tsx's job) — so mock a stable, minimal response.
+// The signed-in home ('/') is the dashboard, which fetches the collections
+// for its grid. These tests only exercise routing/auth/focus behavior, not
+// the dashboard's own data states — so mock a stable, minimal response.
 const FAKE_COLLECTIONS = [
   {
     collection_id: 1,
     slug: 'sahih-al-bukhari',
     title_ar: 'صحيح البخاري',
     title_en: 'Sahih al-Bukhari',
+    hadith_count: 3,
   },
 ];
 
@@ -81,9 +81,9 @@ describe('the signedIn guard', () => {
     });
     renderRouter(router);
 
-    // '/' redirects to /collections (Task 7); a signed-in visitor lands on
-    // the real Collections page, not a stub — assert its actual content.
-    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
+    // '/' is the dashboard: a signed-in visitor lands on it directly and
+    // sees the collections grid — assert its actual content.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
     expect(await screen.findByText('صحيح البخاري')).toBeInTheDocument();
   });
 
@@ -160,8 +160,9 @@ describe('sign-out control', () => {
     });
     renderRouter(router);
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
-    fireEvent.click(screen.getByRole('button', { name: 'Account' }));
-    expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeInTheDocument();
+    // The sign-out control lives in the sidebar footer, beside the
+    // signed-in identity — no menu to open first.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(await screen.findByRole('button', { name: /sign out/i })).toBeInTheDocument();
   });
 });

@@ -1,13 +1,15 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { ChevronLeft, ChevronRight, Search as SearchIcon } from 'lucide-react';
 import { z } from 'zod';
 import { HadithList } from '../../domain/HadithList';
-import { State } from '../../domain/State';
 import { apiFetch } from '../../lib/apiClient';
-import { Button } from '../../ui/Button';
-import { Field } from '../../ui/Field';
-import { Input } from '../../ui/Input';
-import { Pager } from '../../ui/Pager';
 
 const hadithRowSchema = z.object({
   hadith_id: z.number(),
@@ -43,59 +45,78 @@ function SearchPage() {
   });
 
   return (
-    <div>
-      <h1>Search the hadiths</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const value = new FormData(event.currentTarget).get('q');
-          navigate({ search: { q: typeof value === 'string' ? value : '', offset: 0 } });
-        }}
-      >
-        <Field
-          label="Search the Arabic text"
-          hint="Search removes the diacritic marks and the tatweel, and unifies the alif, ta marbuta, and ya forms. A vocalised word still matches its unvocalised record."
-        >
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              name="q"
-              type="search"
-              defaultValue={q}
-              dir="rtl"
-            />
-          )}
-        </Field>
-        <Button type="submit" variant="primary">
-          Search
-        </Button>
-      </form>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <SearchIcon className="size-6" />
+          Search the hadiths
+        </h1>
+      </div>
+      <Card>
+        <CardContent>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = new FormData(event.currentTarget).get('q');
+              navigate({ search: { q: typeof value === 'string' ? value : '', offset: 0 } });
+            }}
+          >
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="hadith-search">Search the Arabic text</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="hadith-search"
+                    name="q"
+                    type="search"
+                    defaultValue={q}
+                    dir="rtl"
+                  />
+                </InputGroup>
+                <FieldDescription>
+                  Search removes the diacritic marks and the tatweel, and unifies the alif, ta
+                  marbuta, and ya forms. A vocalised word still matches its unvocalised record.
+                </FieldDescription>
+              </Field>
+              <Field orientation="horizontal">
+                <Button type="submit">Search</Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
 
       {q.trim().length === 0 ? (
-        <State title="Type to search" quiet>
-          <p>Search reads hadith text only. To find a person instead, search the narrators.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Type to search</EmptyTitle>
+            <EmptyDescription>
+              Search reads hadith text only. To find a person instead, search the narrators.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : results.isLoading ? (
-        <State title="Searching" quiet>
-          <p>Reading the corpus for your words.</p>
-        </State>
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
       ) : results.isError || !results.data ? (
-        <State title="The search could not run">
-          <p>Try again.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>The search could not run</EmptyTitle>
+            <EmptyDescription>Try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : results.data.length === 0 ? (
-        <State title="Nothing matches">
-          <p>
-            Either no hadith carries these words, or the vocalisation differs. Try fewer words, or
-            search the narrators for the same string.
-          </p>
-          <p>
-            <Link to="/narrators" search={{ q, offset: 0 }}>
-              Search the narrators for “{q}”
-            </Link>
-          </p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Nothing matches</EmptyTitle>
+            <EmptyDescription>
+              Either no hadith carries these words, or the vocalisation differs. Try fewer words, or
+              search the narrators for the same string.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <>
           <HadithList
@@ -107,15 +128,39 @@ function SearchPage() {
               chain_strength: hadith.chain_strength === null ? null : Number(hadith.chain_strength),
             }))}
           />
-          <Pager
-            offset={offset}
-            limit={LIMIT}
-            count={results.data.length}
-            onPrev={() => navigate({ search: { q, offset: Math.max(0, offset - LIMIT) } })}
-            onNext={() => navigate({ search: { q, offset: offset + LIMIT } })}
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Showing {offset + 1}–{offset + results.data.length}
+            </span>
+            <span className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={offset === 0}
+              onClick={() => navigate({ search: { q, offset: Math.max(0, offset - LIMIT) } })}
+            >
+              <ChevronLeft data-icon="inline-start" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={results.data.length < LIMIT}
+              onClick={() => navigate({ search: { q, offset: offset + LIMIT } })}
+            >
+              Next
+              <ChevronRight data-icon="inline-end" />
+            </Button>
+          </div>
         </>
       )}
+      {q.trim().length > 0 && results.data && results.data.length === 0 && !results.isLoading ? (
+        <p className="text-sm">
+          <Link to="/narrators" search={{ q, offset: 0 }} className="underline">
+            Search the narrators for “{q}”
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

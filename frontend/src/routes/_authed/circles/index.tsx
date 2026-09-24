@@ -1,15 +1,18 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { GraduationCap } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
 import { useAuth } from '../../../auth/AuthContext';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
-import { Button } from '../../../ui/Button';
-import { Card } from '../../../ui/Card';
-import { Field } from '../../../ui/Field';
-import { Input } from '../../../ui/Input';
-import { PageHeader } from '../../../ui/PageHeader';
-import styles from './index.module.css';
 
 const circleSchema = z.object({
   circle_id: z.number(),
@@ -59,62 +62,108 @@ function CirclesPage() {
   }
 
   return (
-    <div>
-      <PageHeader title="Circles" />
-
-      {role === 'teacher' && !verifiedTeacher ? (
-        <p>
-          Only a verified teacher opens a circle. Your account is waiting for review — the create
-          control below stays disabled until an admin verifies it.
-        </p>
-      ) : null}
-      {role === 'student' ? (
-        <p>
-          Only a teacher opens a circle. You see here the circles you joined; enrolment happens
-          through your teacher.
-        </p>
-      ) : null}
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <GraduationCap className="size-6" />
+          Circles
+        </h1>
+        {role === 'teacher' && !verifiedTeacher ? (
+          <p className="text-muted-foreground">
+            Only a verified teacher opens a circle. Your account is waiting for review — the create
+            control below stays disabled until an admin verifies it.
+          </p>
+        ) : null}
+        {role === 'student' ? (
+          <p className="text-muted-foreground">
+            Only a teacher opens a circle. You see here the circles you joined; enrolment happens
+            through your teacher.
+          </p>
+        ) : null}
+      </div>
 
       {role === 'teacher' ? (
-        <form onSubmit={handleSubmit}>
-          <Field label="New circle name">
-            {({ controlId, describedBy }) => (
-              <Input
-                id={controlId}
-                aria-describedby={describedBy}
-                type="text"
-                required
-                disabled={!verifiedTeacher || submitting}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            )}
-          </Field>
-          {error ? <p>{error}</p> : null}
-          <Button type="submit" variant="primary" disabled={!verifiedTeacher || submitting}>
-            Open circle
-          </Button>
-        </form>
+        <Card>
+          <CardHeader>
+            {error ? (
+              <Alert variant="destructive">
+                <AlertTitle>Could not open the circle</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+            <form onSubmit={handleSubmit}>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="new-circle-name">New circle name</FieldLabel>
+                  <InputGroup>
+                    <InputGroupInput
+                      id="new-circle-name"
+                      type="text"
+                      required
+                      disabled={!verifiedTeacher || submitting}
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                    />
+                  </InputGroup>
+                </Field>
+                <Field orientation="horizontal">
+                  <Button type="submit" disabled={!verifiedTeacher || submitting}>
+                    {submitting ? <Spinner data-icon="inline-start" /> : null}
+                    Open circle
+                  </Button>
+                </Field>
+              </FieldGroup>
+            </form>
+          </CardHeader>
+        </Card>
       ) : null}
 
-      {isLoading ? <p>Loading the circles…</p> : null}
-      {isError || (!isLoading && !data) ? <p>The circles could not be loaded. Try again.</p> : null}
-      {data && data.length === 0 ? <p>No circles yet.</p> : null}
-      {data && data.length > 0 ? (
-        <div>
-          {data.map((circle) => (
-            <Card key={circle.circle_id} className={styles.row}>
-              {role === 'teacher' || role === 'admin' ? (
-                <Link to="/circles/$circleId" params={{ circleId: String(circle.circle_id) }}>
-                  {circle.name}
-                </Link>
-              ) : (
-                circle.name
-              )}
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {[0, 1].map((n) => (
+            <Card key={n}>
+              <CardHeader>
+                <Skeleton className="h-5 w-1/2" />
+              </CardHeader>
             </Card>
           ))}
         </div>
-      ) : null}
+      ) : isError || !data ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>The circles could not be loaded</EmptyTitle>
+            <EmptyDescription>Try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : data.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No circles yet</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {data.map((circle) => (
+            <Card key={circle.circle_id}>
+              <CardHeader>
+                <CardTitle>
+                  {role === 'teacher' || role === 'admin' ? (
+                    <Link
+                      to="/circles/$circleId"
+                      params={{ circleId: String(circle.circle_id) }}
+                      className="hover:underline"
+                    >
+                      {circle.name}
+                    </Link>
+                  ) : (
+                    circle.name
+                  )}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

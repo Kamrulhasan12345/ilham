@@ -1,5 +1,3 @@
-import styles from './Dumbbell.module.css';
-
 export interface DumbbellRow {
   key: string | number;
   name: string;
@@ -27,56 +25,63 @@ function position(ordinal: number): number {
     colour. The axis carries both the Arabic words and their glosses. */
 export function Dumbbell({ rows, label }: { rows: DumbbellRow[]; label: string }) {
   return (
-    <div>
-      <p className={styles.key}>
+    <div className="flex flex-col gap-2">
+      <p className="flex gap-4 text-sm text-muted-foreground">
         <span>
-          <span className={styles.dot} aria-hidden="true" /> Ibn Hajar
+          <span
+            className="mr-1 inline-block size-2.5 rounded-full bg-foreground"
+            aria-hidden="true"
+          />{' '}
+          Ibn Hajar
         </span>
         <span>
-          <span className={`${styles.dot} ${styles.diamond}`} aria-hidden="true" /> Al-Dhahabi
+          <span className="mr-1 inline-block size-2.5 rotate-45 bg-foreground" aria-hidden="true" />{' '}
+          Al-Dhahabi
         </span>
       </p>
-      <div role="img" aria-label={label}>
+      <div role="img" aria-label={label} className="flex flex-col gap-1.5">
         {rows.map((row) => {
           const left = Math.min(position(row.ordinalA), position(row.ordinalB));
           const width = Math.abs(position(row.ordinalA) - position(row.ordinalB));
           return (
-            <div key={row.key} className={styles.row}>
-              <span className={`${styles.name} ar`} dir="rtl">
+            <div key={row.key} className="flex items-center gap-3">
+              <span dir="rtl" lang="ar" className="w-48 shrink-0 truncate text-right font-arabic">
                 {row.name}
               </span>
-              <span className={styles.track} aria-hidden="true">
-                <span className={styles.axis} />
+              <span className="relative flex h-5 flex-1 items-center" aria-hidden="true">
+                <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border" />
                 <span
-                  className={styles.link}
+                  className="absolute top-1/2 h-0.5 -translate-y-1/2 bg-muted-foreground"
                   style={{ insetInlineStart: `${left}%`, width: `${width}%` }}
                 />
                 <span
-                  className={`${styles.point} ${styles.pointA}`}
+                  className="absolute size-2.5 -translate-x-1/2 rounded-full bg-foreground"
                   style={{ insetInlineStart: `${position(row.ordinalA)}%` }}
                 />
                 <span
-                  className={`${styles.point} ${styles.pointB}`}
+                  className="absolute size-2.5 -translate-x-1/2 rotate-45 bg-foreground"
                   style={{ insetInlineStart: `${position(row.ordinalB)}%` }}
                 />
               </span>
-              <span className={`m m--bare ${styles.gap}`}>{`[${row.gap}]`}</span>
+              <span className="w-12 shrink-0 font-mono text-sm tabular-nums text-muted-foreground">
+                [{row.gap}]
+              </span>
             </div>
           );
         })}
       </div>
-      <div className={styles.scale} aria-hidden="true">
-        <span />
-        <span>
+      <div className="flex text-sm text-muted-foreground" aria-hidden="true">
+        <span className="w-48 shrink-0" />
+        <span className="flex flex-1 justify-between font-arabic">
           {GRADES.map((grade) => (
             <span key={grade.ordinal} title={grade.en}>
               {grade.ar}
             </span>
           ))}
         </span>
-        <span />
+        <span className="w-12 shrink-0" />
       </div>
-      <p className={styles.gloss}>
+      <p className="text-sm text-muted-foreground">
         {GRADES.map((grade) => `${grade.ar} ${grade.en}`).join(' · ')}. The axis never stands in
         Arabic alone.
       </p>

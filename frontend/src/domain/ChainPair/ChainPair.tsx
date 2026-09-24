@@ -1,4 +1,4 @@
-import styles from './ChainPair.module.css';
+import { Badge } from '@/components/ui/badge';
 
 export interface PairChain {
   hadithId: number;
@@ -19,22 +19,19 @@ export function ChainPair({
   shared: Set<string>;
 }) {
   return (
-    <div className={styles.pair}>
+    <div className="grid gap-4 md:grid-cols-2">
       {[left, right].map((chain) => (
-        <div key={chain.hadithId}>
-          <p className={styles.head}>
-            Hadith <span className="m">{chain.hadithNum}</span>
+        <div key={chain.hadithId} className="flex flex-col gap-1">
+          <p className="text-sm font-semibold">
+            Hadith <span className="font-mono tabular-nums">{chain.hadithNum}</span>
           </p>
-          <ol className={styles.list}>
+          <ol className="flex flex-col gap-1">
             {chain.names.map((name) => (
-              <li
-                key={`${chain.hadithId}-${name}`}
-                className={shared.has(name) ? styles.shared : undefined}
-              >
-                <span className="ar" dir="rtl">
+              <li key={`${chain.hadithId}-${name}`} className="flex items-center gap-2">
+                <span dir="rtl" lang="ar" className="font-arabic text-lg">
                   {name}
                 </span>{' '}
-                {shared.has(name) ? <span className={styles.word}>shared</span> : null}
+                {shared.has(name) ? <Badge variant="secondary">shared</Badge> : null}
               </li>
             ))}
           </ol>

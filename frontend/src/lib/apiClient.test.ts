@@ -180,7 +180,9 @@ describe('apiFetchEnvelope', () => {
     );
     const result = await apiFetchEnvelope(
       '/analytics/top-narrators?limit=15',
-      z.array(z.object({ narrator_id: z.number(), display_name: z.string(), positions: z.number() })),
+      z.array(
+        z.object({ narrator_id: z.number(), display_name: z.string(), positions: z.number() }),
+      ),
       z.object({ total_positions: z.number(), top_count: z.number(), top_share: z.number() }),
     );
     expect(result.data).toHaveLength(1);

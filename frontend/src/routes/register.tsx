@@ -1,11 +1,27 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+} from '@/components/ui/field';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Spinner } from '@/components/ui/spinner';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
+import { AuthLayout } from '../app/AuthLayout';
 import { ApiError, apiFetch } from '../lib/apiClient';
-import { Button } from '../ui/Button';
-import { Field } from '../ui/Field';
-import { Input } from '../ui/Input';
-import styles from './auth-form.module.css';
 
 const registerResponseSchema = z.object({ accessToken: z.string() });
 
@@ -27,7 +43,7 @@ function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
-  const errorRef = useRef<HTMLParagraphElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   // docs/frontend-prd.md §7.2: same failed-submit behavior as /login — one
   // plain whole-form message, and focus moves to it.
@@ -53,10 +69,8 @@ function RegisterPage() {
         body: { email, password, full_name: fullName, role },
       });
       // §5.3: signIn does the rest (setAccessToken, GET /auth/me, sign-in state).
-      // A fresh teacher lands on /collections like a student — the waiting
-      // banner (§7.3) is a separate, later task.
       await auth.signIn(accessToken);
-      navigate({ to: '/collections' });
+      navigate({ to: '/' });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
     } finally {
@@ -65,107 +79,115 @@ function RegisterPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <h1>Register</h1>
-
-      {error ? (
-        <p ref={errorRef} tabIndex={-1} className={styles.formError}>
-          {error}
-        </p>
-      ) : null}
-
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <Field label="Full name">
-          {({ controlId }) => (
-            <Input
-              id={controlId}
-              type="text"
-              autoComplete="name"
-              required
-              value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
-            />
-          )}
-        </Field>
-
-        <Field label="Email">
-          {({ controlId }) => (
-            <Input
-              id={controlId}
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          )}
-        </Field>
-
-        <Field
-          label="Password"
-          error={passwordFieldError}
-          hint="Eight characters or more."
-        >
-          {({ controlId, describedBy }) => (
-            <div className={styles.passwordRow}>
-              <Input
-                id={controlId}
-                aria-describedby={describedBy}
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                required
-                invalid={passwordFieldError !== null}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-              <Button
-                type="button"
-                variant="default"
-                aria-pressed={showPassword}
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </Button>
+    <AuthLayout>
+      <Card>
+        <CardHeader>
+          <h1 className="font-heading text-base leading-snug font-medium">Create an account</h1>
+          <CardDescription>Join a circle and start studying.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* docs/frontend-prd.md §7.2: same failed-submit behavior as /login. */}
+          {error ? (
+            // Alert takes no ref (React 18, generated file), so the focus
+            // target is this wrapper, not the Alert itself.
+            <div ref={errorRef} tabIndex={-1} className="mb-4 outline-none">
+              <Alert variant="destructive">
+                <AlertTitle>Registration failed</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             </div>
-          )}
-        </Field>
-
-        <fieldset className={styles.fieldset}>
-          <legend>Role</legend>
-          <label className={styles.radioOption}>
-            <input
-              type="radio"
-              name="role"
-              value="student"
-              checked={role === 'student'}
-              onChange={() => setRole('student')}
-            />
-            Student
-          </label>
-          <label className={styles.radioOption}>
-            <input
-              type="radio"
-              name="role"
-              value="teacher"
-              checked={role === 'teacher'}
-              onChange={() => setRole('teacher')}
-            />
-            Teacher
-          </label>
-          {/* Stated before the choice, not after — §7.2. */}
-          <p className={styles.hint}>
-            An admin verifies the ijaza or the institution before the first circle opens.
-          </p>
-        </fieldset>
-
-        <Button type="submit" variant="primary" disabled={submitting}>
-          Create account
-        </Button>
-      </form>
-
-      <p>
-        <Link to="/login">Sign in instead</Link>
-      </p>
-    </div>
+          ) : null}
+          <form onSubmit={handleSubmit}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="register-name">Full name</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="register-name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                  />
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="register-email">Email</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="register-email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </InputGroup>
+              </Field>
+              <Field data-invalid={passwordFieldError !== null}>
+                <FieldLabel htmlFor="register-password">Password</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="register-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    aria-invalid={passwordFieldError !== null}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldDescription>Eight characters or more.</FieldDescription>
+                {passwordFieldError ? <FieldError>{passwordFieldError}</FieldError> : null}
+              </Field>
+              <FieldSet>
+                <FieldLabel>Role</FieldLabel>
+                {/* Stated before the choice, not after — §7.2. */}
+                <FieldDescription>
+                  An admin verifies the ijaza or the institution before the first circle opens.
+                </FieldDescription>
+                <RadioGroup
+                  value={role}
+                  onValueChange={(value) => setRole(value as Role)}
+                  className="flex gap-4"
+                >
+                  <Field orientation="horizontal">
+                    <RadioGroupItem value="student" id="role-student" />
+                    <FieldLabel htmlFor="role-student">Student</FieldLabel>
+                  </Field>
+                  <Field orientation="horizontal">
+                    <RadioGroupItem value="teacher" id="role-teacher" />
+                    <FieldLabel htmlFor="role-teacher">Teacher</FieldLabel>
+                  </Field>
+                </RadioGroup>
+              </FieldSet>
+              <Field orientation="horizontal">
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? <Spinner data-icon="inline-start" /> : null}
+                  Create account
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+        <CardFooter>
+          <Button variant="link" asChild>
+            <Link to="/login">Sign in instead</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </AuthLayout>
   );
 }

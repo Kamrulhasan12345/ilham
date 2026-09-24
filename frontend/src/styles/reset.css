@@ -33,13 +33,15 @@ body {
   }
 }
 
+/* Links carry no color or underline by default. Every page styles its own
+   interactive text explicitly (usually underline on hover) — no global blue. */
 a {
-  color: var(--index);
-  text-decoration: underline;
-  text-underline-offset: var(--underline-w);
+  color: inherit;
+  text-decoration: none;
 }
 a:hover {
-  text-decoration-thickness: var(--underline-w);
+  text-decoration: underline;
+  text-underline-offset: var(--underline-w);
 }
 
 /* Arabic never takes letter-spacing at any size — it is a joined script and

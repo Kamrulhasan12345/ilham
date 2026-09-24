@@ -7,30 +7,36 @@ describe('ThemeSwitch', () => {
   afterEach(() => {
     window.localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
+    document.documentElement.classList.remove('dark');
   });
 
-  it('marks 1c pressed by default and persists a click on 2a', () => {
+  it('offers dark from a light system and persists the switch', () => {
     render(<ThemeSwitch />);
-    const light = screen.getByRole('button', { name: '1c' });
-    const dark = screen.getByRole('button', { name: '2a' });
-    expect(light).toHaveAttribute('aria-pressed', 'true');
-    expect(dark).toHaveAttribute('aria-pressed', 'false');
+    const toggle = screen.getByRole('button', { name: 'Switch to dark theme' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
 
-    fireEvent.click(dark);
+    fireEvent.click(toggle);
 
-    expect(dark).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Switch to light theme' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(window.localStorage.getItem('ilham-theme')).toBe('dark');
   });
 
-  it('is a labelled group of two buttons, not a checkbox', () => {
+  it('is a single toggle button, not a checkbox or a ground picker', () => {
     render(<ThemeSwitch />);
-    expect(screen.getByRole('group', { name: 'Ground' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /switch to .* theme/i })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '1c' })).not.toBeInTheDocument();
   });
 
   it('restores a stored dark preference on mount, without a click', () => {
     window.localStorage.setItem('ilham-theme', 'dark');
     render(<ThemeSwitch />);
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('dark');
   });
 });

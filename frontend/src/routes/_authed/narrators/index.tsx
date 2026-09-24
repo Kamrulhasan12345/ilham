@@ -1,13 +1,16 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
-import { State } from '../../../domain/State';
 import { apiFetch } from '../../../lib/apiClient';
-import { Chip } from '../../../ui/Chip';
-import { Field } from '../../../ui/Field';
-import { Input } from '../../../ui/Input';
-import { Pager } from '../../../ui/Pager';
 
 const narratorRowSchema = z.object({
   narrator_id: z.number(),
@@ -46,86 +49,136 @@ function NarratorListPage() {
   );
 
   return (
-    <div>
-      <h1>Find a narrator</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const value = new FormData(event.currentTarget).get('q');
-          navigate({ search: { q: typeof value === 'string' ? value : '', offset: 0 } });
-        }}
-      >
-        <Field label="Search narrator names">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              name="q"
-              type="search"
-              defaultValue={q}
-              dir="rtl"
-            />
-          )}
-        </Field>
-      </form>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <Users className="size-6" />
+          Find a narrator
+        </h1>
+      </div>
+      <Card>
+        <CardContent>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = new FormData(event.currentTarget).get('q');
+              navigate({ search: { q: typeof value === 'string' ? value : '', offset: 0 } });
+            }}
+          >
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="narrator-search">Search narrator names</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="narrator-search"
+                    name="q"
+                    type="search"
+                    defaultValue={q}
+                    dir="rtl"
+                  />
+                </InputGroup>
+              </Field>
+              <Field orientation="horizontal">
+                <Button type="submit">Search</Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
 
       {q.trim().length === 0 ? (
-        <State title="Type to search" quiet>
-          <p>Twenty thousand narrators stand behind this box. Name one.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Type to search</EmptyTitle>
+            <EmptyDescription>
+              Twenty thousand narrators stand behind this box. Name one.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : results.isLoading ? (
-        <State title="Searching" quiet>
-          <p>Reading the narrator records.</p>
-        </State>
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
       ) : results.isError || !results.data ? (
-        <State title="The search could not run">
-          <p>Try again.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>The search could not run</EmptyTitle>
+            <EmptyDescription>Try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
-        <>
-          <p>
-            <Chip
-              pressed={includePlaceholders}
-              onClick={() => setIncludePlaceholders(!includePlaceholders)}
-            >
-              Include unnamed records
-            </Chip>
-          </p>
+        <div className="flex flex-col gap-3">
+          <Field orientation="horizontal">
+            <Switch
+              id="include-placeholders"
+              checked={includePlaceholders}
+              onCheckedChange={setIncludePlaceholders}
+            />
+            <FieldLabel htmlFor="include-placeholders">Include unnamed records</FieldLabel>
+          </Field>
           {visible.length === 0 ? (
-            <State title="Nothing matches">
-              <p>
-                No narrator carries this name. Unnamed records carry no name at all — include them,
-                or try fewer words.
-              </p>
-            </State>
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>Nothing matches</EmptyTitle>
+                <EmptyDescription>
+                  No narrator carries this name. Unnamed records carry no name at all — include
+                  them, or try fewer words.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
-            <ul>
+            <div className="flex flex-col gap-2">
               {visible.map((narrator) => (
-                <li key={narrator.narrator_id}>
-                  <Link
-                    to="/narrators/$narratorId"
-                    params={{ narratorId: String(narrator.narrator_id) }}
-                  >
-                    <span className="ar" dir="rtl">
-                      {narrator.display_name}
-                    </span>
-                    {narrator.name_en ? <span> — {narrator.name_en}</span> : null}
-                  </Link>{' '}
-                  {narrator.generation !== null ? (
-                    <span className="m m--bare">{`[generation ${narrator.generation}]`}</span>
-                  ) : null}
-                </li>
+                <Card key={narrator.narrator_id}>
+                  <CardContent>
+                    <Link
+                      to="/narrators/$narratorId"
+                      params={{ narratorId: String(narrator.narrator_id) }}
+                      className="hover:underline"
+                    >
+                      <span dir="rtl" lang="ar" className="font-arabic text-xl">
+                        {narrator.display_name}
+                      </span>
+                      {narrator.name_en ? (
+                        <span className="text-muted-foreground"> — {narrator.name_en}</span>
+                      ) : null}
+                    </Link>{' '}
+                    {narrator.generation !== null ? (
+                      <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                        generation {narrator.generation}
+                      </span>
+                    ) : null}
+                  </CardContent>
+                </Card>
               ))}
-            </ul>
+            </div>
           )}
-          <Pager
-            offset={offset}
-            limit={LIMIT}
-            count={results.data.length}
-            onPrev={() => navigate({ search: { q, offset: Math.max(0, offset - LIMIT) } })}
-            onNext={() => navigate({ search: { q, offset: offset + LIMIT } })}
-          />
-        </>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Showing {offset + 1}–{offset + results.data.length}
+            </span>
+            <span className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={offset === 0}
+              onClick={() => navigate({ search: { q, offset: Math.max(0, offset - LIMIT) } })}
+            >
+              <ChevronLeft data-icon="inline-start" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={results.data.length < LIMIT}
+              onClick={() => navigate({ search: { q, offset: offset + LIMIT } })}
+            >
+              Next
+              <ChevronRight data-icon="inline-end" />
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

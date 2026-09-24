@@ -1,12 +1,14 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { ChainPair } from '../../../domain/ChainPair';
-import { State } from '../../../domain/State';
 import { apiFetch } from '../../../lib/apiClient';
-import { Button } from '../../../ui/Button';
-import { Field } from '../../../ui/Field';
-import { Input } from '../../../ui/Input';
 
 const sharedSchema = z.array(z.object({ narrator_id: z.number(), display_name: z.string() }));
 const chainSchema = z.object({
@@ -20,7 +22,10 @@ const chainSchema = z.object({
   ),
 });
 
-const searchParamsSchema = z.object({ a: z.coerce.string().catch(''), b: z.coerce.string().catch('') });
+const searchParamsSchema = z.object({
+  a: z.coerce.string().catch(''),
+  b: z.coerce.string().catch(''),
+});
 
 export const Route = createFileRoute('/_authed/analytics/shared')({
   validateSearch: searchParamsSchema,
@@ -54,67 +59,73 @@ function SharedPage() {
   });
 
   return (
-    <div>
-      <h1>What do two hadiths share?</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const form = new FormData(event.currentTarget);
-          navigate({
-            search: {
-              a: String(form.get('a') ?? ''),
-              b: String(form.get('b') ?? ''),
-            },
-          });
-        }}
-      >
-        <Field label="First hadith ID" hint="The database identifier, not the hadith number.">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              name="a"
-              inputMode="numeric"
-              defaultValue={a}
-            />
-          )}
-        </Field>
-        <Field label="Second hadith ID" hint="The database identifier, not the hadith number.">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              name="b"
-              inputMode="numeric"
-              defaultValue={b}
-            />
-          )}
-        </Field>
-        <Button type="submit" variant="primary">
-          Compare
-        </Button>
-      </form>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-2xl font-semibold">What do two hadiths share?</h1>
+      </div>
+      <Card>
+        <CardContent>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const form = new FormData(event.currentTarget);
+              navigate({
+                search: {
+                  a: String(form.get('a') ?? ''),
+                  b: String(form.get('b') ?? ''),
+                },
+              });
+            }}
+          >
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="shared-a">First hadith ID</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput id="shared-a" name="a" inputMode="numeric" defaultValue={a} />
+                </InputGroup>
+                <FieldDescription>The database identifier, not the hadith number.</FieldDescription>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="shared-b">Second hadith ID</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput id="shared-b" name="b" inputMode="numeric" defaultValue={b} />
+                </InputGroup>
+                <FieldDescription>The database identifier, not the hadith number.</FieldDescription>
+              </Field>
+              <Field orientation="horizontal">
+                <Button type="submit">Compare</Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
 
       {!ready ? (
-        <State title="Name two hadiths" quiet>
-          <p>Both hadiths come from the URL, so a result is shareable.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Name two hadiths</EmptyTitle>
+            <EmptyDescription>
+              Both hadiths come from the URL, so a result is shareable.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : shared.isLoading || chainA.isLoading || chainB.isLoading ? (
-        <State title="Comparing" quiet>
-          <p>Reading both chains.</p>
-        </State>
+        <Skeleton className="h-48 w-full" />
       ) : shared.isError ||
         chainA.isError ||
         chainB.isError ||
         !shared.data ||
         !chainA.data ||
         !chainB.data ? (
-        <State title="The comparison could not be loaded">
-          <p>Check both identifiers and try again.</p>
-        </State>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>The comparison could not be loaded</EmptyTitle>
+            <EmptyDescription>Check both identifiers and try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <>
-          <p className="label">
+          <p className="text-muted-foreground">
             {shared.data.length === 0
               ? 'These two chains share no narrator.'
               : `${shared.data.length} shared ${shared.data.length === 1 ? 'narrator' : 'narrators'}, marked in both columns.`}
@@ -136,12 +147,12 @@ function SharedPage() {
             }}
             shared={new Set(shared.data.map((row) => row.display_name))}
           />
-          <p className="label">
+          <p className="text-sm text-muted-foreground">
             Read a chain in full:{' '}
-            <Link to="/hadiths/$hadithId" params={{ hadithId: String(aId) }}>
+            <Link to="/hadiths/$hadithId" params={{ hadithId: String(aId) }} className="underline">
               hadith {aId}
             </Link>{' '}
-            <Link to="/hadiths/$hadithId" params={{ hadithId: String(bId) }}>
+            <Link to="/hadiths/$hadithId" params={{ hadithId: String(bId) }} className="underline">
               hadith {bId}
             </Link>
           </p>

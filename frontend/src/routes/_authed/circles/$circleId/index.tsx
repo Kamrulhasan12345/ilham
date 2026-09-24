@@ -1,16 +1,34 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import { useAuth } from '../../../../auth/AuthContext';
-import { State } from '../../../../domain/State';
 import { ApiError, apiFetch } from '../../../../lib/apiClient';
-import { Button } from '../../../../ui/Button';
-import { Dialog } from '../../../../ui/Dialog';
-import { Field } from '../../../../ui/Field';
-import { Input } from '../../../../ui/Input';
-import { Table } from '../../../../ui/Table';
-import { toast } from '../../../../ui/Toast';
 
 const circleSchema = z.object({ circle_id: z.number(), teacher_id: z.number(), name: z.string() });
 const overviewSchema = z.array(
@@ -53,10 +71,6 @@ export const Route = createFileRoute('/_authed/circles/$circleId/')({
 function CircleOverviewPage() {
   const { circleId } = Route.useParams();
   const { state } = useAuth();
-  const queryClient = useQueryClient();
-  const [email, setEmail] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [removing, setRemoving] = useState<{ id: number; name: string } | null>(null);
 
   const isTeacher =
     state.status === 'signed-in' && (state.user.role === 'teacher' || state.user.role === 'admin');
@@ -65,18 +79,29 @@ function CircleOverviewPage() {
   // redirecting in silence (docs/frontend-prd.md §5.4).
   if (!isTeacher) {
     return (
-      <div>
-        <h1>Circle overview</h1>
-        <p>
-          Only a teacher reads the overview of their own circle. A student sees the circles they
-          joined, and their own study data.
-        </p>
-        <p>
-          <Link to="/circles">Return to the circles.</Link>
-        </p>
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>Circle overview</EmptyTitle>
+          <EmptyDescription>
+            Only a teacher reads the overview of their own circle. A student sees the circles they
+            joined, and their own study data.{' '}
+            <Link to="/circles" className="underline">
+              Return to the circles.
+            </Link>
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
+
+  return <CircleOverview circleId={circleId} />;
+}
+
+function CircleOverview({ circleId }: { circleId: string }) {
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [removing, setRemoving] = useState<{ id: number; name: string } | null>(null);
 
   const circle = useQuery({
     queryKey: ['circles', circleId],
@@ -115,7 +140,7 @@ function CircleOverviewPage() {
     event.preventDefault();
     const target = (registry.data ?? []).find((s) => s.email === email.trim());
     if (!target) {
-      toast('No student carries that email. They register first, then you enrol them.');
+      toast.error('No student carries that email. They register first, then you enrol them.');
       return;
     }
     setBusy(true);
@@ -126,9 +151,11 @@ function CircleOverviewPage() {
       });
       setEmail('');
       await refresh();
-      toast(`${target.full_name} joined the circle.`);
+      toast.success(`${target.full_name} joined the circle.`);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : 'Could not enrol the student. Try again.');
+      toast.error(
+        err instanceof ApiError ? err.message : 'Could not enrol the student. Try again.',
+      );
     } finally {
       setBusy(false);
     }
@@ -141,9 +168,11 @@ function CircleOverviewPage() {
         method: 'DELETE',
       });
       await refresh();
-      toast('Student removed. Their past work stays on record.');
+      toast.success('Student removed. Their past work stays on record.');
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : 'Could not remove the student. Try again.');
+      toast.error(
+        err instanceof ApiError ? err.message : 'Could not remove the student. Try again.',
+      );
     } finally {
       setBusy(false);
       setRemoving(null);
@@ -152,9 +181,10 @@ function CircleOverviewPage() {
 
   if (circle.isLoading || overview.isLoading || students.isLoading) {
     return (
-      <State title="Loading the circle" quiet>
-        <p>Reading its students.</p>
-      </State>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-40 w-full" />
+      </div>
     );
   }
   if (
@@ -166,18 +196,19 @@ function CircleOverviewPage() {
     !students.data
   ) {
     return (
-      <State title="This circle could not be loaded">
-        <p>Try again.</p>
-      </State>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>This circle could not be loaded</EmptyTitle>
+          <EmptyDescription>Try again.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   const names = new Map(students.data.map((s) => [s.student_id, s.full_name] as const));
   const circleSessions = (sessions.data ?? []).filter((s) => s.circle_id === Number(circleId));
   const lastReview = new Map<number, string>();
-  const reviewCount = new Map<number, number>();
   for (const session of circleSessions) {
-    reviewCount.set(session.student_id, (reviewCount.get(session.student_id) ?? 0) + 1);
     const prev = lastReview.get(session.student_id);
     if (!prev || session.created_at > prev) lastReview.set(session.student_id, session.created_at);
   }
@@ -186,143 +217,153 @@ function CircleOverviewPage() {
   );
 
   return (
-    <div>
-      <h1>{circle.data.name}</h1>
-      <p className="label">
-        How much of the corpus has each student mastered? Mastered counts distinct hadiths with
-        mastery 3 or more. Reviews count sessions, one per sitting — two different rules, printed
-        under each total.
-      </p>
-
-      {overview.data.length === 0 ? (
-        <State title="No students yet" quiet>
-          <p>
-            Enrol the first student below. A set assigned to an empty circle reaches nobody — the
-            call succeeds and creates zero obligations.
-          </p>
-        </State>
-      ) : (
-        <Table caption="One row per student: distinct hadiths mastered, assigned, share, and last review.">
-          <thead>
-            <tr>
-              <th scope="col">Student</th>
-              <th scope="col">Mastered</th>
-              <th scope="col">Assigned</th>
-              <th scope="col">Share</th>
-              <th scope="col">Last review</th>
-              <th scope="col">Open</th>
-            </tr>
-          </thead>
-          <tbody>
-            {overview.data.map((row) => (
-              <tr key={row.student_id}>
-                <td>{names.get(row.student_id) ?? `Student ${row.student_id}`}</td>
-                <td>
-                  <span className="m m--bare">{`[${row.mastered}]`}</span>
-                </td>
-                <td>
-                  <span className="m m--bare">{`[${row.assigned}]`}</span>
-                </td>
-                <td>
-                  {row.assigned === 0 ? (
-                    '0 of 0 — nothing assigned, so no share'
-                  ) : (
-                    <span className="m m--bare">{`[${Math.round((row.mastered / row.assigned) * 100)}%]`}</span>
-                  )}
-                </td>
-                <td>{lastReview.get(row.student_id) ?? 'never'}</td>
-                <td>
-                  <Button
-                    size="small"
-                    variant="destructive"
-                    disabled={busy}
-                    onClick={() =>
-                      setRemoving({
-                        id: row.student_id,
-                        name: names.get(row.student_id) ?? `Student ${row.student_id}`,
-                      })
-                    }
-                  >
-                    Remove
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      )}
-      <p className="label">
-        Mastered counts distinct hadiths. Reviews sum over sessions
-        {circleSessions.length > 0 ? ` — ${circleSessions.length} sittings in this circle` : ''}.
-      </p>
-
-      <h2 className="label">Assignments</h2>
-      {assignments.isLoading ? (
-        <p className="label">Reading the assignments…</p>
-      ) : (
-        <ul>
-          {circleAssignments.map((assignment) => (
-            <li key={assignment.assignment_id}>
-              <Link
-                to="/assignments/$assignmentId"
-                params={{ assignmentId: String(assignment.assignment_id) }}
-              >
-                Assignment <span className="m m--bare">{`[${assignment.assignment_id}]`}</span>
-              </Link>{' '}
-              <span className="label">due {assignment.due_date}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p>
-        <Link to="/circles/$circleId/assign" params={{ circleId }}>
-          Assign a set
-        </Link>
-      </p>
-
-      <h2 className="label">Enrol a student</h2>
-      <form onSubmit={enrol}>
-        <Field label="Student email" hint="They register first, then you enrol them.">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          )}
-        </Field>
-        <Button type="submit" variant="primary" disabled={busy || !email.trim()}>
-          Enrol
-        </Button>
-      </form>
-
-      <Dialog
-        open={removing !== null}
-        title={`Remove ${removing?.name ?? 'this student'}?`}
-        onClose={() => setRemoving(null)}
-        actions={
-          <>
-            <Button variant="default" onClick={() => setRemoving(null)}>
-              Keep them
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={busy}
-              onClick={() => removing && removeStudent(removing.id)}
-            >
-              Remove them
-            </Button>
-          </>
-        }
-      >
-        <p>
-          Enrolment ends. Their progress rows and review history stay on record — removal revokes
-          the seat, not the past.
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold">{circle.data.name}</h1>
+        <p className="text-muted-foreground">
+          How much of the corpus has each student mastered? Mastered counts distinct hadiths with
+          mastery 3 or more. Reviews count sessions, one per sitting.
         </p>
-      </Dialog>
+      </div>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">Students</h2>
+        {overview.data.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No students yet</EmptyTitle>
+              <EmptyDescription>
+                Enrol the first student below. A set assigned to an empty circle reaches nobody —
+                the call succeeds and creates zero obligations.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead className="w-24">Mastered</TableHead>
+                <TableHead className="w-24">Assigned</TableHead>
+                <TableHead>Share</TableHead>
+                <TableHead>Last review</TableHead>
+                <TableHead className="w-24" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {overview.data.map((row) => (
+                <TableRow key={row.student_id}>
+                  <TableCell>{names.get(row.student_id) ?? `Student ${row.student_id}`}</TableCell>
+                  <TableCell className="font-mono tabular-nums">{row.mastered}</TableCell>
+                  <TableCell className="font-mono tabular-nums">{row.assigned}</TableCell>
+                  <TableCell>
+                    {row.assigned === 0
+                      ? '0 of 0 — nothing assigned, so no share'
+                      : `${Math.round((row.mastered / row.assigned) * 100)}%`}
+                  </TableCell>
+                  <TableCell>{lastReview.get(row.student_id) ?? 'never'}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() =>
+                        setRemoving({
+                          id: row.student_id,
+                          name: names.get(row.student_id) ?? `Student ${row.student_id}`,
+                        })
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        <p className="text-sm text-muted-foreground">
+          Mastered counts distinct hadiths. Reviews sum over sessions
+          {circleSessions.length > 0 ? ` — ${circleSessions.length} sittings in this circle` : ''}.
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">Assignments</h2>
+        {assignments.isLoading ? (
+          <p className="text-sm text-muted-foreground">Reading the assignments…</p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {circleAssignments.map((assignment) => (
+              <li key={assignment.assignment_id}>
+                <Link
+                  to="/assignments/$assignmentId"
+                  params={{ assignmentId: String(assignment.assignment_id) }}
+                  className="hover:underline"
+                >
+                  Assignment {assignment.assignment_id}
+                </Link>{' '}
+                <span className="text-sm text-muted-foreground">due {assignment.due_date}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p>
+          <Button variant="outline" asChild>
+            <Link to="/circles/$circleId/assign" params={{ circleId }}>
+              Assign a set
+            </Link>
+          </Button>
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">Enrol a student</h2>
+        <Card>
+          <CardContent>
+            <form onSubmit={enrol}>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="enrol-email">Student email</FieldLabel>
+                  <InputGroup>
+                    <InputGroupInput
+                      id="enrol-email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      required
+                    />
+                  </InputGroup>
+                  <FieldDescription>They register first, then you enrol them.</FieldDescription>
+                </Field>
+                <Field orientation="horizontal">
+                  <Button type="submit" disabled={busy || !email.trim()}>
+                    Enrol
+                  </Button>
+                </Field>
+              </FieldGroup>
+            </form>
+          </CardContent>
+        </Card>
+      </section>
+
+      <AlertDialog open={removing !== null} onOpenChange={(open) => !open && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {removing?.name ?? 'this student'}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enrolment ends. Their progress rows and review history stay on record — removal
+              revokes the seat, not the past.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep them</AlertDialogCancel>
+            <AlertDialogAction onClick={() => removing && removeStudent(removing.id)}>
+              Remove them
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

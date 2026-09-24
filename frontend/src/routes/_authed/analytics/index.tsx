@@ -1,4 +1,6 @@
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { ChartColumn } from 'lucide-react';
 
 export const Route = createFileRoute('/_authed/analytics/')({
   component: AnalyticsIndexPage,
@@ -31,16 +33,27 @@ const QUESTIONS = [
     table name. */
 function AnalyticsIndexPage() {
   return (
-    <div>
-      <h1>Analytics</h1>
-      <ul>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <ChartColumn className="size-6" />
+          Analytics
+        </h1>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
         {QUESTIONS.map((item) => (
-          <li key={item.to}>
-            <Link to={item.to}>{item.question}</Link>
-            <p className="label">{item.note}</p>
-          </li>
+          <Card key={item.to}>
+            <CardHeader>
+              <CardTitle>
+                <Link to={item.to} className="hover:underline">
+                  {item.question}
+                </Link>
+              </CardTitle>
+              <CardDescription>{item.note}</CardDescription>
+            </CardHeader>
+          </Card>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,19 @@
+import { Card, CardContent } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { Bars } from '../../../domain/Bars';
-import { State } from '../../../domain/State';
 import { apiFetchEnvelope } from '../../../lib/apiClient';
-import { Table } from '../../../ui/Table';
 
 const topNarratorSchema = z.object({
   narrator_id: z.number(),
@@ -37,16 +46,20 @@ function TopNarratorsPage() {
 
   if (isLoading) {
     return (
-      <State title="Counting positions" quiet>
-        <p>Reading every chain position in the corpus.</p>
-      </State>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-48 w-full" />
+      </div>
     );
   }
   if (isError || !data) {
     return (
-      <State title="The ranking could not be loaded">
-        <p>Try again.</p>
-      </State>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>The ranking could not be loaded</EmptyTitle>
+          <EmptyDescription>Try again.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -54,50 +67,58 @@ function TopNarratorsPage() {
   const summary = data.summary;
 
   return (
-    <div>
-      <h1>Who carries the corpus?</h1>
-      <p className="label">
-        The {LIMIT} narrators behind the most chain positions. A silent top-N reads as “this is
-        everyone” — it is not.
-        {summary !== null ? (
-          <>
-            {' '}
-            {summary.top_count} narrators hold {(summary.top_share * 100).toFixed(1)}% of all{' '}
-            {summary.total_positions} positions.
-          </>
-        ) : null}
-      </p>
-      <Bars
-        rows={rows.map((row) => ({
-          key: row.narrator_id,
-          name: row.display_name,
-          value: row.positions,
-        }))}
-        label={`Horizontal bars of the top ${LIMIT} narrators by chain positions`}
-      />
-      <Table
-        caption={`The top ${LIMIT} narrators by chain positions, with counts. The chart above is the summary; this table is the source of truth.`}
-      >
-        <thead>
-          <tr>
-            <th scope="col">Narrator</th>
-            <th scope="col">Positions</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-2xl font-semibold">Who carries the corpus?</h1>
+        <p className="text-muted-foreground">
+          The {LIMIT} narrators behind the most chain positions. A silent top-N reads as “this is
+          everyone” — it is not.
+          {summary !== null ? (
+            <>
+              {' '}
+              {summary.top_count} narrators hold {(summary.top_share * 100).toFixed(1)}% of all{' '}
+              {summary.total_positions} positions.
+            </>
+          ) : null}
+        </p>
+      </div>
+      <Card>
+        <CardContent>
+          <Bars
+            rows={rows.map((row) => ({
+              key: row.narrator_id,
+              name: row.display_name,
+              value: row.positions,
+            }))}
+            label={`Horizontal bars of the top ${LIMIT} narrators by chain positions`}
+          />
+        </CardContent>
+      </Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Narrator</TableHead>
+            <TableHead className="w-28">Positions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map((row) => (
-            <tr key={row.narrator_id}>
-              <td>
-                <Link to="/narrators/$narratorId" params={{ narratorId: String(row.narrator_id) }}>
-                  <span className="ar" dir="rtl">
+            <TableRow key={row.narrator_id}>
+              <TableCell>
+                <Link
+                  to="/narrators/$narratorId"
+                  params={{ narratorId: String(row.narrator_id) }}
+                  className="hover:underline"
+                >
+                  <span dir="rtl" lang="ar" className="font-arabic">
                     {row.display_name}
                   </span>
                 </Link>
-              </td>
-              <td className="m m--bare">{`[${row.positions}]`}</td>
-            </tr>
+              </TableCell>
+              <TableCell className="font-mono tabular-nums">{row.positions}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
+        </TableBody>
       </Table>
     </div>
   );

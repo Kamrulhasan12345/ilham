@@ -1,9 +1,0 @@
-.selected {
-  font-size: var(--fs-rail);
-  color: var(--ink-app);
-  margin-block: var(--sp-2);
-}
-
-.group {
-  margin-bottom: var(--sp-2);
-}
