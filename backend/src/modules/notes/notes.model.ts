@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js';
+import { txQuery } from '../../lib/transaction.js';
 import type { CreateNoteInput, NoteRow } from './notes.interface.js';
 
 // Every query here filters by the CALLING user's id -- this is the whole
@@ -23,7 +24,7 @@ export async function listNotesForHadith(userId: number, hadithId: number): Prom
 }
 
 export async function createNote(input: CreateNoteInput): Promise<NoteRow> {
-  const { rows } = await pool.query<NoteRow>(
+  const { rows } = await txQuery<NoteRow>(
     `INSERT INTO app.notes (user_id, hadith_id, body)
      VALUES ($1, $2, $3)
      RETURNING note_id, user_id, hadith_id, body, created_at`,
@@ -45,7 +46,7 @@ export async function findOwnNote(noteId: number, userId: number): Promise<NoteR
 }
 
 export async function updateOwnNote(noteId: number, userId: number, body: string): Promise<NoteRow | null> {
-  const { rows } = await pool.query<NoteRow>(
+  const { rows } = await txQuery<NoteRow>(
     `UPDATE app.notes SET body = $3
       WHERE note_id = $1 AND user_id = $2
      RETURNING note_id, user_id, hadith_id, body, created_at`,
@@ -55,7 +56,7 @@ export async function updateOwnNote(noteId: number, userId: number, body: string
 }
 
 export async function deleteOwnNote(noteId: number, userId: number): Promise<boolean> {
-  const { rowCount } = await pool.query(
+  const { rowCount } = await txQuery(
     `DELETE FROM app.notes WHERE note_id = $1 AND user_id = $2`,
     [noteId, userId],
   );

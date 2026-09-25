@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js';
+import { txQuery } from '../../lib/transaction.js';
 import type { UnverifiedTeacherRow } from './teachers.interface.js';
 
 export async function listUnverifiedTeachers(
@@ -19,7 +20,7 @@ export async function listUnverifiedTeachers(
 }
 
 export async function verifyTeacher(userId: number): Promise<boolean> {
-  const { rowCount } = await pool.query(
+  const { rowCount } = await txQuery(
     `UPDATE app.teachers SET is_verified = true WHERE user_id = $1`,
     [userId],
   );
@@ -27,7 +28,7 @@ export async function verifyTeacher(userId: number): Promise<boolean> {
 }
 
 export async function unverifyTeacher(userId: number): Promise<boolean> {
-  const { rowCount } = await pool.query(
+  const { rowCount } = await txQuery(
     `UPDATE app.teachers SET is_verified = false WHERE user_id = $1`,
     [userId],
   );
