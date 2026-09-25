@@ -19,7 +19,9 @@ semantic work** on the way to `corpus`. See
 | Table | Contents |
 |---|---|
 | `book_manifest` | Slug to real titles. Loaded as data, so `collections` is correct on the first insert |
-| `hadiths` | Flattened hadith records, with `chapter_seq` from the source order |
+| `hadiths` | Flattened hadith records. `chapter_ar` keeps the Ifta bab title, and stage 14 reads it only to remove the heading from `text_plain` |
+| `site_kitabs`, `site_babs` | The printed structure, from the curated `etl/sunnah_structure.sql` |
+| `placement` | One row for each hadith: `(kitab_num, bab_seq, via)`, from the curated `etl/hadith_placement.sql`. `via` is `T` (text match), `F` (fuzzy), `S` (structure only), or `M` (manual) |
 | `chain_rows` | Flattened chains. One row for each position |
 | `mentions` | Narrator mentions in text order |
 | `narrators` | Flattened narrator profiles |
@@ -57,7 +59,10 @@ Four of these never reach `corpus`, and that is deliberate:
 | Table or view | Notes |
 |---|---|
 | `collections` | The books. `slug` matches the manifest filename. `title_ar` is required and `title_en` is optional |
-| `chapters` | Belongs to a collection. Identity is `(collection_id, seq)`, never the title. A hadith's chapter is **nullable** |
+| `kitabs` | The books inside a collection, as the printed edition numbers them: 97 in Bukhari, 57 in Muslim (0 is the Introduction). `title_en` and `title_ar` are both required |
+| `surahs` | The surah groups inside Bukhari's Tafseer kitab. A separate table, because the title depends on the surah number, not on the bab (3NF) |
+| `babs` | The chapters inside a kitab. Identity is `(kitab_id, seq)`, the page position. `bab_num` is an attribute, because numbers restart in each surah. A bab with no hadith is a real heading of the book and stays |
+| `hadiths.kitab_id`, `hadiths.bab_id` | Every hadith has a kitab. `bab_id` is NULL for the 188 hadiths that the book files under the kitab itself. Two composite FKs, `(collection_id, kitab_id)` and `(kitab_id, bab_id)`, make it impossible to file a hadith under a bab of another kitab |
 | `hadiths` | The key is the Ifta `mainId`, a **natural key**. `hadith_num` is `text`, because compound numbers exist. The `matn_*` columns are nullable, and about 89% of rows have them. An index on the normalised matn helps the alignment join |
 | `rank_levels` | The ordinal scale for rijal grades: `rank_code → (ordinal, weight 0..1)`. A higher ordinal is stronger. The map from raw string to code runs at load time and lives in `staging.rank_map` |
 | `narrators` | The key is the Ifta `narrator_id`. The columns `name_norm` and `display_norm` are **generated** from `normalize_arabic(...)`. The schema stores each grade **twice**: `rank_*_raw` for display, and `rank_ibn_hajar` and `rank_dhahabi` for arithmetic. Those two point at `rank_levels`. The columns `rank_*_via` hold `E`, `T`, `S`, or `O`, and record **which pass** set the code. The flag `is_placeholder` marks a mubham row such as <span dir="rtl">[راو موضع إبهام]</span> |

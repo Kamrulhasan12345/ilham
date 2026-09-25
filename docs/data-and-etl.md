@@ -13,7 +13,7 @@ The full requirements are in [`prd.md`](prd.md) §2. The resulting tables are in
 |---|---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle, from sunnah.alifta.gov.sa. King Abdullah bin Abdul Aziz Program for the Prophetic Sunnah. University of Malta, 2025) | 276,347 hadiths in 33 books. About 863 MB of JSON and a manifest. 20,957 narrator profiles. Text, chapter, and number are near 100%. Chains are 98.9%. Narrator names are 98.6%. Mention to identifier is 94.1%. All Arabic | **Primary corpus.** Text, chains, narrator identifiers, and rijal grades. One source links them all |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0. *Data in Brief* 54:110439) | Sahih Muslim: 7,748 hadiths, 14,155 sanads, 2,092 narrators. Ordered chains with Arabic and English name columns | **Validation** against the Muslim subset, and **English narrator names**. You can cut it |
-| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable | **English text** for `corpus.hadith_translations`. The join is on normalised Arabic text, because the two numbering systems do not agree. See below. To cut it costs coverage, not the feature. **95.3% of the corpus has English** |
+| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable | **English text** for `corpus.hadith_translations`. The join is on normalised Arabic text, because the two numbering systems do not agree. See below. To cut it costs coverage, not the feature. **95.2% of the corpus has English** |
 
 **Language.** Arabic is canonical everywhere. English appears in three places:
 hadith text (`corpus.hadith_translations`, source-tagged), narrator names
@@ -45,8 +45,13 @@ back to Arabic. It never leaves the page empty.
   <span dir="rtl">[راو موضع إبهام]</span>, and all its fields are NULL. The
   loader sets `is_placeholder`. Analytics exclude these rows, and
   `chain_strength` treats them as a weakness.
-- About 1% of the records are front matter. They have an empty number and empty
-  arrays. The loader removes them.
+- About 1% of the records carry no number. In Bukhari (135 records) they are
+  front matter: bab headings, verse glosses, and the compiler's preface. The
+  loader removes them. In Muslim (40 records) they are the Muqaddimah, the
+  book's introduction: 28 reports about narrators and 12 passages of Imam
+  Muslim's own prose. The manifest key `unnumbered_label` keeps them, and the
+  loader numbers them `Muqaddimah 1` to `Muqaddimah 40` in source order
+  (issue #18). `etl/hadith_placement.sql` files them in the Introduction.
 - The field `hadith_text` carries an `"N - "` prefix. The loader removes it.
 
 ## The pipeline
@@ -92,7 +97,7 @@ reads it. It defaults to off.
   exact `narrator_id` with no string compare. It writes `resolution = 'B'`.
 - Where both paths give an answer, they **check each other**. Disagreements go to
   `staging.resolution_conflicts`, and path A wins. Two independent methods that
-  agree is the strongest validation in the load. On the real corpus, 49,685
+  agree is the strongest validation in the load. On the real corpus, 49,726
   positions resolved both ways and agreed on **99.23%**.
 - Path A fires **only where the normalised name matches exactly one narrator**,
   that is `staging.name_index.n_cand = 1`. Where several narrators match, the link
@@ -193,7 +198,8 @@ go first:
 
 - Ifta puts the <span dir="rtl">باب</span> chapter title in front of
   `text_plain` on 4,462 hadiths. It often adds a Qur'anic preamble that is absent
-  from `chapters.title_ar`, so you cannot remove it by comparison alone. The
+  from the Ifta title (`staging.hadiths.chapter_ar`), so you cannot remove it by
+  comparison alone. The
   function `staging.anchor()` cuts both sides at the first narration verb, such
   as <span dir="rtl">حدثنا</span> or <span dir="rtl">أخبرنا</span>. This removes
   the Ifta preamble and leaves LK unchanged. This one step moved the match rate
@@ -227,7 +233,7 @@ has no translation row. The reader then sees Arabic, which the schema already
 intends.
 
 The remainder is a property of LK, not of the corpus. LK ships 7,314 rows for the
-7,626 hadiths of Muslim, so at least 312 can never have English from this source.
+7,666 hadiths of Muslim, so at least 352 can never have English from this source.
 The pipeline writes the unmatched LK rows and the untranslated hadiths to
 `staging.rejects`, so you can audit the coverage figure.
 

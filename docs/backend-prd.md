@@ -133,7 +133,7 @@ in a non-development `NODE_ENV`.
 A list response:
 
 ```json
-{ "data": [ ... ], "page": { "limit": 20, "offset": 0, "total": 14901 } }
+{ "data": [ ... ], "page": { "limit": 20, "offset": 0, "total": 14941 } }
 ```
 
 A single-object response: `{ "data": { ... } }`. The envelope lets the frontend
@@ -370,9 +370,10 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
 | Method | Path | Guard | Notes |
 |---|---|---|---|
 | GET | `/collections` | A | `collection_id, slug, title_ar, title_en` |
-| GET | `/collections/:id/chapters` | A | Ordered by `seq`. Include `hadith_count` |
-| GET | `/chapters/:id/hadiths` | A | Paged |
-| GET | `/hadiths` | A | Filters: `collection_id`, `chapter_id`, `q`. See §5.4 |
+| GET | `/kitabs?collection_id=` | A | Ordered by `kitab_num`. Include `bab_count` and `hadith_count`. Not paged: at most 97 rows |
+| GET | `/kitabs/:id` | A | The kitab, its collection, `kitab_level_count`, and its babs in page order with the surah and `hadith_count` |
+| GET | `/babs/:id` | A | The bab, with its kitab and collection for the breadcrumb |
+| GET | `/hadiths` | A | Filters: `collection_id`, `kitab_id`, `bab_id` (`none` = filed under the kitab itself), `q`. See §5.4 |
 | GET | `/hadiths/:id` | A | The detail. See below |
 | GET | `/narrators/:id` | A | The profile, the grades, both raw and coded |
 | GET | `/narrators/:id/hadiths` | A | Paged. The chains the narrator appears in |
@@ -387,7 +388,8 @@ that forgets a filter leaks data; a model that always takes `caller` cannot.
   "hadith":  { "hadith_id": 1, "hadith_num": "1", "text_plain": "…",
                "text_diac": "…", "matn_plain": "…", "sanad_count": 1 },
   "collection": { "slug": "sahih-al-bukhari", "title_ar": "…", "title_en": "…" },
-  "chapter":    { "chapter_id": 12, "seq": 12, "title_ar": "…" },  // null when absent
+  "kitab":      { "kitab_id": 1, "kitab_num": 1, "title_en": "…", "title_ar": "…" },
+  "bab":        { "bab_id": 1, "seq": 1, "bab_num": "1", "title_en": "…", "title_ar": "…" },  // null: filed under the kitab
   "translation": { "lang": "en", "text_full": "…", "source": "LK",
                    "match_via": "E" },          // null when absent
   "isnadChain": [ /* flat, ordered by (sanad_no, position) — kept for readers */ ],
@@ -423,8 +425,8 @@ Three things worth spelling out:
   between hadiths unless the reader can see this. One boolean turns an
   unstated flaw into a stated limitation.
 
-Build this from one single-purpose query each: the hadith with its collection
-and chapter joined; the translation; the links with the narrator, biography,
+Build this from one single-purpose query each: the hadith with its collection,
+kitab, and bab joined; the translation; the links with the narrator, biography,
 and rank levels joined, ordered `sanad_no, position`; the best strength from
 the function; the per-sanad strengths from the view. Links group in
 application code.
@@ -465,7 +467,7 @@ the API thin.
 | Q2 | `GET /analytics/contested-narrators` | `corpus.v_contested_narrators` | `rank_levels.ordinal` differs between the two scholars. **Exclude `rank_*_via = 'S'`** — the Companion tabaqa pass sets both columns from one rule, so those narrators are not contested, they are unjudged. Implemented as model SQL; rows carry both `label_ar` glosses for the chart axis |
 | Q3 | `GET /analytics/shared-narrators?a=&b=` | `corpus.shared_narrators(a, b)` | Two hadiths, the narrators in common. A view cannot take a parameter and the self-join over 139k links is not materialisable, so this one is a SQL function |
 | Q4 | `GET /circles/:id/overview` | `app.v_circle_overview` | The teacher dashboard. Per student: assigned, mastered, overdue. `count(DISTINCT hadith_id)`. Implemented as model SQL (no view file exists) |
-| Q5 | `GET /analytics/weakest-chains` | `corpus.v_weakest_chains` | Ordered by `chain_strength`. Join to the collection and the chapter for display. Implemented as model SQL over the `corpus.chain_strength` function; the response carries a `summary` with the `unscored` hadith count for the caption |
+| Q5 | `GET /analytics/weakest-chains` | `corpus.v_weakest_chains` | Ordered by `chain_strength`. Join to the collection, the kitab, and the bab for display. Implemented as model SQL over the `corpus.chain_strength` function; the response carries a `summary` with the `unscored` hadith count for the caption |
 | Q6 | `GET /assignments/:id/completion` | `app.v_assignment_completion` | Per student: due, done, percentage. Implemented as model SQL (no view file exists) |
 
 Q4 and Q6 are views in `app`, filtered by the caller's circle in the model. Q1,
@@ -494,7 +496,7 @@ read the corpus analytics.
 | GET | `/sets/:id` | A + owner | With the items joined to the hadith |
 | PATCH | `/sets/:id` | A + owner | Rename |
 | DELETE | `/sets/:id` | A + owner | Refuse with 422 if an assignment references it |
-| POST | `/sets/:id/items` | A + owner | `{ hadith_id }`. 409 on a repeat |
+| POST | `/sets/:id/items` | A + owner | `{ hadith_id }`, or `{ bab_id }`, or `{ kitab_id }`. One hadith: 409 on a repeat. A bab or a kitab: adds every hadith that is not in the set yet, and returns `added` |
 | DELETE | `/sets/:id/items/:hid` | A + owner |
 
 (Renamed from `/study-sets` on 2026-09-24: the browser pass proved the

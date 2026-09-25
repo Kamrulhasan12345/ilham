@@ -84,6 +84,36 @@ digraph ilham_staging {
 <TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">raw_string</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 <TR><TD PORT="rank_code" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">rank_code</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 </TABLE>>];
+
+        st_site_kitabs [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.site_kitabs</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">book_slug</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        st_site_babs [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.site_babs</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">book_slug</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">seq</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">surah_num / surah_en / surah_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        st_placement [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.placement</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bab_seq</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">smallint NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">via</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">char(1)  T/F/S/M</FONT></TD></TR>
+</TABLE>>];
     }
 
     // ---- corpus targets (stubs; full columns in corpus.dot) ----
@@ -108,6 +138,17 @@ digraph ilham_staging {
 <TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
 </TABLE>>];
 
+    corpus_kitabs [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.kitabs</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+    corpus_babs [label=<
+<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#12161C" COLOR="#58A6FF">
+<TR><TD ALIGN="CENTER"><FONT COLOR="#58A6FF"><B>corpus.babs</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#6E7681">columns in corpus.dot</FONT></TD></TR>
+</TABLE>>];
+
     // ---- ETL flow. No constraint exists; staging is dropped after load. ----
     edge [color="#6E7681", fontcolor="#6E7681", style=dotted, penwidth=1.2,
           arrowtail=none, arrowhead=vee, label="ETL"];
@@ -116,6 +157,10 @@ digraph ilham_staging {
     st_narrators  -> corpus_narrators;
     st_mentions   -> corpus_isnad_links [label="ETL pass B"];
     st_rank_map   -> corpus_narrators   [label="applied once, then dropped"];
+    st_site_kitabs -> corpus_kitabs  [label="curated, committed"];
+    st_site_babs   -> corpus_babs
+    st_placement   -> corpus_hadiths  [label="curated, committed"];
+    st_site_babs   -> st_site_kitabs [style=solid];
 
     // ---- deferred FK: ALTER TABLE once rank_levels is seeded (schema.sql §9) ----
     edge [color="#D29922", fontcolor="#D29922", penwidth=1.3, style=dashed,

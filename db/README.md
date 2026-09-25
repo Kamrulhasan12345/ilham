@@ -66,7 +66,7 @@ truncates only the tables it fills.
 | `03_staging.sql` | The temporary ETL surface |
 | `04_seed_reference.sql` | The `rank_levels` ordinal scale |
 | `98_smoke_test.sql` | Runs every mechanism against synthetic data |
-| `10_dimensions.sql` | staging → collections, chapters |
+| `10_dimensions.sql` | staging → collections, kitabs, surahs, babs |
 | `11_corpus_load.sql` | staging → hadiths, narrators, isnad_links |
 | `12_resolve.sql` | Narrator resolution: pass A, pass B, ambiguity, conflicts |
 | `13_ranks.sql` | Applies the curated grade map in four passes |
@@ -99,10 +99,13 @@ unique across 21,000 narrators after normalisation.
 match. An ambiguous match gets its own resolution code, `'C'`, instead of a
 disguise as `'A'`.
 
-**Chapter identity was the title.** Many chapters carry the bare title
-<span dir="rtl">باب</span>, so `SELECT DISTINCT chapter_ar` merges them and
-misfiles every hadith beneath them. Identity is now `(collection_id, seq)`. The
-loader supplies `seq` from the source order.
+**The Ifta chapter was not the book's structure.** Many Ifta chapters carry
+the bare title <span dir="rtl">باب</span>, the source has no kitab level, and
+66 Ifta chapters split across the printed babs. The corpus now uses the
+printed structure: `kitabs → babs → hadiths`. It comes from two curated,
+committed files, `etl/sunnah_structure.sql` and `etl/hadith_placement.sql`
+(see `docs/research/lk-kitab-bab-findings.md`). A bab's identity is
+`(kitab_id, seq)`, its page position, never its title or its number.
 
 **The anʿana penalty was dead.** `chain_strength` compared raw text to
 <span dir="rtl">عن</span>, which never matches the vocalised
@@ -138,7 +141,7 @@ and the foreign-key columns of `set_items`, `enrollments`, `review_items`,
 **`hadiths_matn_norm_idx` moved to `05_post_load.sql`.** It is an expression index
 that nothing reads during the load, so to maintain it through the bulk `COPY`
 gives no benefit. This matters at the 276,000 rows of the full dataset, and the
-shape is still correct at the 14,901 rows loaded now.
+shape is still correct at the 14,941 rows loaded now.
 
 ### Additions
 
@@ -214,18 +217,18 @@ WHERE NOT t.is_verified;
 
 The gate closes the circle. It does not close the account.
 
-**`chain_strength` over the full real corpus** (14,901 hadiths):
+**`chain_strength` over the full real corpus** (14,941 hadiths):
 
 ```sql
 SELECT count(*), avg(corpus.chain_strength(hadith_id)),
        min(corpus.chain_strength(hadith_id)), max(corpus.chain_strength(hadith_id)),
        count(*) FILTER (WHERE corpus.chain_strength(hadith_id) IS NULL)
 FROM corpus.hadiths;
--- observed: 14901 rows, avg 0.836, min 0.10, max 0.95, 49 NULL
+-- observed: 14941 rows, avg 0.836, min 0.10, max 0.95, 72 NULL
 ```
 
-The 49 NULLs match the "49 hadiths have no non-compiler chain" `NOTICE` that
-`05_post_load.sql` prints during sealing — the same 49 hadiths, counted two
+The 72 NULLs match the "72 hadiths have no non-compiler chain" `NOTICE` that
+`05_post_load.sql` prints during sealing — the same 72 hadiths, counted two
 different ways.
 
 ## Smoke test coverage

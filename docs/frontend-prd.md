@@ -22,8 +22,8 @@ The frontend is a React application over an Express 5 API and one PostgreSQL
 instance. It shows a finished read-only corpus and a small read-write study
 layer.
 
-The corpus is large and complete: 14,901 hadiths, 20,957 narrators, 139,629
-chain positions, 5,158 chapters, and 2 collections. English text covers 95.3%
+The corpus is large and complete: 14,941 hadiths, 20,957 narrators, 139,766
+chain positions, 154 kitabs, 5,332 babs, and 2 collections. English text covers 95.2%
 of the hadiths. **The frontend never writes to the corpus.** The database role
 holds no write grant on `corpus.*`.
 
@@ -340,7 +340,7 @@ route loader  →  TanStack Query  →  api client  →  zod parse  →  typed d
 - Every response passes through a zod schema. A schema failure is a real
   failure, not a warning. The corpus is stable, so a failure means the contract
   moved.
-- Query keys follow `['hadiths', { collectionId, chapterId, limit, offset }]`.
+- Query keys follow `['hadiths', { babId, limit, offset }]`.
 - `staleTime` is high for corpus data, because the corpus never changes at run
   time. Use `Infinity` for a hadith, a narrator, and a collection.
 - Study-layer data uses the default `staleTime` and invalidates after a write.
@@ -432,8 +432,9 @@ The file tree is the route table.
 | `/register` | Register | public |
 | `/` | Redirect to `/collections` | signedIn |
 | `/collections` | Collections | signedIn |
-| `/collections/$slug` | Chapters | signedIn |
-| `/collections/$slug/$seq` | Hadiths in a chapter | signedIn |
+| `/collections/$slug` | Kitabs | signedIn |
+| `/collections/$slug/$kitab` | Babs of a kitab | signedIn |
+| `/collections/$slug/$kitab/$bab` | Hadiths in a bab | signedIn |
 | `/hadiths/$hadithId` | Hadith detail | signedIn |
 | `/search` | Search results (`?q=`) | signedIn |
 | `/narrators` | Narrator list (`?q=`) | signedIn |
@@ -522,28 +523,46 @@ count. `title_en` falls back to `title_ar`.
 
 **Empty.** Not reachable with the shipped data. Still write it.
 
-### 7.5 Chapters — `/collections/$slug`
+### 7.5 Kitabs — `/collections/$slug`
 
-**Job.** Move from a collection to a chapter.
+**Job.** Move from a collection to one of its books (kitabs).
 
-**Data.** `GET /chapters?collection_id=`. 5,158 rows across two collections.
+**Data.** `GET /kitabs?collection_id=`. 97 rows for Bukhari, 57 for Muslim.
+Not paged.
 
-**The trap.** Many chapters carry the bare title <span dir="rtl">باب</span>.
-**Always show `seq`.** Without it the chapters look identical and the page is
-useless.
+**Each row.** `kitab_num`, `title_en` first, `title_ar` beside it, and the
+chapter and hadith counts. The URL uses the book's own number, as sunnah.com
+does: `/collections/sahih-al-bukhari/65`.
 
-**Paging.** Server-paginated. See §7.24.
+### 7.5a Babs — `/collections/$slug/$kitab`
 
-### 7.6 Hadith list — `/collections/$slug/$seq`
+**Job.** Move from a book to one of its chapters (babs), or study the whole
+book.
+
+**Data.** `GET /kitabs/:id`, found through `kitab_num`. The babs come in page
+order. In Bukhari's Tafseer, a surah heading groups the babs.
+
+**Before the first chapter.** Some books file hadiths under the book itself
+(Muslim: 182 hadiths, for example 979 in Zakat, and the preface of the Introduction). Show them above the babs,
+from `GET /hadiths?kitab_id=&bab_id=none`.
+
+**Study sets.** "Add all hadiths of this book to a study set" posts
+`{ kitab_id }` to `/sets/:id/items`.
+
+### 7.6 Hadith list — `/collections/$slug/$kitab/$bab`
 
 **Job.** Choose a hadith.
 
-**Data.** `GET /hadiths?collection_id=&chapter_id=&limit=&offset=`.
+**Data.** `GET /hadiths?bab_id=&limit=&offset=`. `$bab` is the bab's page
+position in the kitab, not its printed number: numbers restart in each surah.
+
+**Study sets.** "Add all hadiths of this chapter to a study set" posts
+`{ bab_id }`.
 
 **Each row.** `hadith_num` as text in mono. A one-line Arabic snippet from
 `text_plain`, truncated. The chain strength as a short bar and a figure.
 
-**A hadith with no chain shows "no chain" and no bar.** 49 hadiths have none.
+**A hadith with no chain shows "no chain" and no bar.** 72 hadiths have none.
 
 ### 7.7 Hadith detail — `/hadiths/$hadithId`
 
@@ -670,7 +689,7 @@ Both hadiths come from the URL, so a result is shareable.
 
 A list sorted up by `chain_strength`. **`chain_strength` is computed, not
 stored**, so an ordered query recomputes for every row. Cap the list at 50 and
-print the cap. Say that 49 more hadiths carry no chain and cannot be scored.
+print the cap. Say that 72 more hadiths carry no chain and cannot be scored.
 
 ### 7.16 Study sets — `/sets` and `/sets/$setId`
 
@@ -830,10 +849,10 @@ Closed 2026-09-23: every row below exists, plus the §8.2 list.
 | Endpoint | Parameters |
 |---|---|
 | `GET /collections` | none. Rows carry `hadith_count` |
-| `GET /chapters` | `collection_id` (required), `limit`, `offset` |
-| `GET /hadiths` | `collection_id`, `chapter_id`, `q`, `limit`, `offset`. Rows carry `chain_strength` |
+| `GET /kitabs` | `collection_id` (required). `GET /kitabs/:id` and `GET /babs/:id` carry the babs and the breadcrumb |
+| `GET /hadiths` | `collection_id`, `kitab_id`, `bab_id` (`none` = under the kitab), `q`, `limit`, `offset`. Rows carry `chain_strength` |
 | `GET /hadiths/strength-distribution` | none. 14 buckets over every scored hadith (closed 2026-09-24) |
-| `GET /hadiths/:id` | `lang`, default `en`. Detail carries collection, chapter, grouped `chains`, and link biography with grade provenance. Links carry `weight` (anʿana-adjusted, closed 2026-09-24) and `generation` (closed 2026-09-24) |
+| `GET /hadiths/:id` | `lang`, default `en`. Detail carries collection, kitab, bab, grouped `chains`, and link biography with grade provenance. Links carry `weight` (anʿana-adjusted, closed 2026-09-24) and `generation` (closed 2026-09-24) |
 | `GET /narrators` | `q`, `limit`, `offset`. Rows carry `generation` (closed 2026-09-24) |
 | `GET /narrators/:id` | none. Profile carries `generation` (closed 2026-09-24) |
 | `GET /narrators/:id/hadiths` | `limit`, `offset` |
@@ -854,7 +873,7 @@ cannot render the signed-in user. Add the
 endpoint, or add the two fields to the claims. The endpoint is the better
 answer, because a claim grows the token on every request.
 
-**Corpus.** All live (closed 2026-09-23): `GET /chapters?collection_id=`.
+**Corpus.** All live: `GET /kitabs?collection_id=`, `GET /kitabs/:id`, `GET /babs/:id`.
 `GET /narrators?q=&limit=&offset=`. Chains come from
 `GET /narrators/:id/hadiths`; neighbours from `GET /narrators/:id/adjacent`.
 A `q` parameter on `GET /hadiths`.
@@ -906,10 +925,10 @@ first run.
 
 ### 9.1 The corpus
 
-- A hadith with no chapter. The breadcrumb survives a missing middle.
+- A hadith filed under a kitab, with no bab. The breadcrumb survives a missing middle.
 - A hadith with no English text: 4.7% of the corpus. Show the Arabic. **Never
   show an empty English panel.**
-- A hadith with no chain: 49 rows. `chain_strength` returns NULL.
+- A hadith with no chain: 72 rows. `chain_strength` returns NULL.
 - A hadith with more than one chain. **The transmission words are always NULL on
   these**, because the loader aligns words for single-chain hadiths only.
 - A hadith with no matn split: 1,633 rows have `matn_plain` NULL.
@@ -1102,7 +1121,7 @@ Do not write a component test for each screen. Do not add Playwright.
 3. **Authentication.** Login, register, the waiting banner, and the guards.
 4. **Hadith detail.** The signature page, and the only page with a complete
    endpoint today. If the ladder does not work, nothing after it matters.
-5. **Browse.** Collections, chapters, and the hadith list.
+5. **Browse.** Collections, kitabs, babs, and the hadith list.
 6. **The study loop.** Sets, circles, assignments, and the review runner.
 7. **Analytics.** Q1, Q2, Q3, Q5, and Q6.
 8. **Narrators and search.** Closed 2026-09-23: the endpoints and the

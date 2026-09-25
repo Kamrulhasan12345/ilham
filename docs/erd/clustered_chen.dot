@@ -16,18 +16,22 @@ graph ilham_full_chen {
     style="rounded,filled"; fillcolor="#161B22"; color="#58A6FF"; penwidth=2;
 
     node [shape=box, style="filled,bold", penwidth=1.5, fillcolor="#21262D", color="#58A6FF", fontcolor="#C9D1D9"];
-    collections; chapters; hadiths; rank_levels; hadith_translations;
+    collections; kitabs; surahs; babs; hadiths; rank_levels; hadith_translations;
     narrators; isnad_links;
 
     node [shape=diamond, style="filled", fillcolor="#342612", color="#D29922", penwidth=1.2, fontsize=10, fontcolor="#C9D1D9"];
-    r_coll_chap [label="has"]; r_coll_had [label="in"]; r_chap_had [label="under"];
+    r_coll_kit [label="has"]; r_coll_had [label="in"]; r_kit_bab [label="divides"];
+    r_sur_bab [label="groups"]; r_kit_had [label="filed in"]; r_bab_had [label="under"];
     r_nar_ih [label="rank_IH"]; r_nar_dh [label="rank_Dh"]; r_trans [label="translates"];
     r_link_had [label="of"]; r_link_nar [label="cites"];
 
-    collections -- r_coll_chap [taillabel="1"]; r_coll_chap -- chapters [headlabel="N"];
+    collections -- r_coll_kit  [taillabel="1"]; r_coll_kit  -- kitabs   [headlabel="N"];
+    kitabs      -- r_kit_bab   [taillabel="1"]; r_kit_bab   -- babs     [headlabel="N"];
+    surahs      -- r_sur_bab   [taillabel="1"]; r_sur_bab   -- babs     [headlabel="N"];
+    kitabs      -- r_kit_had   [taillabel="1"]; r_kit_had   -- hadiths  [headlabel="N"];
     hadith_translations -- r_trans [taillabel="N"]; r_trans -- hadiths [headlabel="1"];
     collections -- r_coll_had  [taillabel="1"]; r_coll_had  -- hadiths  [headlabel="N"];
-    chapters    -- r_chap_had  [taillabel="1"]; r_chap_had  -- hadiths  [headlabel="N"];
+    babs        -- r_bab_had   [taillabel="1"]; r_bab_had   -- hadiths  [headlabel="N"];
     narrators   -- r_nar_ih    [taillabel="N"]; r_nar_ih    -- rank_levels [headlabel="1"];
     narrators   -- r_nar_dh    [taillabel="N"]; r_nar_dh    -- rank_levels [headlabel="1"];
     isnad_links -- r_link_had  [taillabel="N"]; r_link_had  -- hadiths   [headlabel="1"];

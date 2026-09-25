@@ -39,7 +39,7 @@ not different systems.
 | Schema | Job | Lifetime and writes |
 |---|---|---|
 | `staging` | Flat typed tables for the load. There is no JSONB, because Node flattens the data before SQL sees it | Temporary. Deleted after the one-time load |
-| `corpus` | Reference data: collections, chapters, hadiths, isnad links, narrators, grades | Loaded one time. The app role then loses write permission |
+| `corpus` | Reference data: collections, kitabs, babs, hadiths, isnad links, narrators, grades | Loaded one time. The app role then loses write permission |
 | `app` | Users and the study layer | Every runtime write happens here |
 
 ### Read-only means read-only
