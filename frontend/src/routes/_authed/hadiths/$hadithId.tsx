@@ -16,15 +16,6 @@ import {
 } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -43,6 +34,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { PageHeader } from '../../../app/PageHeader';
+import { AddToSet } from '../../../domain/AddToSet/AddToSet';
 import { DistributionStrip } from '../../../domain/DistributionStrip';
 import { GenerationFilter } from '../../../domain/GenerationFilter';
 import { IsnadChain, type IsnadLinkData } from '../../../domain/IsnadChain';
@@ -98,7 +90,22 @@ const hadithDetailSchema = z.object({
     title_ar: z.string(),
     title_en: z.string().nullable(),
   }),
-  chapter: z.object({ chapter_id: z.number(), seq: z.number(), title_ar: z.string() }).nullable(),
+  kitab: z.object({
+    kitab_id: z.number(),
+    kitab_num: z.number(),
+    title_en: z.string(),
+    title_ar: z.string(),
+  }),
+  // NULL for a hadith the book files under the kitab itself.
+  bab: z
+    .object({
+      bab_id: z.number(),
+      seq: z.number(),
+      bab_num: z.string().nullable(),
+      title_en: z.string().nullable(),
+      title_ar: z.string(),
+    })
+    .nullable(),
   translation: z
     .object({
       lang: z.string(),
@@ -218,7 +225,7 @@ function HadithDetailPage() {
     );
   }
 
-  const { hadith, collection, chapter, translation, chainStrengthBasis } = data;
+  const { hadith, collection, kitab, bab, translation, chainStrengthBasis } = data;
   // Postgres numeric columns arrive over the wire as strings; the schema's
   // z.coerce.number() converts this in the live app, but tests that mock
   // apiFetch bypass schema parsing entirely, so coerce defensively here too.
@@ -281,11 +288,15 @@ function HadithDetailPage() {
             label: collection.title_en ?? collection.title_ar,
             href: `/collections/${collection.slug}`,
           },
-          ...(chapter
+          {
+            label: kitab.title_en,
+            href: `/collections/${collection.slug}/${kitab.kitab_num}`,
+          },
+          ...(bab
             ? [
                 {
-                  label: `Chapter ${chapter.seq}`,
-                  href: `/collections/${collection.slug}/${chapter.seq}`,
+                  label: bab.bab_num ? `Chapter ${bab.bab_num}` : 'Chapter',
+                  href: `/collections/${collection.slug}/${kitab.kitab_num}/${bab.seq}`,
                 },
               ]
             : []),
@@ -509,16 +520,24 @@ function HadithDetailPage() {
                   {collection.title_ar}
                 </span>
               </RailRow>
+              <RailRow label="Book">
+                <span className="text-muted-foreground tabular-nums">{`[${kitab.kitab_num}]`}</span>{' '}
+                {kitab.title_en}
+              </RailRow>
               <RailRow label="Chapter">
-                {chapter ? (
+                {bab ? (
                   <>
-                    <span className="text-muted-foreground tabular-nums">{`[${chapter.seq}]`}</span>{' '}
-                    <span className="font-arabic" dir="rtl" lang="ar">
-                      {chapter.title_ar}
-                    </span>
+                    {bab.bab_num ? (
+                      <span className="text-muted-foreground tabular-nums">{`[${bab.bab_num}]`}</span>
+                    ) : null}{' '}
+                    {bab.title_en ?? (
+                      <span className="font-arabic" dir="rtl" lang="ar">
+                        {bab.title_ar}
+                      </span>
+                    )}
                   </>
                 ) : (
-                  <Absent>not filed</Absent>
+                  <Absent>filed under the book, before its first chapter</Absent>
                 )}
               </RailRow>
               <Separator />
@@ -551,31 +570,9 @@ function GradeCell({ raw, via }: { raw?: string | null; via?: string | null }) {
   );
 }
 
-const studySetsSchema = z.array(z.object({ study_set_id: z.number(), name: z.string() }));
-
 function StudyActions({ hadithId }: { hadithId: number }) {
-  const sets = useQuery({
-    queryKey: ['sets'],
-    queryFn: () => apiFetch('/sets', studySetsSchema),
-  });
   const [noteBody, setNoteBody] = useState('');
   const [busy, setBusy] = useState(false);
-
-  async function addToSet(setId: string) {
-    if (!setId) return;
-    setBusy(true);
-    try {
-      await apiFetch(`/sets/${setId}/items`, z.unknown(), {
-        method: 'POST',
-        body: { hadith_id: hadithId },
-      });
-      toast.success('Saved to the set.');
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Could not save to the set. Try again.');
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function writeNote(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -606,30 +603,7 @@ function StudyActions({ hadithId }: { hadithId: number }) {
       <CardContent>
         <form onSubmit={writeNote}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="study-add-set">Add to a study set</FieldLabel>
-              {sets.data && sets.data.length > 0 ? (
-                <Select value="" onValueChange={addToSet} disabled={busy}>
-                  <SelectTrigger id="study-add-set">
-                    <SelectValue placeholder="Choose a set" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Study sets</SelectLabel>
-                      {sets.data.map((set) => (
-                        <SelectItem key={set.study_set_id} value={String(set.study_set_id)}>
-                          {set.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No study sets yet — create one from the study sets page, then add this hadith.
-                </p>
-              )}
-            </Field>
+            <AddToSet target={{ hadith_id: hadithId }} label="Add to a study set" />
             <Field>
               <FieldLabel htmlFor="study-note">Write a note on this hadith</FieldLabel>
               <Textarea

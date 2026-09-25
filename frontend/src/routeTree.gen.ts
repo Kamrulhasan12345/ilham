@@ -38,7 +38,8 @@ import { Route as AuthedStudentsIndexRouteImport } from './routes/_authed/studen
 import { Route as AuthedStudentsStudentIdRouteImport } from './routes/_authed/students/$studentId'
 import { Route as AuthedCirclesCircleIdIndexRouteImport } from './routes/_authed/circles/$circleId/index'
 import { Route as AuthedCirclesCircleIdAssignRouteImport } from './routes/_authed/circles/$circleId/assign'
-import { Route as AuthedCollectionsSlugSeqRouteImport } from './routes/_authed/collections/$slug_.$seq'
+import { Route as AuthedCollectionsSlugKitabRouteImport } from './routes/_authed/collections/$slug_.$kitab'
+import { Route as AuthedCollectionsSlugKitabBabRouteImport } from './routes/_authed/collections/$slug_.$kitab_.$bab'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -192,10 +193,16 @@ const AuthedCirclesCircleIdAssignRoute =
     path: '/assign',
     getParentRoute: () => AuthedCirclesCircleIdRouteRoute,
   } as any)
-const AuthedCollectionsSlugSeqRoute =
-  AuthedCollectionsSlugSeqRouteImport.update({
-    id: '/collections/$slug_/$seq',
-    path: '/collections/$slug/$seq',
+const AuthedCollectionsSlugKitabRoute =
+  AuthedCollectionsSlugKitabRouteImport.update({
+    id: '/collections/$slug_/$kitab',
+    path: '/collections/$slug/$kitab',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedCollectionsSlugKitabBabRoute =
+  AuthedCollectionsSlugKitabBabRouteImport.update({
+    id: '/collections/$slug_/$kitab_/$bab',
+    path: '/collections/$slug/$kitab/$bab',
     getParentRoute: () => AuthedRoute,
   } as any)
 
@@ -227,8 +234,9 @@ export interface FileRoutesByFullPath {
   '/sets/': typeof AuthedSetsIndexRoute
   '/students/': typeof AuthedStudentsIndexRoute
   '/circles/$circleId/assign': typeof AuthedCirclesCircleIdAssignRoute
-  '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
+  '/collections/$slug/$kitab': typeof AuthedCollectionsSlugKitabRoute
   '/circles/$circleId/': typeof AuthedCirclesCircleIdIndexRoute
+  '/collections/$slug/$kitab/$bab': typeof AuthedCollectionsSlugKitabBabRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -257,8 +265,9 @@ export interface FileRoutesByTo {
   '/sets': typeof AuthedSetsIndexRoute
   '/students': typeof AuthedStudentsIndexRoute
   '/circles/$circleId/assign': typeof AuthedCirclesCircleIdAssignRoute
-  '/collections/$slug/$seq': typeof AuthedCollectionsSlugSeqRoute
+  '/collections/$slug/$kitab': typeof AuthedCollectionsSlugKitabRoute
   '/circles/$circleId': typeof AuthedCirclesCircleIdIndexRoute
+  '/collections/$slug/$kitab/$bab': typeof AuthedCollectionsSlugKitabBabRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -290,8 +299,9 @@ export interface FileRoutesById {
   '/_authed/sets/': typeof AuthedSetsIndexRoute
   '/_authed/students/': typeof AuthedStudentsIndexRoute
   '/_authed/circles/$circleId/assign': typeof AuthedCirclesCircleIdAssignRoute
-  '/_authed/collections/$slug_/$seq': typeof AuthedCollectionsSlugSeqRoute
+  '/_authed/collections/$slug_/$kitab': typeof AuthedCollectionsSlugKitabRoute
   '/_authed/circles/$circleId/': typeof AuthedCirclesCircleIdIndexRoute
+  '/_authed/collections/$slug_/$kitab_/$bab': typeof AuthedCollectionsSlugKitabBabRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -323,8 +333,9 @@ export interface FileRouteTypes {
     | '/sets/'
     | '/students/'
     | '/circles/$circleId/assign'
-    | '/collections/$slug/$seq'
+    | '/collections/$slug/$kitab'
     | '/circles/$circleId/'
+    | '/collections/$slug/$kitab/$bab'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -353,8 +364,9 @@ export interface FileRouteTypes {
     | '/sets'
     | '/students'
     | '/circles/$circleId/assign'
-    | '/collections/$slug/$seq'
+    | '/collections/$slug/$kitab'
     | '/circles/$circleId'
+    | '/collections/$slug/$kitab/$bab'
   id:
     | '__root__'
     | '/'
@@ -385,8 +397,9 @@ export interface FileRouteTypes {
     | '/_authed/sets/'
     | '/_authed/students/'
     | '/_authed/circles/$circleId/assign'
-    | '/_authed/collections/$slug_/$seq'
+    | '/_authed/collections/$slug_/$kitab'
     | '/_authed/circles/$circleId/'
+    | '/_authed/collections/$slug_/$kitab_/$bab'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -601,11 +614,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCirclesCircleIdAssignRouteImport
       parentRoute: typeof AuthedCirclesCircleIdRouteRoute
     }
-    '/_authed/collections/$slug_/$seq': {
-      id: '/_authed/collections/$slug_/$seq'
-      path: '/collections/$slug/$seq'
-      fullPath: '/collections/$slug/$seq'
-      preLoaderRoute: typeof AuthedCollectionsSlugSeqRouteImport
+    '/_authed/collections/$slug_/$kitab': {
+      id: '/_authed/collections/$slug_/$kitab'
+      path: '/collections/$slug/$kitab'
+      fullPath: '/collections/$slug/$kitab'
+      preLoaderRoute: typeof AuthedCollectionsSlugKitabRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/collections/$slug_/$kitab_/$bab': {
+      id: '/_authed/collections/$slug_/$kitab_/$bab'
+      path: '/collections/$slug/$kitab/$bab'
+      fullPath: '/collections/$slug/$kitab/$bab'
+      preLoaderRoute: typeof AuthedCollectionsSlugKitabBabRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
@@ -651,7 +671,8 @@ interface AuthedRouteChildren {
   AuthedNotesIndexRoute: typeof AuthedNotesIndexRoute
   AuthedSetsIndexRoute: typeof AuthedSetsIndexRoute
   AuthedStudentsIndexRoute: typeof AuthedStudentsIndexRoute
-  AuthedCollectionsSlugSeqRoute: typeof AuthedCollectionsSlugSeqRoute
+  AuthedCollectionsSlugKitabRoute: typeof AuthedCollectionsSlugKitabRoute
+  AuthedCollectionsSlugKitabBabRoute: typeof AuthedCollectionsSlugKitabBabRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -678,7 +699,8 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedNotesIndexRoute: AuthedNotesIndexRoute,
   AuthedSetsIndexRoute: AuthedSetsIndexRoute,
   AuthedStudentsIndexRoute: AuthedStudentsIndexRoute,
-  AuthedCollectionsSlugSeqRoute: AuthedCollectionsSlugSeqRoute,
+  AuthedCollectionsSlugKitabRoute: AuthedCollectionsSlugKitabRoute,
+  AuthedCollectionsSlugKitabBabRoute: AuthedCollectionsSlugKitabBabRoute,
 }
 
 const AuthedRouteWithChildren =

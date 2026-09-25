@@ -23,7 +23,14 @@ const REAL_HADITH_5 = {
     sanad_count: 1,
   },
   collection: { slug: 'bukhari', title_ar: 'صحيح البخاري', title_en: 'Sahih al-Bukhari' },
-  chapter: { chapter_id: 10, seq: 1, title_ar: 'باب' },
+  kitab: { kitab_id: 1, kitab_num: 1, title_en: 'Revelation', title_ar: 'كتاب بدء الوحى' },
+  bab: {
+    bab_id: 10,
+    seq: 1,
+    bab_num: '1',
+    title_en: 'How the Revelation started',
+    title_ar: 'باب',
+  },
   translation: {
     lang: 'en',
     text_full: 'Actions are only by intention, and every person has only what he intended.',

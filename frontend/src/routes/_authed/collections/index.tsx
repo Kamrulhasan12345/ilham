@@ -18,7 +18,7 @@ function CollectionsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Collections"
-        description="The canonical collections, browsed by chapter. The corpus is read-only."
+        description="The canonical collections, browsed by book and chapter. The corpus is read-only."
       />
 
       {isLoading ? (
@@ -68,7 +68,7 @@ function CollectionsPage() {
                     </p>
                   </div>
                   <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                    Browse chapters
+                    Browse books
                     <ChevronRight className="size-4" />
                   </span>
                 </div>

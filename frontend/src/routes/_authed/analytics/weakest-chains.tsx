@@ -22,7 +22,8 @@ const weakestSchema = z.array(
     hadith_num: z.string(),
     chain_strength: z.coerce.number().nullable(),
     collection_title: z.string(),
-    chapter_title: z.string().nullable(),
+    kitab_title_en: z.string(),
+    bab_title: z.string().nullable(),
   }),
 );
 const summarySchema = z.object({ unscored: z.coerce.number() });
@@ -107,14 +108,10 @@ function WeakestChainsPage() {
                     <span dir="rtl" lang="ar" className="font-arabic">
                       {row.collection_title}
                     </span>
-                    {row.chapter_title ? (
-                      <>
-                        {' '}
-                        <span dir="rtl" lang="ar" className="font-arabic">
-                          {row.chapter_title}
-                        </span>
-                      </>
-                    ) : null}
+                    <span className="block text-sm text-muted-foreground">
+                      {row.kitab_title_en}
+                      {row.bab_title ? ` · ${row.bab_title}` : null}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {row.chain_strength === null ? (
