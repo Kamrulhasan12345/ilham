@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js';
+import { txQuery, withTransaction } from '../../lib/transaction.js';
 import type { CircleRow, StudentInCircleRow } from './circles.interface.js';
 
 // Visibility per docs/backend-prd.md §4: a teacher sees the circles they own,
@@ -51,7 +52,7 @@ export async function isStudentInCircle(circleId: number, studentId: number): Pr
 // The trg_circles_teacher_verified trigger rejects an unverified teacher;
 // app.ts maps that 23514 to 403 teacher_not_verified.
 export async function createCircle(input: { teacherId: number; name: string }): Promise<CircleRow> {
-  const { rows } = await pool.query<CircleRow>(
+  const { rows } = await txQuery<CircleRow>(
     `INSERT INTO app.circles (teacher_id, name)
      VALUES ($1, $2)
      RETURNING circle_id, teacher_id, name, created_at`,
@@ -61,7 +62,7 @@ export async function createCircle(input: { teacherId: number; name: string }): 
 }
 
 export async function renameCircle(circleId: number, name: string): Promise<CircleRow | null> {
-  const { rows } = await pool.query<CircleRow>(
+  const { rows } = await txQuery<CircleRow>(
     `UPDATE app.circles SET name = $2 WHERE circle_id = $1
      RETURNING circle_id, teacher_id, name, created_at`,
     [circleId, name],
@@ -82,14 +83,14 @@ export async function listStudentsInCircle(circleId: number): Promise<StudentInC
 }
 
 export async function enrollStudent(circleId: number, studentId: number): Promise<void> {
-  await pool.query(
+  await txQuery(
     `INSERT INTO app.enrollments (circle_id, student_id) VALUES ($1, $2)`,
     [circleId, studentId],
   );
 }
 
 export async function unenrollStudent(circleId: number, studentId: number): Promise<boolean> {
-  const { rowCount } = await pool.query(
+  const { rowCount } = await txQuery(
     `DELETE FROM app.enrollments WHERE circle_id = $1 AND student_id = $2`,
     [circleId, studentId],
   );
@@ -98,22 +99,30 @@ export async function unenrollStudent(circleId: number, studentId: number): Prom
 
 // Delete-when-empty: a circle with students, assignments, or review sessions
 // refuses with 'conflict' instead of cascading pedagogical records away, and
-// an unknown id reports 'missing'. One DELETE after read-only checks; no
-// transaction needed.
+// an unknown id reports 'missing'. The check and the DELETE share one
+// transaction.
 export async function deleteCircleWhenEmpty(
   circleId: number,
 ): Promise<'deleted' | 'conflict' | 'missing'> {
-  const { rows } = await pool.query<{ refs: number; gone: boolean }>(
-    `SELECT (SELECT count(*) FROM app.enrollments WHERE circle_id = $1)
-          + (SELECT count(*) FROM app.assignments WHERE circle_id = $1)
-          + (SELECT count(*) FROM app.review_sessions WHERE circle_id = $1) AS refs,
-          NOT EXISTS (SELECT 1 FROM app.circles WHERE circle_id = $1) AS gone`,
-    [circleId],
-  );
-  if (rows[0].gone) return 'missing';
-  if (Number(rows[0].refs) > 0) return 'conflict';
-  const { rowCount } = await pool.query('DELETE FROM app.circles WHERE circle_id = $1', [circleId]);
-  return (rowCount ?? 0) > 0 ? 'deleted' : 'missing';
+  return withTransaction(async (client) => {
+    // FOR UPDATE locks the circle row until COMMIT. An enrollment, assignment
+    // or review that arrives between the check and the DELETE must take a key
+    // lock on this row for its FK, so it waits instead of being orphaned.
+    const { rows: circle } = await client.query(
+      'SELECT 1 FROM app.circles WHERE circle_id = $1 FOR UPDATE',
+      [circleId],
+    );
+    if (!circle[0]) return 'missing';
+    const { rows } = await client.query<{ refs: number }>(
+      `SELECT (SELECT count(*) FROM app.enrollments WHERE circle_id = $1)
+            + (SELECT count(*) FROM app.assignments WHERE circle_id = $1)
+            + (SELECT count(*) FROM app.review_sessions WHERE circle_id = $1) AS refs`,
+      [circleId],
+    );
+    if (Number(rows[0].refs) > 0) return 'conflict';
+    await client.query('DELETE FROM app.circles WHERE circle_id = $1', [circleId]);
+    return 'deleted';
+  });
 }
 
 // The teacher dashboard (PRD Q4): per enrolled student, assigned / mastered /

@@ -23,6 +23,11 @@ const N_STUDENTS = 40;
 const N_CIRCLES  = 5;
 const SET_SIZE   = 25;
 const BCRYPT_DUMMY = '$2b$10$abcdefghijklmnopqrstuvREPLACEatRegistration.....';
+// The one working login in a fresh database: admin@ilham.test / 'ilham', the
+// same hash db/04_seed_reference.sql sets. The reset below deletes every user,
+// so the seed must re-create the admin with this hash, or no admin can sign
+// in to verify a teacher.
+const ADMIN_HASH = '$2a$10$WGZoaLJDh9tFzD.HJhqGq.9N2BopjGTXfLIp74mCy9ITcnUnAzEDa';
 
 const AR_FIRST = ['محمد','أحمد','عبد الله','عائشة','فاطمة','عمر','زينب','يوسف','مريم','إبراهيم'];
 const AR_LAST  = ['الرحمن','الهاشمي','الأنصاري','السلمي','القرشي','البخاري','النيسابوري','الطبري'];
@@ -75,7 +80,7 @@ export async function seed({ reset = true } = {}) {
     }
     await c.query(
       `INSERT INTO app.admins (email, password_hash, full_name, role, admin_level)
-       VALUES ('admin@ilham.test',$1,'Platform Admin','admin','super')`, [BCRYPT_DUMMY]);
+       VALUES ('admin@ilham.test',$1,'Platform Admin','admin','super')`, [ADMIN_HASH]);
     log(`users: ${teachers.length} teachers (${N_TEACHERS - 1} verified), ${students.length} students, 1 admin`);
 
     // --- circles and enrollments ------------------------------------------

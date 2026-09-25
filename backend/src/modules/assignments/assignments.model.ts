@@ -1,5 +1,5 @@
 import { pool } from '../../db/pool.js';
-import { withTransaction } from '../../lib/transaction.js';
+import { txQuery, withTransaction } from '../../lib/transaction.js';
 import type { AssignmentRow } from './assignments.interface.js';
 
 export async function listAssignmentsForStudent(studentId: number): Promise<AssignmentRow[]> {
@@ -68,7 +68,7 @@ export async function updateAssignmentDueDate(
   assignmentId: number,
   dueDate: string,
 ): Promise<AssignmentRow | null> {
-  const { rows } = await pool.query<AssignmentRow>(
+  const { rows } = await txQuery<AssignmentRow>(
     `UPDATE app.assignments SET due_date = $2 WHERE assignment_id = $1
      RETURNING assignment_id, circle_id, set_id AS study_set_id, due_date, created_at`,
     [assignmentId, dueDate],

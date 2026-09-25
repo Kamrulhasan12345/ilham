@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js';
+import { txQuery, withTransaction } from '../../lib/transaction.js';
 import type { StudySetItemRow, StudySetRow } from './studySets.interface.js';
 
 export async function listStudySetsForOwner(ownerId: number): Promise<StudySetRow[]> {
@@ -36,7 +37,7 @@ export async function isSetAssignedToStudent(
 }
 
 export async function createStudySet(input: { ownerId: number; name: string }): Promise<StudySetRow> {
-  const { rows } = await pool.query<StudySetRow>(
+  const { rows } = await txQuery<StudySetRow>(
     `INSERT INTO app.study_sets (owner_id, name) VALUES ($1, $2)
      RETURNING set_id AS study_set_id, owner_id, name, created_at`,
     [input.ownerId, input.name],
@@ -45,7 +46,7 @@ export async function createStudySet(input: { ownerId: number; name: string }): 
 }
 
 export async function renameStudySet(studySetId: number, name: string): Promise<StudySetRow | null> {
-  const { rows } = await pool.query<StudySetRow>(
+  const { rows } = await txQuery<StudySetRow>(
     `UPDATE app.study_sets SET name = $2 WHERE set_id = $1
      RETURNING set_id AS study_set_id, owner_id, name, created_at`,
     [studySetId, name],
@@ -54,7 +55,7 @@ export async function renameStudySet(studySetId: number, name: string): Promise<
 }
 
 export async function deleteStudySet(studySetId: number): Promise<boolean> {
-  const { rowCount } = await pool.query(`DELETE FROM app.study_sets WHERE set_id = $1`, [
+  const { rowCount } = await txQuery(`DELETE FROM app.study_sets WHERE set_id = $1`, [
     studySetId,
   ]);
   return (rowCount ?? 0) > 0;
@@ -73,7 +74,7 @@ export async function listStudySetItems(studySetId: number): Promise<StudySetIte
 }
 
 export async function addStudySetItem(studySetId: number, hadithId: number): Promise<void> {
-  await pool.query(
+  await txQuery(
     `INSERT INTO app.set_items (set_id, hadith_id) VALUES ($1, $2)`,
     [studySetId, hadithId],
   );
@@ -90,22 +91,24 @@ export async function addStudySetItemsFrom(
 ): Promise<number | null> {
   const [table, col, value] =
     'bab_id' in from ? ['babs', 'bab_id', from.bab_id] : ['kitabs', 'kitab_id', from.kitab_id];
-  const { rowCount: exists } = await pool.query(
-    `SELECT 1 FROM corpus.${table} WHERE ${col} = $1::integer`,
-    [value],
-  );
-  if (!exists) return null;
-  const { rowCount } = await pool.query(
-    `INSERT INTO app.set_items (set_id, hadith_id)
-     SELECT $1, hadith_id FROM corpus.hadiths WHERE ${col} = $2::integer
-     ON CONFLICT DO NOTHING`,
-    [studySetId, value],
-  );
-  return rowCount ?? 0;
+  return withTransaction(async (client) => {
+    const { rowCount: exists } = await client.query(
+      `SELECT 1 FROM corpus.${table} WHERE ${col} = $1::integer`,
+      [value],
+    );
+    if (!exists) return null;
+    const { rowCount } = await client.query(
+      `INSERT INTO app.set_items (set_id, hadith_id)
+       SELECT $1, hadith_id FROM corpus.hadiths WHERE ${col} = $2::integer
+       ON CONFLICT DO NOTHING`,
+      [studySetId, value],
+    );
+    return rowCount ?? 0;
+  });
 }
 
 export async function removeStudySetItem(studySetId: number, hadithId: number): Promise<boolean> {
-  const { rowCount } = await pool.query(
+  const { rowCount } = await txQuery(
     `DELETE FROM app.set_items WHERE set_id = $1 AND hadith_id = $2`,
     [studySetId, hadithId],
   );

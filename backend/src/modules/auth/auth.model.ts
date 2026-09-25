@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js';
+import { txQuery, withTransaction } from '../../lib/transaction.js';
 import { hashPassword, verifyPassword } from '../../lib/password.js';
 import type { MeRow, RegisterInput, UserRow } from './auth.interface.js';
 
@@ -42,17 +43,21 @@ export async function changePassword(
   newPassword: string,
 ): Promise<boolean> {
   const table = passwordTables[role];
-  const { rows } = await pool.query<{ password_hash: string }>(
-    `SELECT password_hash FROM ${table} WHERE user_id = $1`,
-    [userId],
-  );
-  if (!rows[0]) return false;
-  if (!(await verifyPassword(currentPassword, rows[0].password_hash))) return false;
-  await pool.query(`UPDATE ${table} SET password_hash = $2 WHERE user_id = $1`, [
-    userId,
-    await hashPassword(newPassword),
-  ]);
-  return true;
+  // Read, check, and write in one transaction. FOR UPDATE stops a second
+  // change from slipping in between the check and the UPDATE.
+  return withTransaction(async (client) => {
+    const { rows } = await client.query<{ password_hash: string }>(
+      `SELECT password_hash FROM ${table} WHERE user_id = $1 FOR UPDATE`,
+      [userId],
+    );
+    if (!rows[0]) return false;
+    if (!(await verifyPassword(currentPassword, rows[0].password_hash))) return false;
+    await client.query(`UPDATE ${table} SET password_hash = $2 WHERE user_id = $1`, [
+      userId,
+      await hashPassword(newPassword),
+    ]);
+    return true;
+  });
 }
 
 // Inserts into the CHILD table (students/teachers), never the parent
@@ -67,7 +72,7 @@ export async function changePassword(
 export async function registerUser(input: RegisterInput): Promise<{ user_id: number }> {
   const passwordHash = await hashPassword(input.password);
   if (input.role === 'student') {
-    const { rows } = await pool.query<{ user_id: number }>(
+    const { rows } = await txQuery<{ user_id: number }>(
       `INSERT INTO app.students (email, password_hash, full_name, role, student_level)
        VALUES ($1, $2, $3, 'student', 'beginner')
        RETURNING user_id`,
@@ -75,7 +80,7 @@ export async function registerUser(input: RegisterInput): Promise<{ user_id: num
     );
     return rows[0];
   }
-  const { rows } = await pool.query<{ user_id: number }>(
+  const { rows } = await txQuery<{ user_id: number }>(
     `INSERT INTO app.teachers (email, password_hash, full_name, role, is_verified)
      VALUES ($1, $2, $3, 'teacher', false)
      RETURNING user_id`,
