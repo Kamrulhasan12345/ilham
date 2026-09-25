@@ -15,11 +15,14 @@ digraph ERD_Biblio {
 
     // Entity boxes
     node [shape=box, style="filled,bold", penwidth=1.8, fillcolor="#21262D", color="#58A6FF", fontcolor="#E6EDF3"];
-    Collection; Chapter; Hadith;
+    Collection; Kitab; Surah; Bab; Hadith;
 
     // Relationship diamonds
     node [shape=diamond, style=filled, fillcolor="#342612", color="#D29922", penwidth=1.4, fontsize=10, fontcolor="#E6EDF3"];
     Contains_CollCh [label="Contains"];
+    Divides   [label="Divides"];
+    Groups    [label="Groups"];
+    FiledIn   [label="Filed In"];
     CollectedIn     [label="Collected In"];
     ClassifiedUnder [label="Classified Under"];
 
@@ -29,8 +32,18 @@ digraph ERD_Biblio {
     slug;
     title_ar;
     title_en;
-    chapter_id [label=<<U>chapter_id</U>>];
-    ch_title_ar [label="title_ar"];
+    kitab_id [label=<<U>kitab_id</U>>];
+    kitab_num;
+    k_title_en [label="title_en"];
+    k_title_ar [label="title_ar"];
+    surah_num [label=<<U>surah_num</U>>];
+    s_title_en [label="title_en"];
+    s_title_ar [label="title_ar"];
+    bab_id [label=<<U>bab_id</U>>];
+    bab_seq [label="seq"];
+    bab_num;
+    b_title_en [label="title_en"];
+    b_title_ar [label="title_ar"];
     hadith_id [label=<<U>hadith_id</U>>];
     hadith_num;
     text_plain;
@@ -46,8 +59,18 @@ digraph ERD_Biblio {
     Collection -> slug;
     Collection -> title_ar;
     Collection -> title_en;
-    Chapter -> chapter_id [color="#E3B341", style=solid, penwidth=1.4];
-    Chapter -> ch_title_ar;
+    Kitab -> kitab_id [color="#E3B341", style=solid, penwidth=1.4];
+    Kitab -> kitab_num;
+    Kitab -> k_title_en;
+    Kitab -> k_title_ar;
+    Surah -> surah_num [color="#E3B341", style=solid, penwidth=1.4];
+    Surah -> s_title_en;
+    Surah -> s_title_ar;
+    Bab -> bab_id [color="#E3B341", style=solid, penwidth=1.4];
+    Bab -> bab_seq;
+    Bab -> bab_num;
+    Bab -> b_title_en;
+    Bab -> b_title_ar;
     Hadith -> hadith_id [color="#E3B341", style=solid, penwidth=1.4];
     Hadith -> hadith_num;
     Hadith -> text_plain;
@@ -60,9 +83,15 @@ digraph ERD_Biblio {
     // Relationships (double lines for weak-entity identifying edges)
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];
     Collection -> Contains_CollCh [dir=back, arrowtail=normal];
-    Chapter    -> Contains_CollCh [color="#8B949E:#8B949E"];
+    Kitab      -> Contains_CollCh [color="#8B949E:#8B949E"];
     Collection -> CollectedIn [dir=back, arrowtail=normal];
     Hadith     -> CollectedIn [color="#8B949E:#8B949E"];
-    Chapter -> ClassifiedUnder [dir=back, arrowtail=onormal];   // hadiths.chapter_id nullable
+    Kitab -> Divides [dir=back, arrowtail=normal];
+    Bab   -> Divides [color="#8B949E:#8B949E"];
+    Surah -> Groups  [dir=back, arrowtail=onormal];   // babs.surah_num nullable: Tafseer only
+    Bab   -> Groups;
+    Kitab -> FiledIn [dir=back, arrowtail=normal];
+    Hadith -> FiledIn [color="#8B949E:#8B949E"];
+    Bab -> ClassifiedUnder [dir=back, arrowtail=onormal];   // hadiths.bab_id NULL = filed at kitab level
     Hadith  -> ClassifiedUnder;
 }

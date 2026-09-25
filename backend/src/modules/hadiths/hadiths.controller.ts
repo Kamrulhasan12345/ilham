@@ -14,12 +14,14 @@ export async function getHadiths(req: Request, res: Response, next: NextFunction
   try {
     const { limit, offset } = parsePageParams(req.query as Record<string, unknown>);
     const collectionId = parseOptionalInt(req.query.collection_id);
-    const chapterId = parseOptionalInt(req.query.chapter_id);
+    const kitabId = parseOptionalInt(req.query.kitab_id);
+    // bab_id=none selects the hadiths filed under the kitab itself.
+    const babId = req.query.bab_id === 'none' ? null : parseOptionalInt(req.query.bab_id);
     const q = typeof req.query.q === 'string' ? req.query.q : undefined;
 
     const [hadiths, total] = await Promise.all([
-      listHadiths({ collectionId, chapterId, q, limit, offset }),
-      countHadiths({ collectionId, chapterId, q }),
+      listHadiths({ collectionId, kitabId, babId, q, limit, offset }),
+      countHadiths({ collectionId, kitabId, babId, q }),
     ]);
     res.json({ data: hadiths, page: { limit, offset, total } });
   } catch (e) {

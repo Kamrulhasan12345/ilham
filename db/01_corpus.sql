@@ -1,7 +1,7 @@
 -- =============================================================================
 -- ILHAM — 01_corpus.sql
 -- Read-only reference layer. Mirrors corpus.dot one-for-one:
---   strong entities  -> Collection, Chapter, Hadith, Narrator, RankLevel
+--   strong entities  -> Collection, Kitab, Surah, Bab, Hadith, Narrator, RankLevel
 --   weak entities    -> IsnadLink (hadith + sanad_no + position)
 --                       Translation (hadith + lang)
 --   derived attrs    -> Narrator.name_norm (generated), Hadith.chain_strength (fn)
@@ -20,46 +20,80 @@ CREATE TABLE corpus.collections (
 );
 
 -- -----------------------------------------------------------------------------
--- Chapter
+-- Kitab → Bab: the structure of the book as the standard editions (and
+-- sunnah.com) print it. Collection → Kitab → Bab → Hadith.
 --
--- CHANGED FROM DRAFT: identity is (collection_id, seq), not (collection_id,
--- title_ar). Hadith collections routinely carry many chapters titled bare باب;
--- keying on the title makes SELECT DISTINCT collapse them into one row and
--- misfiles every hadith beneath them, irreversibly. The loader supplies seq
--- from source order, which is the only identity the source actually provides.
--- title_ar stays as a plain (non-unique) attribute, matching corpus.dot.
+-- The Ifta source carries only a bab title per record: no kitab, no bab
+-- number, and a chapter division that disagrees with the printed books in 66
+-- places. The structure therefore comes from etl/sunnah_structure.sql and each
+-- hadith's place from etl/hadith_placement.sql, both curated and committed
+-- (docs/research/lk-kitab-bab-findings.md).
 -- -----------------------------------------------------------------------------
-CREATE TABLE corpus.chapters (
-    chapter_id    integer  GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+CREATE TABLE corpus.kitabs (
+    kitab_id      smallint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     collection_id smallint NOT NULL REFERENCES corpus.collections,
-    seq           smallint NOT NULL,
+    kitab_num     smallint NOT NULL CHECK (kitab_num >= 0),   -- 0 = Muslim's Introduction
+    title_en      text NOT NULL,
     title_ar      text NOT NULL,
-    UNIQUE (collection_id, seq)
+    UNIQUE (collection_id, kitab_num),
+    UNIQUE (collection_id, kitab_id)              -- target of the hadith FK below
 );
-CREATE INDEX ON corpus.chapters (collection_id, title_ar);
+
+-- Surah: the grouping level inside Bukhari's Tafseer kitab only. Its own table
+-- because the title depends on the surah number, not on the bab (3NF).
+CREATE TABLE corpus.surahs (
+    surah_num smallint PRIMARY KEY CHECK (surah_num BETWEEN 1 AND 114),
+    title_en  text NOT NULL,
+    title_ar  text NOT NULL
+);
+
+-- Identity is (kitab, seq): the bab's position on the page. The printed bab
+-- number is an attribute — it restarts per surah in Tafseer and is missing on
+-- a few babs. A bab with no hadith is a real heading of the book and is kept.
+CREATE TABLE corpus.babs (
+    bab_id    integer  GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    kitab_id  smallint NOT NULL REFERENCES corpus.kitabs,
+    seq       smallint NOT NULL CHECK (seq >= 1),
+    bab_num   text,
+    surah_num smallint REFERENCES corpus.surahs,
+    title_en  text,                               -- NULL where the edition gives no English
+    title_ar  text NOT NULL,
+    UNIQUE (kitab_id, seq),
+    UNIQUE (kitab_id, bab_id)                     -- target of the hadith FK below
+);
 
 -- -----------------------------------------------------------------------------
 -- Hadith
--- chapter_id stays nullable: the ETL LEFT JOINs to chapters, so a hadith whose
--- chapter failed to materialise lands with a NULL rather than vanishing.
+-- kitab_id stays nullable: the ETL LEFT JOINs to the placement, so a hadith
+-- that the placement file does not cover lands with a NULL rather than
+-- vanishing. bab_id is NULL by design for the 188 hadiths that the book files
+-- directly under a kitab, before its first bab.
+--
+-- The two composite FKs make the hierarchy consistent by construction: a
+-- hadith's kitab belongs to its collection, and its bab belongs to its kitab.
 -- -----------------------------------------------------------------------------
 CREATE TABLE corpus.hadiths (
     hadith_id     integer PRIMARY KEY,            -- Ifta mainId (natural key)
     collection_id smallint NOT NULL REFERENCES corpus.collections,
-    chapter_id    integer  REFERENCES corpus.chapters,
+    kitab_id      smallint,
+    bab_id        integer,
     hadith_num    text NOT NULL,                  -- text: compound numbering exists
     text_plain    text NOT NULL,
     text_diac     text NOT NULL,
     matn_plain    text,                           -- NULL = sanad/matn not split
     matn_diac     text,
-    sanad_count   smallint NOT NULL DEFAULT 1 CHECK (sanad_count >= 1)
+    sanad_count   smallint NOT NULL DEFAULT 1 CHECK (sanad_count >= 1),
+    FOREIGN KEY (collection_id, kitab_id) REFERENCES corpus.kitabs (collection_id, kitab_id),
+    FOREIGN KEY (kitab_id, bab_id)        REFERENCES corpus.babs (kitab_id, bab_id),
+    CHECK (bab_id IS NULL OR kitab_id IS NOT NULL)   -- MATCH SIMPLE skips a half-NULL key
 );
 CREATE INDEX ON corpus.hadiths (collection_id, hadith_num);
-CREATE INDEX ON corpus.hadiths (chapter_id);
+CREATE INDEX ON corpus.hadiths (kitab_id);
+CREATE INDEX ON corpus.hadiths (bab_id);
 -- NOTE: the matn normalisation index is deliberately NOT here. It is an
 -- expression index that nothing reads during the load, so maintaining it
 -- through the bulk COPY buys nothing. Built in 05_post_load.sql.
--- Current load is 14,901 hadiths (Bukhari + Muslim); the full Ifta dataset is
+-- Current load is 14,941 hadiths (Bukhari + Muslim); the full Ifta dataset is
 -- 276K across 33 books, which is the scale this defers against.
 
 -- -----------------------------------------------------------------------------

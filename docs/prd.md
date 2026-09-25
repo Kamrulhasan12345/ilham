@@ -74,7 +74,7 @@ one PostgreSQL instance. Schema design separates them, not different systems.
 |---|---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle, from sunnah.alifta.gov.sa. King Abdullah bin Abdul Aziz Program for the Prophetic Sunnah. University of Malta, 2025) | 276,347 hadiths, 33 books, about 863 MB of JSON, a manifest, and 20,957 narrator profiles. Coverage: text, chapter, and number 100%; chains 98.9%; narrator names 98.6%; mention to identifier 94.1%; matn split 87.8% to 94.1%. Profiles: rank_by_ibn_hajar 41.5%, rank_by_al_dhahabi 25.7%, tabaqa 41.6%. All Arabic | **PRIMARY corpus.** Text, chains, narrator identifiers, and rijal grades. One authoritative source links them all |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0. *Data in Brief* 54:110439) | Sahih Muslim: 7,748 hadiths, 14,155 sanads, 2,092 narrators, about 77,800 edge rows. The chains come from the IHSAN Network. The narrator identifiers come from muslimscholars.info, matched by fuzzy and manual methods and checked by experts. You can rebuild the ordered chains from `intractionLabel`. It has Arabic and English name columns | **VALIDATION set.** It checks ordered-chain agreement on the Muslim subset, and any disagreement is a cross-check between two extractions. It also gives **English narrator names** for the Muslim-chain narrators. You can cut it |
-| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable, with 42 of 296 distinct values. Only Bukhari is checked by hand | **ENGLISH text.** The join is on normalised Arabic text. The numbering systems do **not** agree: 99.94% of the matched Muslim pairs carry a different number. Loaded, with 95.3% coverage |
+| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable, with 42 of 296 distinct values. Only Bukhari is checked by hand | **ENGLISH text.** The join is on normalised Arabic text. The numbering systems do **not** agree: 99.94% of the matched Muslim pairs carry a different number. Loaded, with 95.2% coverage |
 
 ### 2.2 The structure of the source — spike #1, answered
 
@@ -98,8 +98,13 @@ one PostgreSQL instance. Schema design separates them, not different systems.
   excludes them, and `chain_strength` treats them as a weakness.
 - The schema keeps three rijal states apart: **graded**, **named but ungraded**,
   and **unnamed**. This mirrors real methodology.
-- About 1% of the records are front matter, with an empty number and empty
-  arrays. The loader removes them.
+- About 1% of the records carry no number. In Bukhari (135 records) they are
+  front matter: bab headings, verse glosses, and the compiler's preface. The
+  loader removes them. In Muslim (40 records) they are the Muqaddimah, the
+  book's introduction: 28 reports about narrators and 12 passages of Imam
+  Muslim's own prose. The manifest key `unnumbered_label` keeps them, and the
+  loader numbers them `Muqaddimah 1` to `Muqaddimah 40` in source order
+  (issue #18). `etl/hadith_placement.sql` files them in the Introduction.
 - `hadith_text` carries an `"N - "` prefix. The loader removes it.
 
 ### 2.3 Narrator resolution — two paths that check each other
@@ -116,7 +121,7 @@ one PostgreSQL instance. Schema design separates them, not different systems.
 - An unresolved row keeps its `raw_name` and gets `resolution = 'X'`. This is
   honest degradation. The loader never drops a row.
 
-Result: **99.58%** of the non-compiler positions resolved. Over 49,685 positions
+Result: **99.58%** of the non-compiler positions resolved. Over 49,726 positions
 that both paths reached, the two agreed on **99.23%**.
 
 ### 2.4 The pipeline — the lake-to-warehouse story of the report
@@ -149,7 +154,7 @@ different systems.
   do not agree at all: 99.94% of the matched Muslim pairs carry a different
   number. The join is therefore on normalised Arabic text, anchored at the first
   narration verb, in five tiers that `hadith_translations.match_via` records.
-  Coverage is 95.3%. MIS validation should use the same method.
+  Coverage is 95.2%. MIS validation should use the same method.
 
 ---
 
@@ -176,7 +181,7 @@ falls back to Arabic.
 
 ### The corpus — read-only
 
-1. Browse from collection to chapter to hadith. Search on normalised Arabic.
+1. Browse from collection to kitab to bab to hadith, as the printed book does. Search on normalised Arabic.
 2. Hadith detail: the matn, the full isnad for each sanad with its transmission
    words, links to the narrators, and the chain-strength value.
 3. Narrator profiles: the biography, the rijal grades (raw strings for display,

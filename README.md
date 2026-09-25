@@ -33,7 +33,7 @@ Every document in this repository uses ASD-STE100 Simplified Technical English.
 | Product requirements (`docs/prd.md`) | ✅ Final |
 | Database schema (`db/`) | ✅ Complete. Schemas, tables, functions, procedure, triggers, queries |
 | ERD diagrams (`docs/erd/`) | ✅ Chen-notation set and crow's-foot set |
-| ETL pipeline (`etl/`) | ✅ Loads the real corpus. 14,901 hadiths, 99.58% narrator resolution |
+| ETL pipeline (`etl/`) | ✅ Loads the real corpus. 14,941 hadiths, 99.58% narrator resolution |
 | Backend (`backend/`) | 🚧 Express + TypeScript API: auth, corpus reads, circles, notes |
 | Frontend (`frontend/`) | 🚧 React app wired to the backend |
 
@@ -60,7 +60,9 @@ ilham/
 │   ├── src/                   # cli, extract, load, shape, stream readers
 │   ├── sql/                   # Stages 10 → 19, staging → corpus
 │   ├── rank_map.sql           # The curated rijal grade map
-│   └── narrator_overrides.sql # Per-narrator grade claims, each one justified
+│   ├── narrator_overrides.sql # Per-narrator grade claims, each one justified
+│   ├── sunnah_structure.sql   # The printed kitab/bab structure
+│   └── hadith_placement.sql   # Each hadith's kitab and bab, with its evidence
 ├── docs/                      # Documentation. Start at docs/README.md
 │   ├── README.md              # The index
 │   ├── prd.md                 # Product requirements
@@ -86,7 +88,7 @@ One PostgreSQL instance holds three schemas:
 
 ### The corpus — read-only and analytical
 
-- `collections → chapters → hadiths` is the bibliographic hierarchy.
+- `collections → kitabs → babs → hadiths` is the bibliographic hierarchy, as the printed book has it.
   `hadith_translations` holds optional text in other languages.
 - `isnad_links` is a **weak entity**. Each row stores the position of one
   narrator in one chain. The order is the order of transmission. The Companion is
@@ -133,9 +135,9 @@ Triggers fire on **user writes only**. The corpus never takes a runtime write.
 
 | Source | Role |
 |---|---|
-| **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle; sunnah.alifta.gov.sa). 276,347 hadiths, 33 books, 20,957 narrator profiles | **Primary corpus.** Text, chains, narrator identifiers, and *rijal* grades. **Loaded now: Sahih al-Bukhari and Sahih Muslim = 14,901 hadiths.** A manifest drives the loader, so it extends to all 33 books |
+| **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle; sunnah.alifta.gov.sa). 276,347 hadiths, 33 books, 20,957 narrator profiles | **Primary corpus.** Text, chains, narrator identifiers, and *rijal* grades. **Loaded now: Sahih al-Bukhari and Sahih Muslim = 14,941 hadiths.** A manifest drives the loader, so it extends to all 33 books |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0). Sahih Muslim, ordered chains | **Validation** and English narrator names |
-| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | English text for `hadith_translations`. The join is on Arabic text. Coverage is 95.3% |
+| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | English text for `hadith_translations`. The join is on Arabic text. Coverage is 95.2% |
 
 Arabic is canonical. English is optional in three places: hadith text
 (`hadith_translations`), narrator names (`narrators.name_en`), and collection
@@ -172,7 +174,7 @@ podman compose logs -f db      # watch it load
 
 This one command is enough on **any** host, including native Windows PowerShell
 or cmd — no bash, no other tool required. The repo carries a committed snapshot
-at `db/ilham.dump`: the real corpus (14,901 hadiths) and a seeded study layer,
+at `db/ilham.dump`: the real corpus (14,941 hadiths) and a seeded study layer,
 already sealed. The container's own init script restores it automatically on
 first start, in a few seconds.
 
@@ -258,40 +260,61 @@ it — from a newer Kaggle dump, or while working on the ETL pipeline itself. Yo
 need the Ifta dataset of about 710 MB. It is not in the repository. See
 [`etl/README.md`](etl/README.md) for the download and the full run order.
 
-The short version, with node on the host:
+You also need the LK English files in `etl/raw/lk-translations/`. Without
+them the build still runs, but no hadith gets English.
+
+**One command** (bash, with node on the host). The bootstrap restores the
+committed dump when it finds one, so point it at a path that does not exist.
+The container, port, and database here are throwaway values, so this does not
+touch your running stack. The script uses podman when it finds it, else docker;
+set `ILHAM_ENGINE=docker` to choose docker:
 
 ```bash
-cd etl && npm install && cp .env.example .env
-npm run verify && npm run doctor        # check the hashes, then preflight
-psql -f rank_map.sql -f narrator_overrides.sql
-npm run all && npm run seed
+ILHAM_CONTAINER=ilham-etl PGPORT=5440 ILHAM_DUMP_FILE=/nonexistent \
+  ./db/run_container.sh bootstrap
 ```
 
-This takes about one minute. It gives 14,901 hadiths, 139,629 chain positions,
-and 20,957 narrators. Narrator resolution is 99.58%. A rijal grade covers 98.57%
-of the chain positions. The pipeline writes every number to
-`corpus.etl_metrics`. A full rebuild gives the same numbers again.
+It runs, in this order:
 
-**Without node on the host**, run the same commands in a container:
+1. The DDL `00` to `04`, and the smoke test `98`.
+2. `npm run verify` and `npm run doctor` in `etl/`.
+3. The four curated files: `rank_map.sql`, `narrator_overrides.sql`,
+   `sunnah_structure.sql`, `hadith_placement.sql`.
+4. `npm run all` (extract, load, stages 10 to 19) and `npm run seed`.
+5. `db/05_post_load.sql`. This step is destructive: it removes write
+   permission on `corpus.*` and drops the `staging` schema. After it, the
+   corpus is read-only **by permission**, not by convention.
+6. The additive migrations `06` to `09`.
+
+It takes about 15 minutes. It gives 14,941 hadiths in 154 kitabs and 5,332
+babs, 139,766 chain positions, and 20,957 narrators. Narrator resolution is
+99.58%. English covers 95.2% of the hadiths. The pipeline writes every number
+to `corpus.etl_metrics`, and a rebuild gives the same numbers again.
+
+**By hand**, against an empty database, the same order:
+
+```bash
+for f in 00_init 01_corpus 02_app 03_staging 04_seed_reference; do psql -f db/$f.sql; done
+cd etl && npm install && cp .env.example .env     # set PGPORT/PGDATABASE to match
+npm run verify && npm run doctor
+psql -f rank_map.sql -f narrator_overrides.sql -f sunnah_structure.sql -f hadith_placement.sql
+npm run all && npm run seed
+cd .. && psql -f db/05_post_load.sql
+for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation; do psql -f db/$f.sql; done
+```
+
+**Without node on the host**, run the `npm` steps in the `etl` container:
 
 ```bash
 podman compose --profile tools run --rm etl npm run doctor
 podman compose --profile tools run --rm etl npm run all
 ```
 
-Then run the last file one time. It is destructive. It removes write permission
-on `corpus.*` and deletes the `staging` schema. After it, the corpus is
-read-only **by permission** and not by convention:
-
-```bash
-psql -h 127.0.0.1 -U postgres -d ilham -f db/05_post_load.sql
-```
-
 To share the result instead of making everyone redo the steps above, refresh
 the committed snapshot and commit it:
 
 ```bash
-./db/run_container.sh dump      # writes db/ilham.dump
+ILHAM_CONTAINER=ilham-etl PGPORT=5440 ./db/run_container.sh dump   # writes db/ilham.dump
 ```
 
 ### Rebuild the ERD diagrams

@@ -77,16 +77,18 @@ export async function getUnscoredHadithCount(): Promise<number> {
   return Number(rows[0].count);
 }
 
-// PRD §5.5 Q5: weakest chains first, joined to collection and chapter for
+// PRD §5.5 Q5: weakest chains first, joined to collection and kitab/bab for
 // display. chain_strength is a corpus SQL function, not a view.
 export async function getWeakestChains(limit: number): Promise<WeakestChainRow[]> {
   const { rows } = await pool.query(
     `SELECT h.hadith_id, h.hadith_num,
             corpus.chain_strength(h.hadith_id) AS chain_strength,
-            c.title_ar AS collection_title, ch.title_ar AS chapter_title
+            c.title_ar AS collection_title, k.title_en AS kitab_title_en,
+            coalesce(b.title_en, b.title_ar) AS bab_title
        FROM corpus.hadiths h
        JOIN corpus.collections c ON c.collection_id = h.collection_id
-       LEFT JOIN corpus.chapters ch ON ch.chapter_id = h.chapter_id
+       JOIN corpus.kitabs k ON k.kitab_id = h.kitab_id
+       LEFT JOIN corpus.babs b ON b.bab_id = h.bab_id
       ORDER BY corpus.chain_strength(h.hadith_id) ASC NULLS LAST, h.hadith_id
       LIMIT $1`,
     [limit],

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BadRequestError, NotFoundError } from '../../lib/errors.js';
 import {
   addStudySetItem,
+  addStudySetItemsFrom,
   createStudySet,
   deleteStudySet,
   getStudySetById,
@@ -14,7 +15,13 @@ import {
 } from './studySets.model.js';
 
 const nameSchema = z.object({ name: z.string().min(1) });
-const itemSchema = z.object({ hadith_id: z.number().int() });
+// One hadith, or every hadith of a bab or a kitab in one call: a teacher builds
+// a set from the book's own structure.
+const itemSchema = z.union([
+  z.object({ hadith_id: z.number().int() }).strict(),
+  z.object({ bab_id: z.number().int() }).strict(),
+  z.object({ kitab_id: z.number().int() }).strict(),
+]);
 
 export async function getStudySets(req: Request, res: Response, next: NextFunction) {
   try {
@@ -94,8 +101,14 @@ export async function postStudySetItem(req: Request, res: Response, next: NextFu
     if (!Number.isInteger(id)) throw new BadRequestError('invalid study set id');
     await requireOwnedStudySet(req, id);
     const body = itemSchema.parse(req.body);
-    await addStudySetItem(id, body.hadith_id);
-    res.status(201).json({ data: { study_set_id: id, hadith_id: body.hadith_id } });
+    if ('hadith_id' in body) {
+      await addStudySetItem(id, body.hadith_id);
+      res.status(201).json({ data: { study_set_id: id, hadith_id: body.hadith_id } });
+      return;
+    }
+    const added = await addStudySetItemsFrom(id, body);
+    if (added === null) throw new NotFoundError('bab_id' in body ? 'bab not found' : 'kitab not found');
+    res.status(201).json({ data: { study_set_id: id, added } });
   } catch (e) {
     next(e);
   }

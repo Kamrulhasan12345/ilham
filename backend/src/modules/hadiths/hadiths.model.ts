@@ -12,7 +12,8 @@ import type {
 interface HadithListRow {
   hadith_id: number;
   collection_id: number;
-  chapter_id: number | null;
+  kitab_id: number;
+  bab_id: number | null;
   hadith_num: string;
   text_plain: string;
   text_en: string | null;
@@ -28,9 +29,15 @@ export async function listHadiths(params: HadithListParams): Promise<HadithListR
     values.push(params.collectionId);
     conditions.push('collection_id = $' + values.length + '::integer');
   }
-  if (params.chapterId !== undefined) {
-    values.push(params.chapterId);
-    conditions.push(`chapter_id = $${values.length}`);
+  if (params.kitabId !== undefined) {
+    values.push(params.kitabId);
+    conditions.push(`kitab_id = $${values.length}::integer`);
+  }
+  if (params.babId === null) {
+    conditions.push('bab_id IS NULL');
+  } else if (params.babId !== undefined) {
+    values.push(params.babId);
+    conditions.push(`bab_id = $${values.length}::integer`);
   }
   if (params.q) {
     values.push(params.q);
@@ -46,7 +53,7 @@ export async function listHadiths(params: HadithListParams): Promise<HadithListR
   const offsetPh = `$${values.length}`;
 
   const { rows } = await pool.query<HadithListRow & { chain_strength: string | null }>(
-    `SELECT h.hadith_id, h.collection_id, h.chapter_id, h.hadith_num, h.text_plain, h.sanad_count,
+    `SELECT h.hadith_id, h.collection_id, h.kitab_id, h.bab_id, h.hadith_num, h.text_plain, h.sanad_count,
             t.text_full AS text_en,
             corpus.chain_strength(h.hadith_id) AS chain_strength
        FROM corpus.hadiths h
@@ -70,9 +77,15 @@ export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'off
     values.push(params.collectionId);
     conditions.push('collection_id = $' + values.length + '::integer');
   }
-  if (params.chapterId !== undefined) {
-    values.push(params.chapterId);
-    conditions.push(`chapter_id = $${values.length}`);
+  if (params.kitabId !== undefined) {
+    values.push(params.kitabId);
+    conditions.push(`kitab_id = $${values.length}::integer`);
+  }
+  if (params.babId === null) {
+    conditions.push('bab_id IS NULL');
+  } else if (params.babId !== undefined) {
+    values.push(params.babId);
+    conditions.push(`bab_id = $${values.length}::integer`);
   }
   if (params.q) {
     values.push(params.q);
@@ -112,38 +125,31 @@ export async function strengthDistribution(): Promise<StrengthBucket[]> {
 
 export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<HadithDetail | null> {
   const { rows: hadithRows } = await pool.query(
-    `SELECT h.hadith_id, h.collection_id, h.chapter_id, h.hadith_num,
+    `SELECT h.hadith_id, h.collection_id, h.kitab_id, h.bab_id, h.hadith_num,
             h.text_plain, h.text_diac, h.matn_plain, h.sanad_count,
             c.slug AS collection_slug, c.title_ar AS collection_title_ar,
             c.title_en AS collection_title_en,
-            ch.chapter_id AS chapter_chapter_id, ch.seq AS chapter_seq,
-            ch.title_ar AS chapter_title_ar
+            json_build_object('kitab_id', k.kitab_id, 'kitab_num', k.kitab_num,
+                              'title_en', k.title_en, 'title_ar', k.title_ar) AS kitab,
+            CASE WHEN b.bab_id IS NOT NULL THEN
+              json_build_object('bab_id', b.bab_id, 'seq', b.seq, 'bab_num', b.bab_num,
+                                'title_en', b.title_en, 'title_ar', b.title_ar) END AS bab
        FROM corpus.hadiths h
        JOIN corpus.collections c ON c.collection_id = h.collection_id
-       LEFT JOIN corpus.chapters ch ON ch.chapter_id = h.chapter_id
+       JOIN corpus.kitabs k ON k.kitab_id = h.kitab_id
+       LEFT JOIN corpus.babs b ON b.bab_id = h.bab_id
       WHERE h.hadith_id = $1`,
     [hadithId],
   );
   const detailRow = hadithRows[0];
   if (!detailRow) return null;
-  const {
-    collection_slug,
-    collection_title_ar,
-    collection_title_en,
-    chapter_chapter_id,
-    chapter_seq,
-    chapter_title_ar,
-    ...hadith
-  } = detailRow;
+  const { collection_slug, collection_title_ar, collection_title_en, kitab, bab, ...hadith } =
+    detailRow;
   const collection = {
     slug: collection_slug,
     title_ar: collection_title_ar,
     title_en: collection_title_en,
   };
-  const chapter =
-    chapter_chapter_id == null
-      ? null
-      : { chapter_id: chapter_chapter_id, seq: chapter_seq, title_ar: chapter_title_ar };
 
   const { rows: translationRows } = await pool.query<TranslationRow>(
     `SELECT lang, text_full, source, match_via
@@ -228,7 +234,8 @@ export async function getHadithDetail(hadithId: number, lang = 'en'): Promise<Ha
   return {
     hadith: hadith as HadithRow,
     collection,
-    chapter,
+    kitab,
+    bab,
     translation: translationRows[0] ?? null,
     isnadChain: isnadRows,
     chains,

@@ -136,6 +136,65 @@ describe('study set items', () => {
   });
 });
 
+describe('study set items from the book structure', () => {
+  test('adds every hadith of a bab, and a repeat adds nothing', async () => {
+    const { accessToken } = await registerAndGetToken(app, uniqueEmail('setBab'), 'teacher');
+    const setId = await createStudySet(accessToken, 'Bab set');
+    const { rows } = await pool.query<{ bab_id: number; n: number }>(
+      `SELECT bab_id, count(*)::int AS n FROM corpus.hadiths
+        WHERE bab_id IS NOT NULL GROUP BY bab_id HAVING count(*) > 1 ORDER BY bab_id LIMIT 1`,
+    );
+    const { bab_id, n } = rows[0];
+
+    const first = await request(app)
+      .post(`/sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ bab_id });
+    assert.equal(first.status, 201);
+    assert.equal(first.body.data.added, n);
+
+    const again = await request(app)
+      .post(`/sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ bab_id });
+    assert.equal(again.status, 201);
+    assert.equal(again.body.data.added, 0);
+
+    const got = await request(app).get(`/sets/${setId}`).set(bearer(accessToken));
+    assert.equal(got.body.data.items.length, n);
+  });
+
+  test('adds every hadith of a kitab, including the kitab-level ones', async () => {
+    const { accessToken } = await registerAndGetToken(app, uniqueEmail('setKitab'), 'teacher');
+    const setId = await createStudySet(accessToken, 'Kitab set');
+    const { rows } = await pool.query<{ kitab_id: number; n: number }>(
+      `SELECT kitab_id, count(*)::int AS n FROM corpus.hadiths
+        GROUP BY kitab_id HAVING bool_or(bab_id IS NULL) ORDER BY n LIMIT 1`,
+    );
+    const res = await request(app)
+      .post(`/sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ kitab_id: rows[0].kitab_id });
+    assert.equal(res.status, 201);
+    assert.equal(res.body.data.added, rows[0].n);
+  });
+
+  test('an unknown bab is 404, and a body naming two targets is 400', async () => {
+    const { accessToken } = await registerAndGetToken(app, uniqueEmail('setBad'), 'teacher');
+    const setId = await createStudySet(accessToken, 'Bad set');
+    const unknown = await request(app)
+      .post(`/sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ bab_id: 99999999 });
+    assert.equal(unknown.status, 404);
+    const both = await request(app)
+      .post(`/sets/${setId}/items`)
+      .set(bearer(accessToken))
+      .send({ bab_id: 1, kitab_id: 1 });
+    assert.equal(both.status, 400);
+  });
+});
+
 describe('DELETE /sets/:id', () => {
   test('owner deletes (200); GET after delete returns 404', async () => {
     const { accessToken } = await registerAndGetToken(app, uniqueEmail('setDelete'), 'student');

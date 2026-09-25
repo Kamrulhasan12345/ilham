@@ -20,14 +20,13 @@ async function firstCollectionId(token: string): Promise<number> {
   return res.body.data[0].collection_id;
 }
 
-async function firstChapterId(token: string, collectionId: number): Promise<number> {
-  const res = await authed(
-    token,
-    request(app).get(`/chapters?collection_id=${collectionId}&limit=100`),
-  );
-  assert.equal(res.status, 200);
-  const withHadiths = res.body.data.find((c: { hadith_count: number }) => c.hadith_count > 0);
-  return (withHadiths ?? res.body.data[0]).chapter_id;
+async function firstBabId(token: string, collectionId: number): Promise<number> {
+  const kitabs = await authed(token, request(app).get(`/kitabs?collection_id=${collectionId}`));
+  assert.equal(kitabs.status, 200);
+  const kitab = await authed(token, request(app).get(`/kitabs/${kitabs.body.data[0].kitab_id}`));
+  assert.equal(kitab.status, 200);
+  const withHadiths = kitab.body.data.babs.find((b: { hadith_count: number }) => b.hadith_count > 0);
+  return (withHadiths ?? kitab.body.data.babs[0]).bab_id;
 }
 
 describe('GET /health (public)', () => {
@@ -80,82 +79,82 @@ describe('GET /collections', () => {
   });
 });
 
-describe('GET /chapters', () => {
+describe('GET /kitabs', () => {
   test('returns 400 when collection_id is missing', async () => {
-    const token = await tokenFor('chapters-missing');
-    const res = await authed(token, request(app).get('/chapters'));
+    const token = await tokenFor('kitabs-missing');
+    const res = await authed(token, request(app).get('/kitabs'));
     assert.equal(res.status, 400);
   });
 
   test('returns 400 when collection_id is not an integer', async () => {
-    const token = await tokenFor('chapters-bad');
-    const res = await authed(token, request(app).get('/chapters?collection_id=abc'));
+    const token = await tokenFor('kitabs-bad');
+    const res = await authed(token, request(app).get('/kitabs?collection_id=abc'));
     assert.equal(res.status, 400);
   });
 
-  test('returns 400 when seq is not an integer', async () => {
-    const token = await tokenFor('chapters-bad-seq');
+  test('lists the kitabs of a collection in book order, with counts', async () => {
+    const token = await tokenFor('kitabs-ok');
     const collectionId = await firstCollectionId(token);
-    const res = await authed(
-      token,
-      request(app).get(`/chapters?collection_id=${collectionId}&seq=abc`),
-    );
-    assert.equal(res.status, 400);
-  });
-
-  test('returns 200 with chapters for a real collection id from the API', async () => {
-    const token = await tokenFor('chapters-ok');
-    const collectionId = await firstCollectionId(token);
-    const res = await authed(token, request(app).get(`/chapters?collection_id=${collectionId}`));
+    const res = await authed(token, request(app).get(`/kitabs?collection_id=${collectionId}`));
     assert.equal(res.status, 200);
-    assert.ok(Array.isArray(res.body.data));
     assert.ok(res.body.data.length > 0);
-    assert.equal(typeof res.body.page.total, 'number');
     const first = res.body.data[0];
-    assert.equal(typeof first.chapter_id, 'number');
-    assert.equal(typeof first.seq, 'number');
-    assert.equal(typeof first.title_ar, 'string');
-    assert.equal(typeof first.hadith_count, 'number');
-    for (const row of res.body.data) {
-      assert.equal(row.collection_id, collectionId);
+    for (const key of ['kitab_id', 'kitab_num', 'bab_count', 'hadith_count']) {
+      assert.equal(typeof first[key], 'number', key);
     }
+    assert.equal(typeof first.title_en, 'string');
+    assert.equal(typeof first.title_ar, 'string');
+    const nums = res.body.data.map((k: { kitab_num: number }) => k.kitab_num);
+    assert.deepEqual(nums, [...nums].sort((a, b) => a - b));
+    for (const row of res.body.data) assert.equal(row.collection_id, collectionId);
   });
 
-  test('filters to one chapter when seq is given', async () => {
-    const token = await tokenFor('chapters-seq');
-    const collectionId = await firstCollectionId(token);
-    const res = await authed(
-      token,
-      request(app).get(`/chapters?collection_id=${collectionId}&seq=2`),
+  test('Bukhari has the 97 kitabs of the printed book', async () => {
+    const { rows } = await pool.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM corpus.kitabs k JOIN corpus.collections c USING (collection_id)
+        WHERE c.slug = 'sahih-al-bukhari'`,
     );
-    assert.equal(res.status, 200);
-    assert.equal(res.body.data.length, 1);
-    assert.equal(res.body.data[0].collection_id, collectionId);
-    assert.equal(res.body.data[0].seq, 2);
-    assert.equal(res.body.page.total, 1);
+    assert.equal(rows[0].n, 97);
   });
 
-  test('returns 200 with an empty array for an unknown seq', async () => {
-    const token = await tokenFor('chapters-seq-unknown');
-    const collectionId = await firstCollectionId(token);
-    const res = await authed(
-      token,
-      request(app).get(`/chapters?collection_id=${collectionId}&seq=9999`),
-    );
+  test('returns 200 with an empty array for an unknown collection id', async () => {
+    const token = await tokenFor('kitabs-unknown');
+    const res = await authed(token, request(app).get('/kitabs?collection_id=999999999'));
     assert.equal(res.status, 200);
     assert.deepEqual(res.body.data, []);
   });
+});
 
-  test('returns 200 with an empty array for an unknown collection id (no 404 in controller)', async () => {
-    const token = await tokenFor('chapters-unknown');
-    // NOTE: probe id stays inside the smallint range of corpus.collections.collection_id;
-    // an out-of-range integer (e.g. 999999999) overflows smallint and 500s (PG 22003).
-    const known = await authed(token, request(app).get('/collections'));
-    assert.equal(known.status, 200);
-    const unknownId = Math.max(...known.body.data.map((c: { collection_id: number }) => c.collection_id)) + 1;
-    const res = await authed(token, request(app).get(`/chapters?collection_id=${unknownId}`));
+describe('GET /kitabs/:id and GET /babs/:id', () => {
+  test('a kitab returns its collection and its babs in page order', async () => {
+    const token = await tokenFor('kitab-detail');
+    const collectionId = await firstCollectionId(token);
+    const list = await authed(token, request(app).get(`/kitabs?collection_id=${collectionId}`));
+    const res = await authed(token, request(app).get(`/kitabs/${list.body.data[0].kitab_id}`));
     assert.equal(res.status, 200);
-    assert.deepEqual(res.body.data, []);
+    assert.equal(res.body.data.collection.collection_id, collectionId);
+    assert.equal(typeof res.body.data.kitab_level_count, 'number');
+    const seqs = res.body.data.babs.map((b: { seq: number }) => b.seq);
+    assert.deepEqual(seqs, seqs.map((_: number, i: number) => i + 1));
+  });
+
+  test('a bab returns its kitab and collection for the breadcrumb', async () => {
+    const token = await tokenFor('bab-detail');
+    const collectionId = await firstCollectionId(token);
+    const babId = await firstBabId(token, collectionId);
+    const res = await authed(token, request(app).get(`/babs/${babId}`));
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.bab_id, babId);
+    assert.equal(typeof res.body.data.kitab.kitab_num, 'number');
+    assert.equal(res.body.data.collection.collection_id, collectionId);
+  });
+
+  test('unknown ids are 404, non-integer ids are 400', async () => {
+    const token = await tokenFor('kitab-bab-404');
+    assert.equal((await authed(token, request(app).get('/kitabs/999999'))).status, 404);
+    assert.equal((await authed(token, request(app).get('/babs/99999999'))).status, 404);
+    assert.equal((await authed(token, request(app).get('/kitabs/abc'))).status, 400);
+    assert.equal((await authed(token, request(app).get('/babs/abc'))).status, 400);
   });
 });
 
@@ -197,15 +196,34 @@ describe('GET /hadiths', () => {
     }
   });
 
-  test('filters by chapter_id from the API', async () => {
-    const token = await tokenFor('hadiths-chap');
+  test('filters by bab_id from the API', async () => {
+    const token = await tokenFor('hadiths-bab');
     const collectionId = await firstCollectionId(token);
-    const chapterId = await firstChapterId(token, collectionId);
-    const res = await authed(token, request(app).get(`/hadiths?chapter_id=${chapterId}&limit=5`));
+    const babId = await firstBabId(token, collectionId);
+    const res = await authed(token, request(app).get(`/hadiths?bab_id=${babId}&limit=5`));
     assert.equal(res.status, 200);
     assert.ok(res.body.data.length > 0);
     for (const row of res.body.data) {
-      assert.equal(row.chapter_id, chapterId);
+      assert.equal(row.bab_id, babId);
+    }
+  });
+
+  test('bab_id=none lists the hadiths filed under the kitab itself', async () => {
+    const token = await tokenFor('hadiths-kitab-level');
+    const { rows } = await pool.query<{ kitab_id: number; n: number }>(
+      `SELECT kitab_id, count(*)::int AS n FROM corpus.hadiths
+        WHERE bab_id IS NULL GROUP BY kitab_id ORDER BY n DESC LIMIT 1`,
+    );
+    assert.ok(rows[0], 'the corpus has kitab-level hadiths (Muslim files 182 of them)');
+    const res = await authed(
+      token,
+      request(app).get(`/hadiths?kitab_id=${rows[0].kitab_id}&bab_id=none&limit=100`),
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.page.total, rows[0].n);
+    for (const row of res.body.data) {
+      assert.equal(row.kitab_id, rows[0].kitab_id);
+      assert.equal(row.bab_id, null);
     }
   });
 
@@ -251,7 +269,7 @@ describe('GET /hadiths', () => {
     const { rows } = await pool.query<{ hadith_id: number }>(
       `SELECT h.hadith_id FROM corpus.hadiths h
         LEFT JOIN corpus.hadith_translations t ON t.hadith_id = h.hadith_id AND t.lang = 'en'
-       WHERE t.hadith_id IS NULL LIMIT 1`,
+       WHERE t.hadith_id IS NULL ORDER BY h.hadith_id LIMIT 1`,
     );
     assert.ok(rows.length > 0, 'expected at least one untranslated hadith in the corpus');
     const untranslatedId = rows[0].hadith_id;
@@ -396,9 +414,9 @@ describe('GET /narrators/:id/hadiths', () => {
 });
 
 describe('out-of-range ids match nothing instead of 500', () => {
-  test('chapters with an out-of-smallint-range collection_id returns []', async () => {
-    const token = await tokenFor('range-chapters');
-    const res = await authed(token, request(app).get('/chapters?collection_id=999999999'));
+  test('kitabs with an out-of-smallint-range collection_id returns []', async () => {
+    const token = await tokenFor('range-kitabs');
+    const res = await authed(token, request(app).get('/kitabs?collection_id=999999999'));
     assert.equal(res.status, 200);
     assert.deepEqual(res.body.data, []);
   });
@@ -474,24 +492,25 @@ describe('GET /hadiths/:id grouped chains (PRD §8.4)', () => {
 });
 
 describe('GET /hadiths/:id detail companions (PRD 5.3)', () => {
-  test('carries collection, chapter, and translation provenance', async () => {
+  test('carries collection, kitab, bab, and translation provenance', async () => {
     const token = await tokenFor('detail-companions');
     const res = await authed(token, request(app).get('/hadiths/5'));
     assert.equal(res.status, 200);
-    const { collection, chapter, translation } = res.body.data;
+    const { collection, kitab, bab, translation } = res.body.data;
     assert.equal(collection.slug, 'sahih-al-bukhari');
     assert.equal(typeof collection.title_ar, 'string');
-    assert.ok(chapter === null || typeof chapter.title_ar === 'string');
-    if (chapter !== null) assert.equal(typeof chapter.seq, 'number');
+    assert.equal(kitab.kitab_num, 1);
+    assert.equal(kitab.title_en, 'Revelation');
+    assert.ok(bab === null || typeof bab.title_ar === 'string');
+    if (bab !== null) assert.equal(typeof bab.seq, 'number');
     if (translation !== null) {
       assert.equal(translation.lang, 'en');
       assert.ok(translation.match_via === null || typeof translation.match_via === 'string');
     }
   });
 
-  // No live row has chapter_id NULL (verified: zero in this corpus), so the
-  // null branch below is structural only: the LEFT JOIN keeps the detail
-  // working if one ever loads.
+  // bab is NULL for the 188 hadiths the book files under a kitab itself;
+  // the LEFT JOIN to corpus.babs keeps the detail working for them.
 });
 
 describe('frontend page data (closed 2026-09-23)', () => {

@@ -11,7 +11,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { collectionsRoutes } from './modules/collections/collections.routes.js';
-import { chaptersRoutes } from './modules/chapters/chapters.routes.js';
+import { babsRoutes, kitabsRoutes } from './modules/kitabs/kitabs.routes.js';
 import { hadithsRoutes } from './modules/hadiths/hadiths.routes.js';
 import { narratorsRoutes } from './modules/narrators/narrators.routes.js';
 import { circlesRoutes } from './modules/circles/circles.routes.js';
@@ -45,7 +45,8 @@ app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
 
 app.use('/collections', requireAuth, collectionsRoutes);
-app.use('/chapters', requireAuth, chaptersRoutes);
+app.use('/kitabs', requireAuth, kitabsRoutes);
+app.use('/babs', requireAuth, babsRoutes);
 app.use('/hadiths', requireAuth, hadithsRoutes);
 app.use('/narrators', requireAuth, narratorsRoutes);
 app.use('/notes', requireAuth, notesRoutes);

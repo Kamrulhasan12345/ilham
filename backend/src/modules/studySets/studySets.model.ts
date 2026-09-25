@@ -79,6 +79,31 @@ export async function addStudySetItem(studySetId: number, hadithId: number): Pro
   );
 }
 
+/**
+ * Adds every hadith of a bab or a kitab. Hadiths already in the set are kept
+ * as they are (ON CONFLICT DO NOTHING), so the call is safe to repeat.
+ * Returns the number added, or null when the bab or kitab does not exist.
+ */
+export async function addStudySetItemsFrom(
+  studySetId: number,
+  from: { bab_id: number } | { kitab_id: number },
+): Promise<number | null> {
+  const [table, col, value] =
+    'bab_id' in from ? ['babs', 'bab_id', from.bab_id] : ['kitabs', 'kitab_id', from.kitab_id];
+  const { rowCount: exists } = await pool.query(
+    `SELECT 1 FROM corpus.${table} WHERE ${col} = $1::integer`,
+    [value],
+  );
+  if (!exists) return null;
+  const { rowCount } = await pool.query(
+    `INSERT INTO app.set_items (set_id, hadith_id)
+     SELECT $1, hadith_id FROM corpus.hadiths WHERE ${col} = $2::integer
+     ON CONFLICT DO NOTHING`,
+    [studySetId, value],
+  );
+  return rowCount ?? 0;
+}
+
 export async function removeStudySetItem(studySetId: number, hadithId: number): Promise<boolean> {
   const { rowCount } = await pool.query(
     `DELETE FROM app.set_items WHERE set_id = $1 AND hadith_id = $2`,

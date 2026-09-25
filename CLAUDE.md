@@ -29,7 +29,8 @@ them:
   reason for each decision and name the course requirement.
 - `etl/` — the pipeline. `etl/src/` holds the Node code, which does structural
   work only. `etl/sql/` holds stages 10 to 19, which do all semantic work.
-  `etl/rank_map.sql` and `etl/narrator_overrides.sql` are curated and committed.
+  `etl/rank_map.sql`, `etl/narrator_overrides.sql`, `etl/sunnah_structure.sql`,
+  and `etl/hadith_placement.sql` are curated and committed.
 - `docs/architecture.md`, `docs/database.md`, `docs/data-and-etl.md` — prose
   derived from the two groups above. `docs/README.md` is the index.
 - `docs/erd/README.md` — the diagram index and the notation legend.
@@ -96,7 +97,7 @@ keep it. **Never add a runtime write path into `corpus.*`.**
   <span dir="rtl">باب</span> heading in front of `text_plain`. It then matches in
   five tiers, and `hadith_translations.match_via` records the tier (`E/P/6/4/M`).
 
-  **Do not "simplify" this back to a number join.** Coverage is 95.3%. The rest
+  **Do not "simplify" this back to a number join.** Coverage is 95.2%. The rest
   keeps its Arabic, and the loader never deletes it.
 - **`corpus.chain_strength(hadith_id)` is a clear, documented metric.** It takes
   the weakest link in each sanad, and the best sanad wins. An anʿana link takes a
@@ -154,6 +155,7 @@ Build the corpus. This needs the Ifta data — see `etl/README.md`:
 cd etl && npm install && cp .env.example .env
 npm run verify && npm run doctor
 psql -f rank_map.sql -f narrator_overrides.sql
+psql -f sunnah_structure.sql -f hadith_placement.sql
 npm run all && npm run seed
 ```
 

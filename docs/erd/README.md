@@ -13,7 +13,7 @@ The images carry no title. Add the headings in your slide tool.
 | `plain/` | Simpler forms of the same seven diagrams. Note that #7 is `07_derived` |
 | `chen/` | A newer set of ten diagrams, force-directed. See [below](#the-chen-set) |
 | `relational/` | **Crow's-foot** ERDs. Columns with PK and FK badges. The whole schema, and one diagram for each layer ([README](relational/README.md)) |
-| `overview.png` | One rendered overview image |
+| `overview.png` | One rendered overview image (`neato -Tpng chen/overview.dot`) |
 | `clustered_chen.dot` and `.png` | A Chen diagram of the whole schema, grouped in clusters |
 | `exports/*.zip` | Zipped bundles of the full set and the plain set |
 
@@ -29,7 +29,7 @@ dot -Tsvg full/01_overview.dot -o full/01_overview.svg
 | # | File | Covers |
 |---|------|--------|
 | 1 | `01_overview` | The whole schema, both clusters, and the cross-layer relationships |
-| 2 | `02_corpus_biblio` | collections → chapters → hadiths, and the translations |
+| 2 | `02_corpus_biblio` | collections → kitabs → babs → hadiths, surahs, and the translations |
 | 3 | `03_isnad` | `isnad_links` as a weak entity, and `isnad_edges` as a derived view |
 | 4 | `04_grading` | narrators → rank_levels, the two scholar grades, and `chain_strength()` |
 | 5 | `05_isa` | users ISA students, teachers, and admins — and what inheritance costs |
@@ -65,7 +65,7 @@ wherever the foreign key is `NOT NULL`:
 
 | Layer | Total participation (a double line) |
 |---|---|
-| `corpus` | `chapters.collection_id`, `hadiths.collection_id`, `isnad_links.hadith_id`, `hadith_translations.hadith_id` |
+| `corpus` | `kitabs.collection_id`, `babs.kitab_id`, `hadiths.collection_id`, `hadiths.kitab_id`, `isnad_links.hadith_id`, `hadith_translations.hadith_id` |
 | `app` | `circles.teacher_id`, `study_sets.owner_id`, `assignments.circle_id`, `assignments.set_id`, `progress.student_id`, `review_sessions.student_id`, `student_stats.student_id`, `notes.user_id` |
 | Cross-layer | `progress.hadith_id`, `notes.hadith_id` |
 
@@ -104,7 +104,8 @@ The hollow arrowheads are exactly the optional participations:
 
 | Column | What NULL means |
 |---|---|
-| `hadiths.chapter_id` | The hadith sits under no chapter |
+| `hadiths.bab_id` | The book files the hadith under the kitab itself, before its first bab |
+| `babs.surah_num` | The bab is outside Tafseer, so no surah groups it |
 | `progress.assignment_id` | Private study |
 | `isnad_links.narrator_id` | Unresolved |
 | `narrators.rank_ibn_hajar`, `narrators.rank_dhahabi` | Named but ungraded, or unnamed |
@@ -178,7 +179,7 @@ around it.
 ## Suggested reading order
 
 1. **Overview.** Two schemas and one rule: the corpus takes no runtime write.
-2. **Bibliographic.** Natural keys, a nullable chapter, and
+2. **Bibliographic.** Natural keys, the book's own kitab → bab structure, and
    `hadith_translations` as a weak entity keyed `(hadith_id, lang)`.
 3. **Isnad.** The centrepiece. The paths are stored, the edges are derived, and
    there is no self-reference.

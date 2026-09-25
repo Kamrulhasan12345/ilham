@@ -23,7 +23,7 @@ const LOADS = [
     cols: ['narrator_id','display_name','name','kunya','nickname','lineage','relation',
            'tabaqa_raw','school','rank_ibn_hajar_raw','rank_dhahabi_raw','date_of_death'] },
   { csv: 'hadiths.csv', table: 'staging.hadiths',
-    cols: ['hadith_id','book_slug','chapter_seq','chapter_ar','hadith_num',
+    cols: ['hadith_id','book_slug','chapter_ar','hadith_num',
            'text_plain','text_diac','matn_plain','matn_diac','sanad_count','raw_doc'] },
   { csv: 'chain_rows.csv', table: 'staging.chain_rows',
     cols: ['hadith_id','sanad_no','position','raw_name','transmission_word','is_compiler'] },

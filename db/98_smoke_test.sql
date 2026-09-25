@@ -11,15 +11,43 @@
 INSERT INTO corpus.collections (slug, title_ar, title_en)
 VALUES ('bukhari', 'صحيح البخاري', 'Sahih al-Bukhari');
 
-INSERT INTO corpus.chapters (collection_id, seq, title_ar)
-SELECT collection_id, s, 'باب' FROM corpus.collections, generate_series(1,3) s;
+INSERT INTO corpus.kitabs (collection_id, kitab_num, title_en, title_ar)
+SELECT collection_id, k, 'Book '||k, 'كتاب '||k FROM corpus.collections, generate_series(1,2) k;
 
-INSERT INTO corpus.hadiths (hadith_id, collection_id, chapter_id, hadith_num,
+INSERT INTO corpus.babs (kitab_id, seq, bab_num, title_ar)
+SELECT kitab_id, s, s::text, 'باب' FROM corpus.kitabs, generate_series(1,3) s;
+
+INSERT INTO corpus.hadiths (hadith_id, collection_id, kitab_id, bab_id, hadith_num,
                             text_plain, text_diac, sanad_count)
-SELECT g, c.collection_id, ch.chapter_id, g::text, 'متن '||g, 'مَتْن '||g, 1
+SELECT g, c.collection_id, k.kitab_id, b.bab_id, g::text, 'متن '||g, 'مَتْن '||g, 1
 FROM generate_series(1,5) g
 CROSS JOIN corpus.collections c
-JOIN corpus.chapters ch ON ch.collection_id = c.collection_id AND ch.seq = 1;
+JOIN corpus.kitabs k ON k.collection_id = c.collection_id AND k.kitab_num = 1
+JOIN corpus.babs b ON b.kitab_id = k.kitab_id AND b.seq = 1;
+
+-- --- hierarchy: a hadith's bab must sit in its own kitab --------------------
+-- The composite FK (kitab_id, bab_id) is the whole guarantee. Without it, a
+-- placement typo files a hadith under a bab of another kitab and every
+-- kitab/bab count in the UI disagrees with the other, silently.
+DO $$
+DECLARE v_other int;
+BEGIN
+  SELECT b.bab_id INTO v_other FROM corpus.babs b JOIN corpus.kitabs k USING (kitab_id)
+  WHERE k.kitab_num = 2 LIMIT 1;
+  BEGIN
+    UPDATE corpus.hadiths SET bab_id = v_other WHERE hadith_id = 1;
+    RAISE EXCEPTION 'a hadith accepted a bab from another kitab';
+  EXCEPTION WHEN foreign_key_violation THEN
+    NULL;   -- expected
+  END;
+  BEGIN
+    UPDATE corpus.hadiths SET kitab_id = NULL WHERE hadith_id = 1;
+    RAISE EXCEPTION 'a hadith accepted a bab without a kitab';
+  EXCEPTION WHEN check_violation THEN
+    NULL;   -- expected
+  END;
+  RAISE NOTICE 'PASS hierarchy composite FKs';
+END $$;
 
 INSERT INTO corpus.narrators (narrator_id, display_name, name,
                               rank_ibn_hajar, rank_dhahabi, is_placeholder) VALUES
@@ -137,11 +165,9 @@ DECLARE v_hid int;
 BEGIN
   INSERT INTO corpus.collections (slug, title_ar) VALUES ('smoke-tr', 'ت')
     RETURNING collection_id INTO v_hid;
-  INSERT INTO corpus.chapters (collection_id, seq, title_ar) VALUES (v_hid, 1, 'ب');
-  INSERT INTO corpus.hadiths (hadith_id, collection_id, chapter_id, hadith_num,
+  INSERT INTO corpus.hadiths (hadith_id, collection_id, hadith_num,
                               text_plain, text_diac, sanad_count)
-  SELECT -998, v_hid, chapter_id, '1', 'ن', 'ن', 1
-    FROM corpus.chapters WHERE collection_id = v_hid;
+  VALUES (-998, v_hid, '1', 'ن', 'ن', 1);
 
   -- A valid tier is accepted.
   INSERT INTO corpus.hadith_translations (hadith_id, text_full, match_via)
@@ -167,7 +193,6 @@ BEGIN
 
   DELETE FROM corpus.hadith_translations WHERE hadith_id = -998;
   DELETE FROM corpus.hadiths  WHERE hadith_id = -998;
-  DELETE FROM corpus.chapters WHERE collection_id = v_hid;
   DELETE FROM corpus.collections WHERE collection_id = v_hid;
   RAISE NOTICE 'PASS hadith_translations match_via + one-per-lang';
 END $$;
@@ -183,16 +208,18 @@ FROM generate_series(1,4) g;
 INSERT INTO app.admins (email, password_hash, full_name, role, admin_level)
 VALUES ('a1@x.io','$2b$','Root','admin','super');
 
+-- 04_seed_reference.sql seeds one admin (admin@ilham.test). The hierarchy
+-- therefore holds 7 rows: that admin plus the 6 rows above.
 DO $$
 DECLARE v_all int; v_only int;
 BEGIN
   SELECT count(*) INTO v_all  FROM app.users;
   SELECT count(*) INTO v_only FROM ONLY app.users;
-  IF v_all <> 6 OR v_only <> 0 THEN
-    RAISE EXCEPTION 'ISA broken: hierarchy=% ONLY=% (expected 6 / 0)', v_all, v_only;
+  IF v_all <> 7 OR v_only <> 0 THEN
+    RAISE EXCEPTION 'ISA broken: hierarchy=% ONLY=% (expected 7 / 0)', v_all, v_only;
   END IF;
   -- shared sequence: user_id unique across all three subtypes
-  IF (SELECT count(DISTINCT user_id) FROM app.users) <> 6 THEN
+  IF (SELECT count(DISTINCT user_id) FROM app.users) <> 7 THEN
     RAISE EXCEPTION 'ISA broken: user_id not unique across subtypes';
   END IF;
   RAISE NOTICE 'PASS ISA hierarchy + shared sequence';

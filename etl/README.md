@@ -4,8 +4,8 @@ The pipeline moves data from the source files to `staging`, then to `corpus`. It
 then fills a synthetic `app` layer.
 
 The pipeline is checked from end to end against PostgreSQL 16, on the real
-corpus. That corpus is **14,901 hadiths** from Sahih al-Bukhari and Sahih Muslim.
-It holds 139,629 chain positions, 20,957 narrator profiles, and 87,996 narrator
+corpus. That corpus is **14,941 hadiths** from Sahih al-Bukhari and Sahih Muslim.
+It holds 139,766 chain positions, 20,957 narrator profiles, and 88,092 narrator
 mentions.
 
 ## Get the data
@@ -40,7 +40,7 @@ etl/raw/lk-translations/muslim/Chapter1.csv  … Chapter57.csv
 That is 154 files, 47 MB, and 14,659 rows.
 
 If you leave it out, stage 14 does nothing. The corpus then loads Arabic only,
-and every reader falls back to Arabic. With it, **95.3%** of the hadiths carry
+and every reader falls back to Arabic. With it, **95.2%** of the hadiths carry
 English. Bukhari is 96.9% and Muslim is 93.8%.
 
 The loader takes the book from the **directory name**, not from the file name. It
@@ -77,6 +77,7 @@ npm run profile                    # 1. inspect the source. READ THE OUTPUT.
 npm run rankmap                    # 2. write build/rank_map.sql, review by hand
 psql -f rank_map.sql               #    (a curated map is already committed)
 psql -f narrator_overrides.sql
+psql -f sunnah_structure.sql -f hadith_placement.sql   # kitabs, babs, placement
 
 npm run all                        # 3. extract + load + transform
 npm run seed                       # 4. app layer, through the procedure and triggers
@@ -141,7 +142,7 @@ chain. See `alignTransmission` in `src/extract.js`.
 Pass A dominates. The Ifta chain strings are already disambiguated forms, so they
 match `narrators.name` much better than the fixtures suggested.
 
-The value of pass B is now mostly as an **independent check**. 49,685 positions
+The value of pass B is now mostly as an **independent check**. 49,726 positions
 resolved by both methods, and the two agreed on **99.23%**.
 
 **Transmission words.** The loader aligned 48,882 sighas across 9,384 of the
@@ -186,8 +187,7 @@ An `UPDATE … FROM` that picked an arbitrary row would appear here.
 ## Who does what
 
 Node does **structural** work only: it turns nesting into rows, removes the front
-matter, removes the `"N - "` prefix, sequences the chapters, and aligns the
-transmission words.
+matter, removes the `"N - "` prefix, and aligns the transmission words.
 
 SQL does **every semantic** transform: dimension extraction, resolution,
 normalisation, grade mapping, and translations.

@@ -221,6 +221,10 @@ bootstrap_main() {
         # the output, and a curated rank_map.sql is already committed.
         psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" -f rank_map.sql
         psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" -f narrator_overrides.sql
+        # The book's kitab/bab structure and each hadith's place in it, both
+        # curated and committed (docs/research/lk-kitab-bab-findings.md).
+        psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" -f sunnah_structure.sql
+        psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" -f hadith_placement.sql
         npm run all
         npm run seed
       )
@@ -231,6 +235,15 @@ bootstrap_main() {
         echo "-- bootstrap: sealing corpus (05_post_load.sql)"
         PGPASSWORD="$PASS" psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" \
           -f "$DIR/05_post_load.sql"
+        # The additive migrations run once, after the seal: each one grants its
+        # own new object, because 05's schema-wide grant ran before it existed.
+        # The committed dump already carries them; this path must add them too,
+        # or login (06) and the hadith detail (07) fail on a fresh ETL build.
+        for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation; do
+          echo "-- bootstrap: $f"
+          PGPASSWORD="$PASS" psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" \
+            -f "$DIR/$f.sql"
+        done
       else
         echo "-- bootstrap: staging already gone — skipping 05_post_load.sql (already sealed)"
       fi

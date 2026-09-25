@@ -13,8 +13,8 @@ import { readCsvObjects, lkField, lkNumber } from './csv-read.js';
 // EXTRACT — JSON -> CSV.
 //
 // Node's half of the contract: STRUCTURAL flattening only. Nesting becomes rows,
-// front matter is filtered, the "N - " prefix is stripped, chapters are
-// sequenced, transmission words are aligned. Every SEMANTIC decision —
+// front matter is filtered, the "N - " prefix is stripped, transmission words
+// are aligned. Every SEMANTIC decision —
 // dimension extraction, narrator resolution, normalisation, rank mapping — is
 // SQL's, in stages 10-19.
 //
@@ -23,7 +23,7 @@ import { readCsvObjects, lkField, lkNumber } from './csv-read.js';
 // console.log.
 // =============================================================================
 
-const HADITH_COLS = ['hadith_id','book_slug','chapter_seq','chapter_ar','hadith_num',
+const HADITH_COLS = ['hadith_id','book_slug','chapter_ar','hadith_num',
                      'text_plain','text_diac','matn_plain','matn_diac','sanad_count','raw_doc'];
 const CHAIN_COLS  = ['hadith_id','sanad_no','position','raw_name','transmission_word','is_compiler'];
 const MENTION_COLS= ['hadith_id','mention_order','surface_plain','surface_diac','narrator_id'];
@@ -137,7 +137,8 @@ export async function extract({ keepRawDoc = KEEP_RAW_DOC } = {}) {
       else log('  chain nodes are bare strings — transmission words come from the parallel array');
     }
 
-    const chapterSeq = new Map();   // chapter title -> ordinal, per book
+    const unnumberedLabel = manifestMap.get(slug)?.unnumbered_label ?? null;
+    let unnumbered = 0;
     let books = 0;
 
     for (const rec of streamArray(bf)) {
@@ -146,20 +147,24 @@ export async function extract({ keepRawDoc = KEEP_RAW_DOC } = {}) {
       if (seenHadith.has(hid)) { stats.rejects.push([slug,'duplicate_hadith_id',String(hid)]); continue; }
 
       const numRaw = pick(rec, hadithShape, 'hadithNum');
-      const num = numRaw === undefined || numRaw === null ? '' : String(numRaw).trim();
-      // Front matter: introductions and book prefaces carry no hadith number.
-      // They are not hadiths and must not enter the corpus.
-      if (num === '') { stats.rejects.push([slug,'front_matter',String(hid)]); continue; }
+      const numText = numRaw === undefined || numRaw === null ? '' : String(numRaw).trim();
+      // Front matter: book prefaces and bab headings carry no hadith number and
+      // must not enter the corpus. A manifest `unnumbered_label` says the book's
+      // numberless records are content instead (Muslim's Muqaddimah, issue
+      // #18); they get "<label> N" in source order.
+      let num = numText;
+      if (num === '') {
+        if (!unnumberedLabel) { stats.rejects.push([slug,'front_matter',String(hid)]); continue; }
+        num = `${unnumberedLabel} ${++unnumbered}`;
+      }
 
       const diac  = nullish(pick(rec, hadithShape, 'textDiac'));
       const plain = nullish(pick(rec, hadithShape, 'textPlain'));
       if (!diac && !plain) { stats.rejects.push([slug,'no_text',String(hid)]); continue; }
 
-      // Chapter sequencing by order of first appearance. This is the only
-      // identity the source provides: titles repeat (bare باب is everywhere),
-      // so keying chapters on the title collapses distinct ones into one.
+      // The Ifta bab title. Stage 14 strips it from text_plain; the book's
+      // structure itself comes from etl/sunnah_structure.sql.
       const chTitle = nullish(pick(rec, hadithShape, 'chapter')) || '(بدون باب)';
-      if (!chapterSeq.has(chTitle)) chapterSeq.set(chTitle, chapterSeq.size + 1);
 
       const chains = normalizeChains(pick(rec, hadithShape, 'chains'));
       const sanadCount = Math.max(1, chains.length);
@@ -169,7 +174,6 @@ export async function extract({ keepRawDoc = KEEP_RAW_DOC } = {}) {
       hadithCsv.write({
         hadith_id: hid,
         book_slug: slug,
-        chapter_seq: chapterSeq.get(chTitle),
         chapter_ar: chTitle,
         hadith_num: num,
         text_plain: stripPrefix(plain || diac),
@@ -340,6 +344,7 @@ function loadManifest(bookFiles) {
       m.set(String(slug), {
         title_ar: e.title_ar || e.titleAr || e.arabic || e.name || String(slug),
         title_en: e.title_en || e.titleEn || e.english || null,
+        unnumbered_label: e.unnumbered_label || null,
       });
     }
   }

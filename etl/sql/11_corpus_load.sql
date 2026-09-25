@@ -12,25 +12,34 @@ TRUNCATE corpus.isnad_links, corpus.hadith_translations, corpus.hadiths CASCADE;
 TRUNCATE corpus.narrators CASCADE;
 
 -- -----------------------------------------------------------------------------
--- Hadiths. LEFT JOIN to chapters, not INNER.
--- An inner join drops every hadith whose chapter failed to materialise —
+-- Hadiths. LEFT JOIN to the placement, not INNER.
+-- An inner join drops every hadith that the placement file does not cover —
 -- silently, and the row counts still look plausible because you never see what
--- left. chapter_id is nullable precisely so the loss is visible instead.
+-- left. kitab_id is nullable precisely so the loss is visible instead.
+-- A placement that names a bab the structure lacks leaves bab_id NULL while
+-- p.bab_seq is set; that is a reject too.
 -- -----------------------------------------------------------------------------
-INSERT INTO corpus.hadiths (hadith_id, collection_id, chapter_id, hadith_num,
+INSERT INTO corpus.hadiths (hadith_id, collection_id, kitab_id, bab_id, hadith_num,
                             text_plain, text_diac, matn_plain, matn_diac, sanad_count)
-SELECT s.hadith_id, c.collection_id, ch.chapter_id, s.hadith_num,
+SELECT s.hadith_id, c.collection_id, k.kitab_id, b.bab_id, s.hadith_num,
        s.text_plain, s.text_diac, s.matn_plain, s.matn_diac, s.sanad_count
 FROM staging.hadiths s
 JOIN corpus.collections c ON c.slug = s.book_slug
-LEFT JOIN corpus.chapters ch ON ch.collection_id = c.collection_id
-                            AND ch.seq = s.chapter_seq;
+LEFT JOIN staging.placement p ON p.hadith_id = s.hadith_id
+LEFT JOIN corpus.kitabs k ON k.collection_id = c.collection_id AND k.kitab_num = p.kitab_num
+LEFT JOIN corpus.babs b   ON b.kitab_id = k.kitab_id AND b.seq = p.bab_seq;
 
 INSERT INTO staging.rejects (stage, reason, source_key, payload)
-SELECT '11_corpus_load', 'hadith_without_chapter', h.hadith_id::text,
-       'collection=' || c.slug
-FROM corpus.hadiths h JOIN corpus.collections c USING (collection_id)
-WHERE h.chapter_id IS NULL;
+SELECT '11_corpus_load',
+       CASE WHEN p.hadith_id IS NULL THEN 'hadith_not_placed'
+            WHEN h.kitab_id IS NULL  THEN 'placement_kitab_missing'
+            ELSE 'placement_bab_missing' END,
+       h.hadith_id::text,
+       'collection=' || c.slug || coalesce(' kitab=' || p.kitab_num || ' bab=' || p.bab_seq, '')
+FROM corpus.hadiths h
+JOIN corpus.collections c USING (collection_id)
+LEFT JOIN staging.placement p USING (hadith_id)
+WHERE h.kitab_id IS NULL OR (h.bab_id IS NULL AND p.bab_seq IS NOT NULL);
 
 -- -----------------------------------------------------------------------------
 -- Narrators. is_placeholder from the bracketed-name convention: [راو موضع إبهام]
@@ -99,8 +108,14 @@ FROM corpus.hadiths h JOIN corpus.collections c USING (collection_id) GROUP BY c
 UNION ALL
 SELECT '11_corpus_load', 'hadiths_staged', NULL, count(*) FROM staging.hadiths
 UNION ALL
-SELECT '11_corpus_load', 'hadiths_without_chapter', NULL, count(*)
-FROM corpus.hadiths WHERE chapter_id IS NULL
+SELECT '11_corpus_load', 'hadiths_without_kitab', NULL, count(*)
+FROM corpus.hadiths WHERE kitab_id IS NULL
+UNION ALL
+SELECT '11_corpus_load', 'hadiths_at_kitab_level', NULL, count(*)
+FROM corpus.hadiths WHERE kitab_id IS NOT NULL AND bab_id IS NULL
+UNION ALL
+SELECT '11_corpus_load', 'placement_via_' || p.via, NULL, count(*)
+FROM corpus.hadiths h JOIN staging.placement p USING (hadith_id) GROUP BY p.via
 UNION ALL
 SELECT '11_corpus_load', 'narrators_loaded', NULL, count(*) FROM corpus.narrators
 UNION ALL

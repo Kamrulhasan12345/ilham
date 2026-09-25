@@ -102,6 +102,36 @@ digraph ilham_relational {
 <TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">raw_string</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 <TR><TD PORT="rank_code" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">rank_code</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 </TABLE>>];
+
+        st_site_kitabs [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.site_kitabs</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">book_slug</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        st_site_babs [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.site_babs</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">book_slug</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">seq</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">surah_num / surah_en / surah_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        st_placement [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#30363D" ALIGN="CENTER"><FONT COLOR="#C9D1D9"><B>staging.placement</B></FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bab_seq</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">smallint NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">via</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">char(1)  T/F/S/M</FONT></TD></TR>
+</TABLE>>];
     }
 
     // =========================================================================
@@ -125,12 +155,34 @@ digraph ilham_relational {
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
 </TABLE>>];
 
-        chapters [label=<
+        kitabs [label=<
 <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
-<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.chapters</B></FONT></TD></TR>
-<TR><TD PORT="chapter_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">chapter_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.kitabs</B></FONT></TD></TR>
+<TR><TD PORT="kitab_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint identity</FONT></TD></TR>
 <TR><TD PORT="collection_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT> <FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">collection_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
-<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint  (0 = Introduction)</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        surahs [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.surahs</B></FONT></TD></TR>
+<TR><TD PORT="surah_num" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">surah_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint  (1..114)</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
+</TABLE>>];
+
+        babs [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#161B22">
+<TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.babs</B></FONT></TD></TR>
+<TR><TD PORT="bab_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">bab_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer identity</FONT></TD></TR>
+<TR><TD PORT="kitab_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT> <FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#D29922">UQ</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">seq</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint  (page position)</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bab_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD PORT="surah_num" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">surah_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">smallint NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">title_en</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">text NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">title_ar</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 </TABLE>>];
 
         hadiths [label=<
@@ -138,7 +190,8 @@ digraph ilham_relational {
 <TR><TD COLSPAN="3" BGCOLOR="#1F6FEB" ALIGN="CENTER"><FONT COLOR="#FFFFFF"><B>corpus.hadiths</B></FONT></TD></TR>
 <TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer  (natural)</FONT></TD></TR>
 <TR><TD PORT="collection_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">collection_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
-<TR><TD PORT="chapter_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">chapter_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL</FONT></TD></TR>
+<TR><TD PORT="kitab_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">kitab_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint</FONT></TD></TR>
+<TR><TD PORT="bab_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">bab_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">integer NULL</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_num</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_plain</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">text_diac</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text</FONT></TD></TR>
@@ -364,9 +417,12 @@ digraph ilham_relational {
     // =========================================================================
 
     // ---- within corpus ----
-    chapters:collection_id            -> collections:collection_id;
+    kitabs:collection_id          -> collections:collection_id;
+    babs:kitab_id                 -> kitabs:kitab_id;
+    babs:surah_num                -> surahs:surah_num          [arrowtail=crowodot];
     hadiths:collection_id             -> collections:collection_id;
-    hadiths:chapter_id                -> chapters:chapter_id           [arrowtail=crowodot];
+    hadiths:kitab_id              -> kitabs:kitab_id           [label="(collection_id, kitab_id)"];
+    hadiths:bab_id                -> babs:bab_id               [arrowtail=crowodot, label="(kitab_id, bab_id)"];
     isnad_links:hadith_id             -> hadiths:hadith_id;
     isnad_links:narrator_id           -> narrators:narrator_id         [arrowtail=crowodot];
     narrators:rank_ibn_hajar          -> rank_levels:rank_code         [arrowtail=crowodot];
@@ -432,6 +488,10 @@ digraph ilham_relational {
     st_narrators  -> narrators;
     st_mentions   -> isnad_links  [label="ETL pass B"];
     st_rank_map   -> narrators    [label="applied once, then dropped"];
+    st_site_kitabs -> kitabs  [label="curated, committed"];
+    st_site_babs   -> babs
+    st_placement   -> hadiths  [label="curated, committed"];
+    st_site_babs   -> st_site_kitabs [style=solid];
 
     // =========================================================================
     // LEGEND
