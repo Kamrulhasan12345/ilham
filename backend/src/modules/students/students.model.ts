@@ -5,10 +5,21 @@ import type { StudentRow } from './students.interface.js';
 // into a circle (docs/backend-prd.md §5.6). No visibility filter — names and
 // emails of students are directory information within the institution, and
 // progress data never rides along (that stays behind the circle-owner check).
-export async function listStudents(): Promise<StudentRow[]> {
+export async function listStudents(query?: string): Promise<StudentRow[]> {
+  if (query === undefined || query.trim() === '') {
+    const { rows } = await pool.query<StudentRow>(
+      `SELECT user_id, email, full_name, student_level, created_at
+         FROM app.students ORDER BY created_at`,
+    );
+    return rows;
+  }
   const { rows } = await pool.query<StudentRow>(
     `SELECT user_id, email, full_name, student_level, created_at
-       FROM app.students ORDER BY created_at`,
+       FROM app.students
+      WHERE email ILIKE '%' || $1 || '%' OR full_name ILIKE '%' || $1 || '%'
+      ORDER BY created_at DESC
+      LIMIT 20`,
+    [query.trim()],
   );
   return rows;
 }

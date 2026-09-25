@@ -261,3 +261,188 @@ describe('GET /review-sessions', () => {
     assert.equal(anonDetail.status, 401);
   });
 });
+
+describe('DELETE /review-sessions/:id -- delete with progress recompute', () => {
+  async function verifiedTeacher(tag: string): Promise<{ accessToken: string; userId: number }> {
+    const email = uniqueEmail(tag);
+    const { accessToken } = await registerAndGetToken(app, email, 'teacher');
+    const { rows } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    const adminEmail = uniqueEmail(`${tag}admin`);
+    const { hashPassword } = await import('../../lib/password.js');
+    await pool.query(
+      `INSERT INTO app.admins (email, password_hash, full_name, role, admin_level)
+       VALUES ($1, $2, 'Flow Admin', 'admin', 'super')`,
+      [adminEmail, await hashPassword('password123')],
+    );
+    const { loginAndGetToken } = await import('../../testUtils/helpers.js');
+    const adminToken = await loginAndGetToken(app, adminEmail);
+    await request(app).post(`/teachers/${rows[0].user_id}/verify`).set(bearer(adminToken));
+    return { accessToken, userId: rows[0].user_id };
+  }
+
+  async function assignedTriple(tag: string) {
+    const teacher = await verifiedTeacher(`${tag}t`);
+    const student = await registerAndGetUserId(uniqueEmail(`${tag}s`), 'student');
+    const hadithId = await firstHadithId();
+    const circle = await request(app)
+      .post('/circles')
+      .set(bearer(teacher.accessToken))
+      .send({ name: `Circle ${tag}` });
+    const set = await request(app)
+      .post('/sets')
+      .set(bearer(teacher.accessToken))
+      .send({ name: `Set ${tag}` });
+    await request(app)
+      .post(`/sets/${set.body.data.study_set_id}/items`)
+      .set(bearer(teacher.accessToken))
+      .send({ hadith_id: hadithId });
+    await request(app)
+      .post(`/circles/${circle.body.data.circle_id}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+    await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({
+        circle_id: circle.body.data.circle_id,
+        study_set_id: set.body.data.study_set_id,
+        due_date: '2027-06-01',
+      });
+    const { rows: found } = await pool.query<{ assignment_id: number }>(
+      'SELECT assignment_id FROM app.assignments WHERE circle_id = $1 ORDER BY assignment_id DESC LIMIT 1',
+      [circle.body.data.circle_id],
+    );
+    return { teacher, student, hadithId, assignmentId: found[0].assignment_id };
+  }
+
+  async function progressOf(studentId: number, hadithId: number) {
+    const { rows } = await pool.query(
+      `SELECT mastery, times_reviewed, last_reviewed, assignment_id FROM app.progress
+        WHERE student_id = $1 AND hadith_id = $2`,
+      [studentId, hadithId],
+    );
+    return rows;
+  }
+
+  test('deleting the fail session restores the pass state exactly', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('recompute');
+
+    const pass = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(pass.status, 201);
+    const fail = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'fail' }] });
+    assert.equal(fail.status, 201);
+
+    let rows = await progressOf(student.userId, hadithId);
+    assert.equal(rows.length, 1);
+    assert.equal(Number(rows[0].mastery), 0);
+    assert.equal(Number(rows[0].times_reviewed), 2);
+
+    const deleted = await request(app)
+      .delete(`/review-sessions/${fail.body.data.session_id}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(deleted.status, 200);
+    assert.equal(deleted.body.data, null);
+
+    rows = await progressOf(student.userId, hadithId);
+    assert.equal(rows.length, 1);
+    assert.equal(Number(rows[0].mastery), 1);
+    assert.equal(Number(rows[0].times_reviewed), 1);
+    assert.ok(rows[0].last_reviewed !== null);
+
+    const gone = await request(app)
+      .get(`/review-sessions/${fail.body.data.session_id}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(gone.status, 404);
+    const { rows: items } = await pool.query('SELECT count(*) FROM app.review_items WHERE session_id = $1', [
+      fail.body.data.session_id,
+    ]);
+    assert.equal(Number(items[0].count), 0);
+  });
+
+  test('a student deletes their own self-study session back to zeros', async () => {
+    const student = await registerAndGetUserId(uniqueEmail('selfdel'), 'student');
+    const hadithId = await firstHadithId();
+
+    const created = await request(app)
+      .post('/review-sessions')
+      .set(bearer(student.accessToken))
+      .send({ student_id: student.userId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(created.status, 201);
+
+    let rows = await progressOf(student.userId, hadithId);
+    assert.equal(Number(rows[0].mastery), 1);
+
+    const deleted = await request(app)
+      .delete(`/review-sessions/${created.body.data.session_id}`)
+      .set(bearer(student.accessToken));
+    assert.equal(deleted.status, 200);
+
+    rows = await progressOf(student.userId, hadithId);
+    assert.equal(rows.length, 1);
+    assert.equal(Number(rows[0].mastery), 0);
+    assert.equal(Number(rows[0].times_reviewed), 0);
+    assert.equal(rows[0].last_reviewed, null);
+  });
+
+  test('a student cannot delete a teacher session (404, session intact)', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('selfguard');
+
+    const created = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(created.status, 201);
+
+    const res = await request(app)
+      .delete(`/review-sessions/${created.body.data.session_id}`)
+      .set(bearer(student.accessToken));
+    assert.equal(res.status, 404);
+
+    const { rows } = await pool.query('SELECT count(*) FROM app.review_sessions WHERE session_id = $1', [
+      created.body.data.session_id,
+    ]);
+    assert.equal(Number(rows[0].count), 1);
+  });
+
+  test('a hadith studied under two triples refuses with 409', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('ambiguous');
+
+    const self = await request(app)
+      .post('/review-sessions')
+      .set(bearer(student.accessToken))
+      .send({ student_id: student.userId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(self.status, 201);
+    const assigned = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    assert.equal(assigned.status, 201);
+
+    const res = await request(app)
+      .delete(`/review-sessions/${self.body.data.session_id}`)
+      .set(bearer(student.accessToken));
+    assert.equal(res.status, 409);
+
+    const { rows } = await pool.query('SELECT count(*) FROM app.review_sessions WHERE session_id = $1', [
+      self.body.data.session_id,
+    ]);
+    assert.equal(Number(rows[0].count), 1);
+  });
+
+  test('an unknown session id is 404', async () => {
+    const teacher = await verifiedTeacher('delunknown');
+    const res = await request(app)
+      .delete('/review-sessions/999999')
+      .set(bearer(teacher.accessToken));
+    assert.equal(res.status, 404);
+  });
+});

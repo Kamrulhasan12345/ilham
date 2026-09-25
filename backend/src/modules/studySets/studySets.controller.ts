@@ -6,6 +6,7 @@ import {
   createStudySet,
   deleteStudySet,
   getStudySetById,
+  isSetAssignedToStudent,
   listStudySetItems,
   listStudySetsForOwner,
   removeStudySetItem,
@@ -44,7 +45,17 @@ export async function getStudySet(req: Request, res: Response, next: NextFunctio
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) throw new BadRequestError('invalid study set id');
-    const set = await requireOwnedStudySet(req, id);
+    const set = await getStudySetById(id);
+    if (!set) throw new NotFoundError('study set not found');
+    // Owners read their sets. An enrolled student reads a set assigned to
+    // their circle — otherwise assigned work is invisible to the assignee.
+    // Hiding existence either way: strangers get 404, not 403. Writes keep
+    // the strict owner check in requireOwnedStudySet below.
+    const { userId, role } = req.user!;
+    const readable =
+      set.owner_id === userId ||
+      (role === 'student' && (await isSetAssignedToStudent(id, userId)));
+    if (!readable) throw new NotFoundError('study set not found');
     const items = await listStudySetItems(id);
     res.json({ data: { ...set, items } });
   } catch (e) {

@@ -1,5 +1,5 @@
 import { pool } from '../../db/pool.js';
-import { hashPassword } from '../../lib/password.js';
+import { hashPassword, verifyPassword } from '../../lib/password.js';
 import type { MeRow, RegisterInput, UserRow } from './auth.interface.js';
 
 // app.users is the inheritance parent; a plain SELECT FROM it scans every
@@ -22,6 +22,37 @@ export async function findMeById(userId: number): Promise<MeRow | null> {
     [userId],
   );
   return rows[0] ?? null;
+}
+
+// Password hashes live on the CHILD tables (students/teachers/admins),
+// never on the inheritance parent — so a hash read or write names the
+// caller's table from their JWT role. The role comes from the signed token
+// and the map below admits only these three literals, so the interpolation
+// cannot carry user input.
+const passwordTables = {
+  student: 'app.students',
+  teacher: 'app.teachers',
+  admin: 'app.admins',
+} as const;
+
+export async function changePassword(
+  userId: number,
+  role: 'student' | 'teacher' | 'admin',
+  currentPassword: string,
+  newPassword: string,
+): Promise<boolean> {
+  const table = passwordTables[role];
+  const { rows } = await pool.query<{ password_hash: string }>(
+    `SELECT password_hash FROM ${table} WHERE user_id = $1`,
+    [userId],
+  );
+  if (!rows[0]) return false;
+  if (!(await verifyPassword(currentPassword, rows[0].password_hash))) return false;
+  await pool.query(`UPDATE ${table} SET password_hash = $2 WHERE user_id = $1`, [
+    userId,
+    await hashPassword(newPassword),
+  ]);
+  return true;
 }
 
 // Inserts into the CHILD table (students/teachers), never the parent

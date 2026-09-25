@@ -265,7 +265,7 @@ describe('GET /progress', () => {
     assert.ok(res.body.data.every((r: { student_id: number }) => r.student_id === studentId));
   });
 
-  test('actual controller behavior: a teacher CAN read another student\u2019s rows via ?student_id= (no ownership gate)', async () => {
+  test('a teacher reads scoped rows via ?student_id= or ?assignment_id=, and gets 400 unfiltered', async () => {
     const teacher = await verifiedTeacherWithCircle('progressteacher');
     const { studentId, assignmentId } = await enrollStudentAndAssign(
       teacher.accessToken,
@@ -283,10 +283,7 @@ describe('GET /progress', () => {
     );
 
     const unfiltered = await request(app).get('/progress').set(bearer(teacher.accessToken));
-    assert.equal(unfiltered.status, 200);
-    assert.ok(
-      unfiltered.body.data.some((r: { student_id: number }) => r.student_id === studentId),
-    );
+    assert.equal(unfiltered.status, 400);
 
     const byAssignment = await request(app)
       .get(`/progress?assignment_id=${assignmentId}`)

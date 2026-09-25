@@ -6,7 +6,7 @@ import { signAccessToken } from '../../lib/jwt.js';
 import { SALT_ROUNDS, verifyPassword } from '../../lib/password.js';
 import { issueRefreshToken, consumeRefreshToken, revokeRefreshToken } from '../../lib/refreshToken.js';
 import { UnauthenticatedError } from '../../lib/errors.js';
-import { findMeById, findUserByEmail, registerUser } from './auth.model.js';
+import { findMeById, findUserByEmail, registerUser, changePassword } from './auth.model.js';
 
 const REFRESH_COOKIE = 'refresh_token';
 const REFRESH_COOKIE_MAX_AGE_MS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
@@ -120,6 +120,23 @@ export async function me(req: Request, res: Response, next: NextFunction) {
         is_verified: row.role === 'teacher' ? (row.is_verified ?? false) : undefined,
       },
     });
+  } catch (e) {
+    next(e);
+  }
+}
+
+const changePasswordSchema = z.object({
+  current_password: z.string().min(1),
+  new_password: z.string().min(8),
+});
+
+export async function changePasswordHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const body = changePasswordSchema.parse(req.body);
+    const { userId, role } = req.user!;
+    const changed = await changePassword(userId, role, body.current_password, body.new_password);
+    if (!changed) throw new UnauthenticatedError('current password is wrong');
+    res.json({ data: null });
   } catch (e) {
     next(e);
   }
