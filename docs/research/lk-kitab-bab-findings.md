@@ -1,333 +1,369 @@
-# LK kitab and bab findings
+# Kitab and bab findings
 
-Status: research only. No DDL change. No ETL change.
-Related issue: #18 (Muqaddimah gap, bug, deferred).
+Status: research only. This document changes no DDL and no ETL.
+Related issue: #18 (Muqaddimah gap).
+Scripts: `scripts/` (same directory). §1 gives the run order.
 
-## 0. Ifta: the corpus itself
+## 0. Goal
 
-Ifta is the primary source. Everything else (LK, online) is a witness
-against it, never the other way round.
+The UI must be English-friendly, and its structure must be accurate. The
+popular hadith sites show each book as kitabs (97 for Bukhari, 56 plus
+the Introduction for Muslim). Each kitab holds babs, and each bab holds
+hadiths. The corpus does not have this structure. It has 5,158 Ifta
+chapters with Arabic titles only, and no kitab level.
 
-Records and identity:
+The target structure is:
 
-- Bukhari: 7,410 records, IDs 4-11,555. Muslim: 7,666 records, IDs
-  11,558-20,610. IDs stay unique within and across books (two IDs
-  missing between the ranges, three before Bukhari's start: source
-  gaps, carried as-is).
-- The loader keeps 7,275 + 7,626 and drops 135 + 40 numberless records
-  as front matter (see below).
+```
+collection → kitab → (surah, Bukhari Tafseer only) → bab → hadith
+```
 
-Numbering (the two books work differently):
+This structure also makes study sets easier to build. A teacher can
+select one hadith, some babs, or a whole kitab. `app.set_items` is
+hadith-level, so the selection expands to hadiths. Study sets need no
+schema change.
 
-- Bukhari: 7,233 distinct numbers for 7,275 kept records. Mostly
-  one-to-one; 39 numbers repeat (max 4 repeats, e.g. 1390, 99). No
-  ranges. Compatible with online numbering at 94.6%.
-- Muslim: 3,011 distinct numbers for 7,626 records; 1,933 numbers
-  repeat, up to 35 narrations under one number (e.g. 1211). Grouped
-  numbering: one number, many narrations. No ranges. Online base
-  numbers cover 97.6% of them.
+This research answers one question: can each corpus hadith go into the
+correct kitab and bab, with evidence?
 
-Text structure:
+The answer is yes. The methods place 14,897 of 14,901 hadiths (99.97%)
+automatically. A manual check of 11 hadiths places the last 4 and corrects
+2. §6 gives the details. The 40 Muqaddimah records join the corpus after
+this research (§8), which gives 14,941 hadiths.
 
-- Matn/sanad split exists almost everywhere in Bukhari (91 missing of
-  7,275) but is absent in a fifth of Muslim (1,542 of 7,626). Matn-tier
-  matching and matn features only fire where the split exists.
-- Single-sanad: 6,447 of 7,275 Bukhari (89%), 4,201 of 7,626 Muslim
-  (55%). Muslim runs up to 7+ parallel chains (2,048 doubles, 781
-  triples). Transmission-word alignment covers single-sanad only, so it
-  reaches far less of Muslim.
-- 48 Bukhari records carry no chain, no mentions, no narrators (chainless
-  texts). Muslim has 1.
+## 1. Sources and method
 
-Chapter shapes (our 5,158 chapters, by title form):
-
-| Book | Topic babs | Verse-quote | Transmitter-named | Kitab headers | Other/surah | Bare `باب` |
-|---|---|---|---|---|---|---|
-| Bukhari (3,812) | 3,476 (6,640 h.) | 312 (595 h.) | 46 | 3 (7 h.) | 20 incl. `سورة X` | 1 (10 h.) |
-| Muslim (1,346) | 1,319 (7,343 h.) | 8 (32 h.) | 0 | 19 (251 h.) | 0 | 0 |
-
-Muslim files 251 hadiths (3.3%) directly under kitab headers instead
-of babs. Bukhari names 46 babs after transmitters (`حدثنا عبدان`)
-and quotes verses as 312+ titles. Exactly one chapter is titled bare
-`باب` (10 hadiths): shared-title grouping can only bite there.
-
-Front matter (dropped, 175 records):
-
-- Bukhari 135: compiler preface (basmala + `قال الشيخ الإمام`),
-  kitab-opening headers (`بسم الله … كتاب الإيمان`), verse headers.
-- Muslim 40: narrator-criticism and methodology chapters (33) plus 4
-  `مقدمة` records. The Muqaddimah hole is 40 records wide, not 4:
-  LK Chapter 0 (92 rows) spans the whole intro, and all of it is
-  unmatched. See #18.
-
-## 1. LK taxonomy
-
-LK ships 16 columns on three levels.
-
-- Kitab level: `Chapter_Number`, `Chapter_English`, `Chapter_Arabic`.
-- Bab level: `Section_Number`, `Section_English`, `Section_Arabic`.
-- Hadith level: `Hadith_number`, `English_Hadith`, `English_Isnad`,
-  `English_Matn`, `Arabic_Hadith`, `Arabic_Isnad`, `Arabic_Matn`,
-  `Arabic_Comment`, `English_Grade`, `Arabic_Grade`.
-
-Counts from the raw files:
-
-| Book | Rows | Kitabs | Babs | EN isnad | EN matn | EN grade |
-|---|---|---|---|---|---|---|
-| Bukhari | 7,345 | 97 (1-97) | 3,423 | 7,343 | 7,345 | 7,345 |
-| Muslim | 7,314 | 57 (0-56) | 1,335 | 7,292 | 7,313 | 7,314 |
-
-Chapter names in English exist. Section names in English exist. Grades
-in both languages exist. The pipeline keeps almost none of this (see §6).
-
-## 2. LK numbering rules
-
-- Bab identity is the pair `(Chapter_Number, Section_Number)`.
-- Section numbers restart in each kitab. 166 section numbers repeat
-  across Bukhari kitabs, 112 across Muslim kitabs.
-- Section numbers run dense 1..N with small gaps.
-- Three kitabs have no sections. Their rows attach to the kitab
-  directly: Bukhari 65 Tafseer (498 rows), Muslim 0.0 Introduction
-  (92 rows), Muslim 51 Hypocrites (21 rows).
-
-## 3. Ifta shape
-
-Each Ifta record carries `book` (collection name only), `chapter`
-(a bab title string, no number), and `hadith_num` (hadith numbering
-only). Ifta has no kitab field and no bab numbers.
-
-Consequences:
-
-- `corpus.chapters.seq` is loader-assigned (order of first appearance).
-  It is stable for one source file, but it is not source data.
-- Our 5,158 chapters (3,812 Bukhari + 1,346 Muslim) are babs, not kitabs.
-- Muslim Muqaddimah records carry an empty `hadith_num`. The extractor
-  drops them as front matter. LK Chapter 0 has no counterpart. See #18.
-
-## 4. Bab overlap (Ifta babs vs LK sections)
-
-Method: all 5,158 Ifta bab titles and all 4,723 LK section keys go
-through the database function `corpus.normalize_arabic` on both sides,
-then join on the result. No Python approximation.
-
-Results (exact normalized full-title join):
-
-- Bukhari: 142 of 3,812 match (3.7%).
-- Muslim: 165 of 1,346 match (12.3%).
-- Every match is strictly one-to-one. No key fans out.
-- No degenerate keys exist. No normalized title is empty. All Ifta
-  normalized titles stay unique.
-
-Near and formatting tiers (R2, same strict one-to-one rule):
-
-- The editions differ in formatting junk (direction marks, quote
-  braces, spacing) that normalization keeps. A letters-only comparison
-  (the same rule as `staging.match_key`) promotes 1,907 further pairs
-  to verified grade: 1,427 Bukhari + 480 Muslim.
-- Prefix/extension tiers (first 60/40 letters, then true substring,
-  length-guarded) add 408 near matches: 26 + 270 + 76 Muslim,
-  3 + 33 Bukhari, plus 3 Bukhari prefix rows. Samples read as the same
-  bab with extra clauses on the LK side.
-- Totals: about 2,214 verified-grade + 408 near = 2,622 of 5,158 babs
-  mappable (51%) by title. Bukhari 1,605 of 3,812 (42%), Muslim 1,017
-  of 1,346 (76%). Reverse: 2,057 of 4,679 LK section keys have no Ifta
-  counterpart (44%).
-
-Fuzzy distances (R4, token-set ratio on letters-only keys, unmatched
-remainder only):
-
-- Score 95+: 1,292 Bukhari + 251 Muslim. Every pair is mutual-best,
-  zero collisions either way, strict edit ratio >= 90 on all of them.
-  Punctuation and junk variants of the same bab. Verified grade.
-- Score 85-95, greedy one-to-one: 137 + 29 kept. Samples read as the
-  same bab with inflection or wording variants. Near grade.
-- Score 75-85: mixed, with visible false pairs. Junk-prone. Excluded.
-- Below 75: junk. Excluded.
-
-Content co-location (R5, through stage-14 translation matches: each of
-our chapters votes with its translated hadiths into LK sections):
-
-- 5,002 of 5,158 chapters (97%) sit 100% in one LK section.
-- 8 more sit >= 80% in one section. 67 split across sections
-  (concentrated in shared-title buckets such as bare `باب`, plus a few
-  real multi-topic babs). Kitab level agrees even more: 5,046 of 5,158
-  (97.8%) in one LK kitab, 31 split.
-- Title matching missed most of this for systematic reasons: LK files
-  verse babs under section-less Tafseer (Bukhari 65, 498 rows),
-  transmitter-named babs under topic sections, and renames such as
-  Ifta `كتاب اللعان` into LK (19, 1) with 27 of 27 hadiths.
-- 81 chapters hold zero translated hadiths and cannot vote. 11 of them
-  hold 4-46 hadiths each, all titled `كتاب X` (Muslim only): kitab
-  header records with real narrations (e.g. #979 Zakat, #2956 Zuhd).
-  LK holds none of these rows (phrase search over all 7,314 Muslim
-  rows: zero hits), so no text match was ever possible. sunnah.com
-  confirms: hadith 979a-h sits before the first numbered bab of Book
-  12, filed at kitab level exactly like our records. Real content, LK
-  coverage gap, untranslatable from this source.
-
-Verification (the matches are real):
-
-- 273 of 307 matched pairs hold exactly the same hadith count on both
-  sides. 29 are close. 5 diverge for known reasons (one bare-`باب`
-  title bucket groups several of our chapters; the rest split
-  narrations differently between editions, e.g. 11 vs 5).
-- Samples read correctly in Arabic with sensible English.
-- One deep check (Bukhari 25.1, #1513 both sides) shows the known
-  offset: our record is the kitab-opening preamble, LK holds the
-  narration. Bab mapping gives co-location, never hadith-level joins.
-  Hadith joins stay text-anchored in stage 14.
-
-Rejected hypotheses:
-
-- Strip the `باب` prefix changes nothing (still 142/165).
-- Muslim LK sections already carry the prefix (99.9%) yet reach only
-  12%. The gap is genuine wording difference between editions, not a
-  normalization trick. No automatic full mapping exists.
-
-## 5. Kitab reconciliation with online numbers
-| | Online | LK | Our corpus |
-|---|---|---|---|
-| Bukhari books | 97 (sunnah.com; Bk 1 Revelation 1-7 … Bk 97 Tawheed 7371-7563) | 97 files, ch. 1-97 | No kitab level |
-| Muslim books | 57 = 56 books + Introduction (sunnah.com) | 57 files, ch. 0-56 | No kitab level |
-| Bukhari babs | ~3,450 (QuranCentral) | 3,423 sections | 3,812 babs |
-| Muslim babs | Same order of magnitude | 1,335 sections | 1,346 babs |
-
-LK chapters equal online books exactly, including endpoints
-(Revelation … Tawheed; Introduction … ch. 56). Our chapters equal
-online sub-chapters in magnitude. Nothing is missing. The two systems
-never shared a level or a numbering.
-
-Per-item check (R1, TaqwaPath book lists, 97 + 56 rows):
-
-- Bukhari: 97 of 97 numbers align, 97 of 97 English titles identical,
-  97 of 97 Arabic titles identical after normalization.
-- Muslim: 56 of 56 align on all three. LK row 0.0 (Introduction) is
-  the only LK-only entry; the online list carries the same content
-  unnumbered (`/muslim/introduction`).
-- Zero title differences. Zero missing kitabs. LK kitab reference data
-  is fully corroborated and safe to import verbatim.
-
-The "one-hadith chapters" need no fix: 62.6% of Bukhari babs hold
-exactly one hadith in the source (max 60); Muslim holds 13.3%
-(max 48). The dump agrees (zero title conflicts, zero chapter-less
-hadiths).
-
-## 6. What the database holds
-
-The pipeline keeps five LK columns into staging and publishes one
-table: `corpus.hadith_translations` (14,197 rows, 95.28% coverage,
-tiers E/P/6/4/M). The only other English in the corpus:
-`collections.title_en` (2 manifest rows) and `narrators.name_en`.
-
-The corpus holds no chapter English, no section English, no grades,
-no comments, and no split isnad/matn English. `corpus.chapters` has
-no English column at all.
-
-## 7. Frontend chapter bug (fixed)
-
-The chapter detail page fetched `/chapters?limit=100` and found the
-chapter client-side. The backend caps limits at 100. Any chapter past
-seq 100 showed "No such chapter". Fix (branch `fix/chapter-seq-filter`,
-uncommitted): optional `seq` filter on `GET /chapters`, detail page
-asks for its own seq. Backend suite 165/165, frontend collections
-tests 13/13.
-
-## 8. Proposed shape (not approved, not built)
-
-- `corpus.lk_kitabs`: 154 LK kitabs (`collection_id`, `kitab_num`
-  as text, `title_en`, `title_ar`). Total table.
-- `corpus.lk_sections`: ~4,723 LK babs (kitab, `section_num`,
-  `title_en`, `title_ar`). Section-less kitabs have no rows.
-- `corpus.chapter_lk_match`: sparse bridge from our chapters to LK.
-  Title evidence covers about 2,214 verified-grade + 574 near rows;
-  content co-location (hadith majority vote, R5) covers 5,002 chapters
-  at 100% plus 8 at >= 80%. The table needs one tier code per
-  evidence class. Split chapters (67) and dark chapters (81) get no
-  row.
-- ETL carries the six `Chapter_*`/`Section_*` columns through staging
-  (staging drops after load, so no runtime surface grows).
-- Per-hadith LK grades stay out until separately approved.
-
-## 9. Hadith alignment and the merge test (N1/N2)
-
-N1a (numbers): online references use Ifta-compatible systems. Muslim
-base numbers cover 97.6% of Ifta numbers (suffixes a/b/c aside).
-Bukhari direct overlap is 94.6% plus range refs (`1258, 1259`, the same
-convention as LK ranges). LK Muslim runs a separate sequential
-1..7314 system and never joins by number.
-
-N1b (text, stage-14 tiers E/P/6/4, online Arabic vs our text): 14,231
-of 14,901 matched (95.5% both books; E 12,418, P 1,462, 6 253, 4 98;
-fan-out 24). On text-matched pairs, online↔Ifta numbers agree 95.5%
-both books. 97.75-99.6% of online-matched hadiths also carry LK
-translations: near-total triple coverage.
-
-N2 (merge test, both directions, via text links): online babs hold a
-mean 1.10/1.01 Ifta babs (merged 1.6%/1.0%); LK sections 1.12/1.02
-(merged 1.5%/1.4%). Reverse means are 1.01-1.02 everywhere. The only
-real merges are Tafseer verse granularity: section-less LK kitab 65
-absorbs 371 Ifta verse babs, and online Book 65 verse babs group
-12-71 Ifta verse babs each. No topical comprising exists. Bab-count
-differences come from edition wording and splits at the margins, not
-from merges.
-
-## 10. Online bab arbitration (R7)
-
-Scraped all 154 sunnah.com book pages (97 Bukhari + 56 Muslim +
-Introduction): 5,413 bab headings with English, Arabic, and in-book
-number. Canonical key space (letters-only, `باب`-stripped, one key per
-title) for all three sources:
-
-| Book | LK | Ifta | Online | All three |
-|---|---|---|---|---|
-| Bukhari | 3,343 | 3,812 | 3,950 | 2,809 |
-| Muslim | 1,331 | 1,346 | 1,338 | 1,086 |
-
-Where online stands when LK and Ifta disagree (Bukhari): with LK 496
-times, with Ifta 219 times, alone 426 times. Muslim: online is LK
-(only 8 online-only and 1 LK-only keys). Ifta-only keys (771 Bukhari,
-258 Muslim) are transmitter-named babs, verse-quote babs, and
-edition splits. Online bab numbering restarts per book and repeats
-within books, like LK sections: numbers never join across sources.
-
-Dark-chapter arbitration (the 81 zero-translation chapters): 32 titles
-exist online as babs (English recoverable in principle, rights
-unchecked), 12 are Muslim kitab headers filed at kitab level online
-too (confirmed live: hadith 979a-h sits before the first numbered bab
-of Book 12), the rest are transmitter-named and verse babs no online
-edition carries as headings.
-
-Caution: online English is the Khan/Siddiqui translation under its own
-terms; LK is an LREC research corpus. Borrowing wording needs a rights
-check, not just a technical join.
-
-## 12. Extra-bab audit (Ifta-only titles)
-
-1,029 Ifta titles sit in neither LK nor online key sets (771 Bukhari,
-258 Muslim). Content accounting per chapter (translated = in LK,
-text-matched = in online):
-
-| Bucket | Bukhari | Muslim |
+| Source | What it is | Bukhari + Muslim |
 |---|---|---|
-| Content in both (all hadiths) | 679 | 192 |
-| Partial (most hadiths in both) | 31 | 54 |
-| In LK, not online | 37 | 4 |
-| In online, not LK | 4 | 8 |
-| In neither | 20 | 0 |
+| Ifta | The corpus (`db/ilham.dump`) | 7,275 + 7,626 hadiths at research time (7,666 with the Muqaddimah) |
+| LK | LREC research corpus, 16 CSV columns | 7,345 + 7,314 rows |
+| Dump | `etl/raw/HadithTable.sql.gz`, sunnah.com MariaDB dump | 7,277 + 7,459 rows |
+| Site | 154 sunnah.com book pages, scraped 2026-09-25 | 7,277 + 7,459 hadiths |
 
-85% are pure renames/refiles: real hadiths, present in both others
-under different labels. Transmitter-named babs (`حدثنا عبدان`) live
-in LK but not online; Muslim kitab headers live online (unbabbled)
-but not in LK. 20 Bukhari chapters (all single hadiths, e.g. #6967,
-#61) sit in neither: real narrations with full isnads, LK gaps and
-online misses. Corpus-wide, 58 hadiths have no bridge at all, and 57
-of them have no translated matn-sibling either: true orphans, all
-kept in Arabic.
+Script run order:
 
-## 13. Open questions
+1. `parse_sn.py` parses the dump to CSV.
+2. `fm.mjs` extracts the 175 records that the ETL drops.
+3. `setup.sql` loads the dump, LK, and the dropped records into a
+   scratch schema `research`.
+4. `match.sql` runs the stage-14 tiers (E/P/6/4/M) against LK and
+   against the dump.
+5. `scrape.py` reads the 154 book pages at 1 request each second.
+6. `fuzzy.py` scores the candidates with seven metrics (§4).
+7. `analyze.py` calibrates each metric.
+8. `combine.py` combines all evidence into one placement for each
+   hadith.
+9. `gen_placement.py` writes `etl/hadith_placement.sql`, with the
+   manual decisions of §6.
 
-- Table names: `lk_*` prefix vs neutral names.
-- Muqaddimah treatment in the import (see #18).
-- Near tier in v1 or verified-only first (recommendation: verified
-  first, near behind a tier flag).
-- English for the 32 online-present dark chapters: rights check first.
+Controls:
+
+- The LK replica of stage 14 gives 14,197 matches. Each match has the
+  same hadith and the same tier as `corpus.hadith_translations`.
+- Each site hadith carries the id `h<arabicURN>`. All 14,736 site
+  hadiths join the dump on `arabicURN`, and they all have the same kitab.
+
+The scratch schema is not part of the database. Drop it after use.
+
+## 2. The target structure (the site)
+
+| | Bukhari | Muslim |
+|---|---|---|
+| Kitabs | 97 | 57 (Introduction + 56) |
+| Bab headings | 3,979 | 1,343 |
+| Surah-level babs (see below) | 10 | 0 |
+| Babs with no hadith | 114 | 4 |
+| Bab headings without English | 23 | 2 |
+| Hadiths before the first bab of a kitab | 6 | 177 |
+| Bab intro paragraphs (`echapintro`) | 592 | 4 |
+| Surah level | Kitab 65 only, 83 surahs | None |
+
+Facts about the structure:
+
+- Bab numbers restart in each kitab. In kitab 65, they restart in each
+  surah. The key of a bab is its position on the page, not its number.
+- Muslim puts 177 hadiths directly under a kitab, before the first bab
+  (for example, hadith 979 in Zakat). The corpus must permit a hadith
+  in a kitab without a bab.
+- In kitab 65, 10 surahs hold hadiths directly under the surah heading,
+  before any bab. Each such run gets a bab of its own, titled with the
+  surah and with no bab number. Every Tafseer hadith is then in a bab.
+- The page order is the order of the scraped JSON. An early version of
+  the scripts numbered the rows after the load, and one row moved. The
+  scripts now key each row on its JSON index.
+- The dump has only the babs that hold hadiths. It has no surah names,
+  no intro paragraphs, and no heading-only babs. The site has all of
+  them.
+- The dump groups hadiths into babs almost exactly as the site does.
+  5 Bukhari dump babs split on the site, and 2 site babs merge dump
+  babs. The Muslim grouping is identical.
+
+## 3. How the witnesses relate
+
+- The LK kitab and the site kitab are the same for all 14,076 hadiths
+  that match both. All 154 LK kitab titles are equal to the site
+  titles.
+- LK section numbers are the site bab numbers. 4,578 of 4,823 LK
+  section titles are equal to the site's English bab title.
+- LK English and the site English are the same translation. 12,642 of
+  14,076 hadith texts have a trigram similarity above 0.8.
+- Result: LK is a derivative of sunnah.com. LK is coarser in one place:
+  kitab 65 (Tafseer) has no sections in LK.
+
+## 4. Matching methods and their calibration
+
+The research tried each method that the earlier online study used,
+except semantic matching (see the end of this section).
+
+Text methods compare the Ifta Arabic with each witness row. The
+comparison key is `corpus.normalize_arabic`, then letters and spaces
+only, then the anchor at the first narration verb, then the first 400
+characters. Char 3–5-gram TF-IDF picks the 25 best candidates. Every
+metric then scores each candidate.
+
+| Code | Metric |
+|---|---|
+| `tfidf` | Cosine of char 3–5-gram TF-IDF |
+| `lev` | `rapidfuzz` ratio (Indel-normalized Levenshtein) |
+| `levd` | True Levenshtein, normalized |
+| `part` | Partial ratio (best substring alignment) |
+| `tset` | Token-set ratio |
+| `tsort` | Token-sort ratio |
+| `jw` | Jaro-Winkler |
+
+Calibration: the script runs each metric on the hadiths whose witness
+row is known from stage 14. It then counts how often the best
+candidate is in the correct bab. Bab accuracy at the top score band:
+
+| Metric | Band | Dump, Bukhari | Dump, Muslim | LK, Bukhari | LK, Muslim |
+|---|---|---|---|---|---|
+| `part` | >= 98 | 100.0% | 99.9% | 100.0% | 99.9% |
+| `tset` | >= 98 | 99.8% | 99.8% | 99.8% | 99.8% |
+| `lev` | >= 98 | 100.0% | 100.0% | 99.9% | 100.0% |
+| `levd` | >= 95 | 99.3% | 100.0% | 98.0% | 100.0% |
+| `tsort` | >= 95 | 98.9% | 98.7% | 98.8% | 98.7% |
+| `tfidf` | >= 95 | 99.2% | 98.6% | 99.4% | 99.3% |
+| `jw` | >= 95 | 99.7% | 98.2% | 99.5% | 98.1% |
+
+Accuracy falls fast below these bands. Example: `jw` at 85–90 gives
+34–68%. `analyze.py` prints the full tables.
+
+A fuzzy placement needs two strong metrics that agree, and no strong
+metric that disagrees.
+
+Structural methods do not read text:
+
+- **Sandwich.** The placed hadiths before and after, in source order,
+  are in the same bab. Leave-one-out accuracy: 6,648 of 6,651 (99.95%).
+- **Inheritance.** All other placed hadiths of the same Ifta chapter
+  are in one bab. Leave-one-out accuracy: Bukhari 98.4%, Muslim 99.93%.
+- **Number.** All dump rows with the Ifta hadith number are in one bab.
+  On text-matched pairs, the Ifta number equals the dump base number
+  for 99.7% of Bukhari and 98.4% of Muslim.
+- **Title.** The Ifta chapter title equals or contains the site bab
+  title, or the reverse.
+
+Agreement between methods, where both apply (bab level):
+
+| | Dump text | Dump fuzzy | LK text | LK fuzzy | Sandwich |
+|---|---|---|---|---|---|
+| Dump fuzzy | 99.92% | | | | |
+| LK text | 100.00% | 99.92% | | | |
+| LK fuzzy | 99.90% | 99.90% | 99.94% | | |
+| Sandwich | 99.94% | 99.77% | 99.97% | 99.79% | |
+| Inheritance | 99.28% | 99.12% | 99.54% | 99.43% | 100.00% |
+
+Semantic matching was not run. The machine has about 430 MB of free
+memory, and a multilingual embedding model needs about 500 MB. After
+the other methods, only 11 hadiths are open (§6). All 11 are short
+isnad fragments (`( ح ) وحدثنا …`) with no matn. Semantic similarity
+cannot place a fragment that has no content. A manual check is faster
+and exact.
+
+## 5. Decision rule
+
+Each method votes for a `(kitab, bab)` with a weight:
+
+| Evidence | Weight |
+|---|---|
+| Text tier E / P / 6 / M / 4 | 3 / 2.5 / 2 / 1.5 / 1 |
+| Dump fuzzy | 2 |
+| LK fuzzy | 1.5 |
+| Number | 2 |
+| Sandwich | 1.5 |
+| Title | 1.5 |
+| Inheritance | 1 |
+
+The target with the highest total wins. A margin below 1.5 goes to
+manual review.
+
+The vote corrects errors in the text tiers. Example: Muslim 1736
+(prohibition of betrayal) matched a row in the Book of Faith through a
+40-letter prefix that holds only the isnad. Five other methods put it
+in kitab 32. The vote changes 51 placements. A sample of 16 changes and
+9 hand-checked cases were all correct.
+
+## 6. Placement result
+
+| | Bukhari | Muslim |
+|---|---|---|
+| In a bab | 7,269 | 7,448 |
+| At kitab level (the site does the same) | 6 | 178 |
+| Not placed by the methods (placed by hand) | 0 | 4 |
+| Margin below 1.5 | 2 | 5 |
+
+The table shows the final state, after the manual check.
+
+The manual list has 11 hadiths: the 4 not placed and the 7 with a low
+margin. Hand review of these 11:
+
+- 7 have a clear bab from the title and the neighbours.
+- 2 low-margin picks are wrong. Muslim 1935 belongs in kitab 34, and
+  Muslim 1977 belongs in kitab 35. A shared isnad pulled the fuzzy
+  votes to the wrong kitab.
+- The 4 not placed are isnad fragments of Muslim 1365 (kitab 16) and
+  Muslim 157 (kitab 47). Each one belongs to the bab of its main
+  narration.
+
+Site babs:
+
+- Bukhari: 3,870 of 3,989 babs get at least one corpus hadith. 5 babs
+  hold only hadiths that the corpus does not have. 114 are heading-only.
+- Muslim: 1,337 of 1,343 babs get at least one corpus hadith. 2 hold
+  only site hadiths. 4 are heading-only.
+
+Ifta chapters against site babs:
+
+- 5,077 Ifta chapters go into one site bab.
+- 66 Ifta chapters split across site babs. 30 of them cross a kitab
+  boundary.
+- 15 Ifta chapters hold only kitab-level hadiths.
+- 22 site babs merge more than one Ifta chapter.
+
+The Ifta chapter is therefore not a reliable unit of structure. The
+hadith placement is.
+
+## 7. Stage-14 errors found
+
+The vote shows that stage 14 attaches the wrong English to some
+hadiths. The kitab of the LK row differs from the voted kitab in these
+cases:
+
+| Tier | Checked | Wrong kitab |
+|---|---|---|
+| E | 12,026 | 1 |
+| P | 1,684 | 1 |
+| 6 | 278 | 1 |
+| 4 | 106 | 4 |
+| M | 103 | 0 |
+
+Examples: Bukhari 1443 (charity) has the English of a hadith about
+looking into a house. Muslim 544 (the steps of the minbar) has the
+English of the confessing adulterer.
+
+Tier 4 matches on 40 letters. Often these letters are only the isnad.
+About 4% of tier-4 translations are in the wrong kitab. The bab-level
+check finds a few more (tier 4: 3 of 92, tier M: 3 of 63). This is a
+separate bug in stage 14. The fix is to require the vote to agree
+before a translation is published.
+
+## 8. Records that the ETL drops
+
+Bukhari (135 records without a number):
+
+- 127 match a site bab intro paragraph. 65 match a heading-only bab.
+- 8 contain a narration that is in a site hadith. 4 match nothing.
+- These records are structure (bab headings, verse glosses, the
+  preface), not hadiths. They can fill the Arabic intro text of a bab.
+
+Muslim (40 records, the Muqaddimah). Issue #18, now fixed.
+
+Before the fix:
+
+- Ifta kept 24 Muqaddimah hadiths (numbers 1–7). All sources put them in
+  the Introduction.
+- The extractor dropped 40 Muqaddimah records, because they have no number.
+- 28 of the 40 are reports about narrators. They match site hadiths
+  "Introduction 26" to "Introduction 77" and LK kitab 0. One Ifta record
+  often holds several site hadiths (up to 16).
+- 12 of the 40 are Imam Muslim's own prose: the preface and the
+  methodology sections.
+
+The fix:
+
+- `etl/book_manifest.json` gives Sahih Muslim the key
+  `unnumbered_label: "Muqaddimah"`. The extractor keeps Muslim's numberless
+  records and numbers them `Muqaddimah 1` to `Muqaddimah 40` in source
+  order. Bukhari has no such key, so its 135 numberless records stay out.
+- Each Ifta chapter title of the 40 records names exactly one bab of the
+  Introduction on the site. `etl/hadith_placement.sql` files them there
+  (via `M`, with the reason on each row). The 4 preface records go to the
+  kitab level, before the first bab.
+
+The result:
+
+| Place in the Introduction | Hadiths | With English | With a chain |
+|---|---|---|---|
+| Before the first bab (preface) | 4 | 0 | 0 |
+| Bab 1 | 2 | 0 | 2 |
+| Bab 2 | 5 | 5 | 5 |
+| Bab 3 | 8 | 8 | 8 |
+| Bab 4 | 11 | 11 | 11 |
+| Bab 5 | 7 | 7 | 7 |
+| Bab 6 | 22 | 17 | 8 |
+| Bab 7 | 1 | 0 | 0 |
+| Bab 8 | 4 | 0 | 0 |
+
+- The Introduction holds 64 hadiths. Stage 14 attaches LK English to 24 of
+  the 40 new records, with no change to its tiers.
+- LK's Introduction holds only its 92 narrations, and the site shows the
+  preface outside its hadith list. The 12 prose passages therefore have no
+  English source. They keep their Arabic, as the corpus rule says.
+- 23 of the new records carry no chain (the prose, and statements such as
+  «قال مسلم»). `chain_strength` returns NULL for them, like the other
+  chainless hadiths (72 in total).
+
+## 9. Ifta facts that constrain the design
+
+- Bukhari: 7,233 distinct numbers for 7,275 hadiths. Muslim: 3,011
+  distinct numbers for 7,626 hadiths (one number groups up to 35
+  narrations). The site suffix (`1211 a`, `1211 b`) tells the
+  narrations apart.
+- 2,388 Bukhari chapters (62.6%) and 179 Muslim chapters (13.3%) hold
+  one hadith.
+- `corpus.chapters.seq` is set by the loader. It is not source data.
+- The dump grade and the LK grade have one value each (`Sahih`). They
+  give no information.
+- The dump has sunnah.com narrator ids on 14,471 rows. This is a second
+  witness for stage 12. It is out of scope here.
+
+## 10. Rights
+
+- The sunnah.com repositories have no license file. The developers page
+  offers an API key and offline dumps on request. It states no terms of
+  reuse.
+- LK carries the same English as sunnah.com (§3). The corpus already
+  publishes this English through `hadith_translations`. A new
+  structure from the same source does not change the rights position.
+- A placement table (hadith → kitab number, bab position) holds facts
+  only, no text.
+- Do not commit the dump or the scrape. `etl/raw/` is git-ignored.
+
+## 11. Decisions for the build
+
+1. **Source of the structure.** Take the site structure (kitabs, surahs,
+   all babs, English titles) from the dump and the scrape, or take it
+   from LK alone. LK has no Tafseer babs and no heading-only babs.
+2. **How the ETL places hadiths.** Commit a curated placement file
+   (like `etl/rank_map.sql`), made by these scripts. Or run the
+   matching in SQL during the ETL. `part` and `tset` have no SQL
+   version, so SQL would lose the two best metrics.
+3. **The Ifta chapter.** Replace `corpus.chapters` with the new babs,
+   or keep it as provenance beside them.
+4. **Stage-14 fix.** Correct the translation errors of §7 in the same
+   change, or in a separate change.
+
+Decided on 2026-09-25: (1) the dump and the scrape, (2) a curated
+placement file, (3) replace `corpus.chapters`, (4) a separate change,
+issue #24. The Muqaddimah (#18) is fixed in the same change as the
+hierarchy (§8).
