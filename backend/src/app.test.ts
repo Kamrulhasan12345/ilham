@@ -6,7 +6,7 @@ import { pool } from './db/pool.js';
 import { extractCookie, fakeIp, uniqueEmail } from './testUtils/helpers.js';
 
 describe('guarded route prefixes', () => {
-  for (const prefix of ['/collections', '/chapters', '/hadiths', '/narrators', '/circles', '/notes', '/students']) {
+  for (const prefix of ['/collections', '/kitabs', '/babs', '/hadiths', '/narrators', '/circles', '/notes', '/students']) {
     test(`${prefix} rejects an unauthenticated request with 401`, async () => {
       const res = await request(app).get(prefix);
       assert.equal(res.status, 401);

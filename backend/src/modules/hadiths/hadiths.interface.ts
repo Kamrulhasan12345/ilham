@@ -1,7 +1,8 @@
 export interface HadithRow {
   hadith_id: number;
   collection_id: number;
-  chapter_id: number | null;
+  kitab_id: number;
+  bab_id: number | null;
   hadith_num: string;
   text_plain: string;
   text_diac: string;
@@ -11,7 +12,9 @@ export interface HadithRow {
 
 export interface HadithListParams {
   collectionId?: number;
-  chapterId?: number;
+  kitabId?: number;
+  /** A bab id, or null for the hadiths filed under the kitab itself. */
+  babId?: number | null;
   q?: string;
   limit: number;
   offset: number;
@@ -30,9 +33,18 @@ export interface HadithCollection {
   title_en: string | null;
 }
 
-export interface HadithChapter {
-  chapter_id: number;
+export interface HadithKitab {
+  kitab_id: number;
+  kitab_num: number;
+  title_en: string;
+  title_ar: string;
+}
+
+export interface HadithBab {
+  bab_id: number;
   seq: number;
+  bab_num: string | null;
+  title_en: string | null;
   title_ar: string;
 }
 
@@ -82,7 +94,9 @@ export interface ChainStrengthBasis {
 export interface HadithDetail {
   hadith: HadithRow;
   collection: HadithCollection;
-  chapter: HadithChapter | null;
+  kitab: HadithKitab;
+  /** NULL for a hadith the book files under the kitab itself. */
+  bab: HadithBab | null;
   translation: TranslationRow | null;
   isnadChain: IsnadLinkRow[];
   chains: SanadChain[];
