@@ -1,4 +1,6 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider, useAuth } from './AuthContext';
 
@@ -21,6 +23,15 @@ function Probe() {
   return <p>signed in as {auth.state.user.full_name}</p>;
 }
 
+function renderAuth(ui: ReactNode) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>{ui}</AuthProvider>
+    </QueryClientProvider>,
+  );
+}
+
 describe('AuthProvider', () => {
   beforeEach(() => {
     vi.mocked(refreshAccessToken).mockReset();
@@ -38,11 +49,7 @@ describe('AuthProvider', () => {
       email: 'amina@example.com',
     });
 
-    render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
-    );
+    renderAuth(<Probe />);
 
     expect(screen.getByText('loading')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('signed in as Amina')).toBeInTheDocument());
@@ -51,11 +58,7 @@ describe('AuthProvider', () => {
   it('becomes signed-out when the startup refresh fails', async () => {
     vi.mocked(refreshAccessToken).mockRejectedValue(new Error('no session'));
 
-    render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
-    );
+    renderAuth(<Probe />);
 
     await waitFor(() => expect(screen.getByText('signed out')).toBeInTheDocument());
   });
@@ -70,11 +73,7 @@ describe('AuthProvider', () => {
       return null;
     }
 
-    render(
-      <AuthProvider>
-        <CaptureReady />
-      </AuthProvider>,
-    );
+    renderAuth(<CaptureReady />);
 
     await waitFor(() => expect(capturedReady).toBeDefined());
     await expect(capturedReady).resolves.toEqual({ status: 'signed-out' });
@@ -95,11 +94,7 @@ describe('AuthProvider', () => {
       return <Probe />;
     }
 
-    render(
-      <AuthProvider>
-        <Capture />
-      </AuthProvider>,
-    );
+    renderAuth(<Capture />);
     await waitFor(() => expect(screen.getByText('signed in as Amina')).toBeInTheDocument());
 
     await act(async () => {
@@ -118,11 +113,7 @@ describe('AuthProvider', () => {
       email: 'amina@example.com',
     });
 
-    render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
-    );
+    renderAuth(<Probe />);
 
     await waitFor(() => expect(screen.getByText('signed in as Amina')).toBeInTheDocument());
     expect(onSessionLost).toHaveBeenCalledWith(expect.any(Function));
@@ -137,11 +128,7 @@ describe('AuthProvider', () => {
       email: 'amina@example.com',
     });
 
-    render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
-    );
+    renderAuth(<Probe />);
 
     await waitFor(() => expect(screen.getByText('signed in as Amina')).toBeInTheDocument());
     expect(onSessionLost).toHaveBeenCalledWith(expect.any(Function));

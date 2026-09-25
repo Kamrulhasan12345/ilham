@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -12,6 +12,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
 import { Dumbbell } from '../../../domain/Dumbbell';
 import { apiFetch } from '../../../lib/apiClient';
 
@@ -51,7 +52,7 @@ function ContestedPage() {
   }
   if (isError || !data) {
     return (
-      <Empty>
+      <Empty className="border">
         <EmptyHeader>
           <EmptyTitle>The comparison could not be loaded</EmptyTitle>
           <EmptyDescription>Try again.</EmptyDescription>
@@ -67,15 +68,19 @@ function ContestedPage() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Where do the two scholars disagree?</h1>
-        <p className="text-muted-foreground">
-          Sorted by the gap, which runs 1 to 5. The first {LIMIT} contested narrators — a cap,
-          printed because a silent top-N reads as everyone.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        crumbs={[{ label: 'Analytics', href: '/analytics' }]}
+        title="Where do the two scholars disagree?"
+        description={`Sorted by the gap, which runs 1 to 5. The first ${LIMIT} contested narrators: a cap, printed because a silent top-N reads as everyone.`}
+      />
       <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Ibn Hajar against al-Dhahabi</h2>
+          </CardTitle>
+          <CardDescription>Each row joins the two grades on the six-grade axis</CardDescription>
+        </CardHeader>
         <CardContent>
           <Dumbbell
             rows={rows.map((row) => ({
@@ -89,46 +94,55 @@ function ContestedPage() {
           />
         </CardContent>
       </Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Narrator</TableHead>
-            <TableHead>Ibn Hajar</TableHead>
-            <TableHead>Al-Dhahabi</TableHead>
-            <TableHead className="w-20">Gap</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.narrator_id}>
-              <TableCell>
-                <Link
-                  to="/narrators/$narratorId"
-                  params={{ narratorId: String(row.narrator_id) }}
-                  className="hover:underline"
-                >
-                  <span dir="rtl" lang="ar" className="font-arabic">
-                    {row.display_name}
-                  </span>
-                </Link>
-              </TableCell>
-              <TableCell>
-                <span dir="rtl" lang="ar" className="font-arabic">
-                  {row.label_ibn_hajar}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span dir="rtl" lang="ar" className="font-arabic">
-                  {row.label_dhahabi}
-                </span>
-              </TableCell>
-              <TableCell className="font-mono tabular-nums">
-                {Math.abs(row.ordinal_ibn_hajar - row.ordinal_dhahabi)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Grades side by side</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Narrator</TableHead>
+                <TableHead>Ibn Hajar</TableHead>
+                <TableHead>Al-Dhahabi</TableHead>
+                <TableHead className="w-20">Gap</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.narrator_id}>
+                  <TableCell>
+                    <Link
+                      to="/narrators/$narratorId"
+                      params={{ narratorId: String(row.narrator_id) }}
+                      className="hover:underline"
+                    >
+                      <span dir="rtl" lang="ar" className="font-arabic">
+                        {row.display_name}
+                      </span>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <span dir="rtl" lang="ar" className="font-arabic">
+                      {row.label_ibn_hajar}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span dir="rtl" lang="ar" className="font-arabic">
+                      {row.label_dhahabi}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-mono tabular-nums">
+                    {Math.abs(row.ordinal_ibn_hajar - row.ordinal_dhahabi)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

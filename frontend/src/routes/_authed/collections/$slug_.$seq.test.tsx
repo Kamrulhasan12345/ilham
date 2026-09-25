@@ -60,7 +60,8 @@ function mockApiFetch(chapters: unknown[], hadiths: unknown[]) {
     if (path.startsWith('/chapters')) {
       // The page asks for one seq; the mock answers like the API does.
       const seq = new URL(path, 'http://localhost').searchParams.get('seq');
-      if (seq !== null) return chapters.filter((c) => String((c as { seq: number }).seq) === seq) as never;
+      if (seq !== null)
+        return chapters.filter((c) => String((c as { seq: number }).seq) === seq) as never;
       return chapters as never;
     }
     return hadiths as never;

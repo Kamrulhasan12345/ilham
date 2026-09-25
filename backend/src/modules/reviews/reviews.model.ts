@@ -71,6 +71,99 @@ export async function createReviewSession(input: CreateReviewSessionInput): Prom
   });
 }
 
+function foldResult(
+  state: { mastery: number; times: number },
+  result: 'pass' | 'partial' | 'fail',
+  first: boolean,
+): { mastery: number; times: number } {
+  if (first) {
+    return { mastery: result === 'pass' ? 1 : 0, times: 1 };
+  }
+  if (result === 'pass') return { mastery: Math.min(state.mastery + 1, 4), times: state.times + 1 };
+  if (result === 'fail')
+    return { mastery: Math.max(state.mastery - 1, 0), times: state.times + 1 };
+  return { mastery: state.mastery, times: state.times + 1 };
+}
+
+// Delete a session and rebuild the progress it touched. Mastery folds are
+// path-dependent (least/greatest clamps), so there is no inverse operation:
+// the only exact undo replays the REMAINING items in time order through the
+// same rules creation uses. Attribution needs the triple, and items carry no
+// assignment link — so a hadith studied under several triples refuses with
+// 'ambiguous' (the teacher override stays available for those).
+//
+// Zeroed rows are UPDATED, never deleted: trg_progress_stats fires on INSERT
+// and UPDATE only, so a delete would leave student_stats stale. A zeroed
+// self-study row is behaviourally identical to never-reviewed.
+export async function deleteReviewSession(
+  sessionId: number,
+  actorUserId: number,
+): Promise<'deleted' | 'missing' | 'ambiguous'> {
+  return withTransaction(async (client) => {
+    const { rows: found } = await client.query<ReviewSessionRow>(
+      `SELECT session_id, student_id, reviewer_id, circle_id, created_at
+         FROM app.review_sessions WHERE session_id = $1`,
+      [sessionId],
+    );
+    const session = found[0];
+    if (!session) return 'missing';
+
+    const { rows: doomed } = await client.query<{ hadith_id: number }>(
+      `SELECT hadith_id FROM app.review_items WHERE session_id = $1`,
+      [sessionId],
+    );
+    const hadiths = [...new Set(doomed.map((r) => r.hadith_id))];
+
+    // Checks first: no writes happen before every triple is attributable.
+    const triples = new Map<number, { progress_id: number; assignment_id: number | null }>();
+    for (const hadithId of hadiths) {
+      const { rows } = await client.query<{
+        progress_id: number;
+        assignment_id: number | null;
+      }>(
+        `SELECT progress_id, assignment_id FROM app.progress
+          WHERE student_id = $1 AND hadith_id = $2`,
+        [session.student_id, hadithId],
+      );
+      if (rows.length !== 1) return 'ambiguous';
+      triples.set(hadithId, rows[0]);
+    }
+
+    // Same actor attribution the teacher override uses.
+    await client.query(`SELECT set_config('ilham.user_id', $1, true)`, [String(actorUserId)]);
+
+    for (const hadithId of hadiths) {
+      const triple = triples.get(hadithId)!;
+      const { rows: rest } = await client.query<{
+        result: 'pass' | 'partial' | 'fail';
+        created_at: string;
+      }>(
+        `SELECT ri.result, rs.created_at
+           FROM app.review_items ri
+           JOIN app.review_sessions rs ON rs.session_id = ri.session_id
+          WHERE rs.student_id = $1 AND ri.hadith_id = $2 AND rs.session_id <> $3
+          ORDER BY rs.created_at, rs.session_id`,
+        [session.student_id, hadithId, sessionId],
+      );
+      let state = { mastery: 0, times: 0 };
+      let last: string | null = null;
+      rest.forEach((item, i) => {
+        state = foldResult(state, item.result, i === 0);
+        last = item.created_at;
+      });
+      await client.query(
+        `UPDATE app.progress SET mastery = $2, times_reviewed = $3, last_reviewed = $4
+          WHERE progress_id = $1`,
+        [triple.progress_id, state.mastery, state.times, last],
+      );
+    }
+
+    await client.query('DELETE FROM app.review_items WHERE session_id = $1', [sessionId]);
+    await client.query('DELETE FROM app.review_sessions WHERE session_id = $1', [sessionId]);
+    return 'deleted';
+  });
+}
+
 export async function listReviewSessionsForStudent(studentId: number): Promise<ReviewSessionRow[]> {
   const { rows } = await pool.query<ReviewSessionRow>(
     `SELECT session_id, student_id, reviewer_id, circle_id, created_at

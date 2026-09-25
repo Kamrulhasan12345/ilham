@@ -3,16 +3,22 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthProvider, useAuth } from './auth/AuthContext';
-import { onSessionLost } from './lib/apiClient';
+import { ApiError, onSessionLost } from './lib/apiClient';
 import { router } from './router';
 import './index.css';
-import './styles/tokens.css';
-import './styles/reset.css';
-import './styles/base.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 60_000 },
+    queries: {
+      staleTime: 60_000,
+      // A 4xx is the server's answer, not a flaky network: retrying a 404
+      // three times is how one missing row becomes four identical requests.
+      // Contract errors (zod) are client bugs and never heal on retry either.
+      retry: (failureCount, error) => {
+        if (error instanceof ApiError) return false;
+        return failureCount < 2;
+      },
+    },
   },
 });
 

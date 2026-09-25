@@ -27,16 +27,20 @@ export function Shell({ children }: { children: ReactNode }) {
         </a>
         {state.status === 'signed-in' ? <AppSidebar /> : null}
         <SidebarInset id="main" tabIndex={-1} className="outline-none">
-          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-            {state.status === 'signed-in' ? <SidebarTrigger /> : null}
-            <Separator orientation="vertical" className="h-4" />
-            <span className="text-sm font-semibold">
-              Ilham{' '}
-              <span dir="rtl" lang="ar" className="font-arabic">
-                إلهام
+          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur md:px-6">
+            {state.status === 'signed-in' ? (
+              <>
+                <SidebarTrigger />
+                <Separator orientation="vertical" className="h-4" />
+              </>
+            ) : (
+              <span className="text-sm font-semibold">
+                Ilham{' '}
+                <span dir="rtl" lang="ar" className="font-arabic">
+                  إلهام
+                </span>
               </span>
-            </span>
-            <span className="flex-1" />
+            )}
             {state.status === 'signed-in' ? (
               <>
                 <Button
@@ -59,6 +63,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 </Button>
               </>
             ) : null}
+            <span className="flex-1" />
             <ThemeSwitch />
           </header>
           {state.status === 'signed-in' && role === 'teacher' && state.user.is_verified !== true ? (
@@ -71,7 +76,7 @@ export function Shell({ children }: { children: ReactNode }) {
           ) : null}
           {/* The single page column for every route: centered, capped,
               evenly padded. Pages must not add their own outer padding. */}
-          <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 p-4 md:p-6">
+          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-8">
             {children}
           </div>
         </SidebarInset>

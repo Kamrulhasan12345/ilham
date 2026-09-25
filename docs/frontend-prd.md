@@ -208,9 +208,9 @@ component skin must touch one layer and no page.
 ```
 Layer 0  tokens        CSS custom properties only. No selectors, no components.
             ▲
-Layer 1  primitives    Button, Input, Field, Chip, Tag, Table, Dialog, Toast,
-            ▲          Slider… They read tokens and know nothing about hadiths.
-            ▲          There is no Card: Apparatus has no cards.
+Layer 1  primitives    shadcn/ui: Button, Input, Field, Card, Item, Table,
+            ▲          Dialog, Toast, Slider… They read tokens and know nothing
+            ▲          about hadiths.
 Layer 2  domain        Chain, ChainMark, GradeLine, StrengthPlot, VerdictBand,
             ▲          GenerationFilter, TransmissionWord, Rail. They know
             ▲          hadiths. There is no GradeChip — a grade is never a chip.
@@ -222,47 +222,47 @@ directly. A primitive never imports a domain component.
 
 ### 4.2 The rule that makes a swap possible
 
-**A colour, size, space, radius, or duration literal outside Layer 0 is a
-defect.** Every value comes through `var(--token)`.
+**A raw colour in Layers 1 to 3 is a defect.** Every colour comes through a
+semantic Tailwind class that reads a preset token: `bg-primary`,
+`text-muted-foreground`, `border-border`, `bg-chart-1`, and so on. Do not use a
+palette class such as `bg-green-600`. Do not use a hex value or `rgb(` in a
+component.
 
-Enforce it. A CI check greps Layers 1 to 3 for a hex colour, an `rgb(`, or a
-raw `px` outside a border width. The check fails the build. The design system
-already passes this check: `specimen.html` and `demo.html` contain no raw hex
-outside `:root`.
+Layer 1 is the shadcn/ui component set. The preset owns its colours, radius,
+and font. A page changes layout with `className`. A page does not override the
+colours of a component.
 
 ### 4.3 Files
 
 ```
-frontend/src/styles/
-├── tokens.css            ← Layer 0. The only file a new theme replaces.
-├── reset.css
-└── base.css              ← element defaults that read tokens
-
-frontend/src/ui/          ← Layer 1. One folder per primitive.
-│   Button/{Button.tsx, Button.module.css, index.ts}
-│   …
-frontend/src/domain/      ← Layer 2.
-│   IsnadLadder/…
-│   StrengthPlot/…
-frontend/src/routes/      ← Layer 3. TanStack Router file-based tree.
+frontend/components.json      ← the shadcn preset: style, base colour, theme.
+frontend/src/index.css        ← Layer 0. The :root and .dark token blocks,
+                                 written by the preset, plus app tokens
+                                 (--font-arabic, --heat-*).
+frontend/src/components/ui/   ← Layer 1. shadcn/ui components.
+frontend/src/app/             ← Shared app parts: Shell, PageHeader,
+                                 StatCard, Pager, SearchForm, Showcase.
+frontend/src/domain/          ← Layer 2. IsnadChain, StrengthPlot, Heatmap…
+frontend/src/routes/          ← Layer 3. TanStack Router file-based tree.
 ```
 
-Copy the `:root` block from `docs/design/specimen.html` into `tokens.css`. That
-block is the source of truth today. After the copy, `tokens.css` becomes the
-source of truth and `specimen.html` becomes the illustration.
-
-**Build against `docs/design/DESIGN.md`.** It states every token, rule and
-component behaviour in the form this layer needs. `docs/design/README.md` gives
-the reasons for each one, and the specimen shows them rendering on both grounds.
+The study heatmap maps `--heat-0` to `--heat-4` onto the preset's chart ramp
+(`--chart-*`). A theme change therefore repaints the heatmap too.
 
 ### 4.4 Swapping a design system
 
-To change the whole look, replace `tokens.css`. Nothing else changes.
+To change the whole look, apply a new preset. Build the preset at
+`ui.shadcn.com/create`, then run this command in `frontend/`:
 
-To change a component skin, replace one `*.module.css` in Layer 1.
+```bash
+npx shadcn@latest apply <preset-code> --only theme
+```
 
-To support two themes at once, add a second token block under a
-`[data-theme="…"]` selector. The current tokens already do this for dark mode.
+The command rewrites the `:root` and `.dark` token blocks in `index.css`. It
+keeps the app tokens. It does not reinstall components. The current preset is
+`b2oDXH5AO` (Nova style, Green theme, Green charts).
+
+Dark mode is the `.dark` class on `<html>`. `src/app/theme.ts` sets it.
 
 ### 4.5 Rules that a swap must not break
 
@@ -1085,7 +1085,9 @@ screen.
 **One integration test** for the review submit path. It is the seam between two
 people, it must be atomic, and a silent failure there loses a student's work.
 
-**One CI check** for §4.2: no colour or size literal outside Layer 0.
+**Review, not a script,** for §4.2. The preset tokens and the semantic classes
+make a raw colour easy to see in review. The old `check-token-literals` script
+scanned CSS modules. The app has no CSS modules now, so the script is gone.
 
 Do not write a component test for each screen. Do not add Playwright.
 
@@ -1093,10 +1095,10 @@ Do not write a component test for each screen. Do not add Playwright.
 
 ## 14. Build order
 
-1. **Foundation.** Vite, TypeScript, Biome, TanStack Router, `tokens.css`, the
-   shell, the API client, and the guards.
-2. **Layer 1 primitives.** Button, Input, Field, Chip, Tag, Table, Dialog,
-   Toast, Pager, Slider. No Card — Apparatus has no cards.
+1. **Foundation.** Vite, TypeScript, Biome, TanStack Router, the shadcn preset
+   (`index.css`), the shell, the API client, and the guards.
+2. **Layer 1 primitives.** The shadcn/ui components that the pages need:
+   Button, Input, Field, Card, Item, Table, Dialog, Toast, Slider.
 3. **Authentication.** Login, register, the waiting banner, and the guards.
 4. **Hadith detail.** The signature page, and the only page with a complete
    endpoint today. If the ladder does not work, nothing after it matters.

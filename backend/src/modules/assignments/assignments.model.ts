@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js';
+import { withTransaction } from '../../lib/transaction.js';
 import type { AssignmentRow } from './assignments.interface.js';
 
 export async function listAssignmentsForStudent(studentId: number): Promise<AssignmentRow[]> {
@@ -61,4 +62,29 @@ export async function getAssignmentCompletion(assignmentId: number): Promise<Rec
 
 export async function assignStudySet(circleId: number, studySetId: number, dueDate: string): Promise<void> {
   await pool.query('CALL app.assign_study_set($1, $2, $3)', [circleId, studySetId, dueDate]);
+}
+
+export async function updateAssignmentDueDate(
+  assignmentId: number,
+  dueDate: string,
+): Promise<AssignmentRow | null> {
+  const { rows } = await pool.query<AssignmentRow>(
+    `UPDATE app.assignments SET due_date = $2 WHERE assignment_id = $1
+     RETURNING assignment_id, circle_id, set_id AS study_set_id, due_date, created_at`,
+    [assignmentId, dueDate],
+  );
+  return rows[0] ?? null;
+}
+
+// Ordered deletes: every FK in this schema is plain (no cascades), so the
+// progress rows go first and the assignment second, in one transaction.
+// Review sessions carry no assignment reference and are untouched.
+export async function deleteAssignment(assignmentId: number): Promise<boolean> {
+  return withTransaction(async (client) => {
+    await client.query('DELETE FROM app.progress WHERE assignment_id = $1', [assignmentId]);
+    const { rowCount } = await client.query('DELETE FROM app.assignments WHERE assignment_id = $1', [
+      assignmentId,
+    ]);
+    return (rowCount ?? 0) > 0;
+  });
 }

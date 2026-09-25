@@ -22,6 +22,12 @@ export async function getProgress(req: Request, res: Response, next: NextFunctio
       typeof req.query.assignment_id === 'string' ? Number(req.query.assignment_id) : undefined;
 
     const studentId = role === 'student' ? userId : studentIdParam;
+    // An unfiltered call dumps the whole table. Students are always scoped
+    // to themselves above; everyone else must name a student or an
+    // assignment.
+    if (role !== 'student' && studentIdParam === undefined && assignmentIdParam === undefined) {
+      throw new BadRequestError('pass student_id or assignment_id');
+    }
     const rows = await listProgress({ studentId, assignmentId: assignmentIdParam });
     res.json({ data: rows });
   } catch (e) {

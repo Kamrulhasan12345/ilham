@@ -5,7 +5,7 @@ describe('theme storage', () => {
   beforeEach(() => window.localStorage.clear());
   afterEach(() => {
     window.localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.classList.remove('dark');
   });
 
   it('returns null when nothing is stored', () => {
@@ -22,10 +22,10 @@ describe('theme storage', () => {
     expect(getStoredTheme()).toBeNull();
   });
 
-  it('applyTheme sets data-theme on the document element', () => {
+  it('applyTheme toggles the dark class on the document element', () => {
     applyTheme('dark');
-    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
     applyTheme('light');
-    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
   });
 });

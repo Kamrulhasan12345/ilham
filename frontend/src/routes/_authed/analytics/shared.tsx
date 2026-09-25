@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
 import { ChainPair } from '../../../domain/ChainPair';
 import { apiFetch } from '../../../lib/apiClient';
 
@@ -46,24 +47,27 @@ function SharedPage() {
     staleTime: Number.POSITIVE_INFINITY,
   });
   const chainA = useQuery({
-    queryKey: ['hadiths', String(aId)],
+    // Not ['hadiths', id]: the detail page caches the full record under that key.
+    queryKey: ['hadiths', String(aId), 'chain-names'],
     queryFn: () => apiFetch(`/hadiths/${aId}`, chainSchema),
     enabled: ready,
     staleTime: Number.POSITIVE_INFINITY,
   });
   const chainB = useQuery({
-    queryKey: ['hadiths', String(bId)],
+    queryKey: ['hadiths', String(bId), 'chain-names'],
     queryFn: () => apiFetch(`/hadiths/${bId}`, chainSchema),
     enabled: ready,
     staleTime: Number.POSITIVE_INFINITY,
   });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold">What do two hadiths share?</h1>
-      </div>
-      <Card>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        crumbs={[{ label: 'Analytics', href: '/analytics' }]}
+        title="What do two hadiths share?"
+        description="Name two hadiths by their database identifiers to see the narrators standing in both chains."
+      />
+      <Card className="max-w-2xl">
         <CardContent>
           <form
             onSubmit={(event) => {
@@ -77,7 +81,7 @@ function SharedPage() {
               });
             }}
           >
-            <FieldGroup>
+            <FieldGroup className="grid gap-4 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="shared-a">First hadith ID</FieldLabel>
                 <InputGroup>
@@ -92,7 +96,7 @@ function SharedPage() {
                 </InputGroup>
                 <FieldDescription>The database identifier, not the hadith number.</FieldDescription>
               </Field>
-              <Field orientation="horizontal">
+              <Field>
                 <Button type="submit">Compare</Button>
               </Field>
             </FieldGroup>
@@ -101,7 +105,7 @@ function SharedPage() {
       </Card>
 
       {!ready ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>Name two hadiths</EmptyTitle>
             <EmptyDescription>

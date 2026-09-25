@@ -6,7 +6,6 @@ describe('ThemeSwitch', () => {
   beforeEach(() => window.localStorage.clear());
   afterEach(() => {
     window.localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
     document.documentElement.classList.remove('dark');
   });
 
@@ -22,7 +21,6 @@ describe('ThemeSwitch', () => {
       'true',
     );
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(document.documentElement.dataset.theme).toBe('dark');
     expect(window.localStorage.getItem('ilham-theme')).toBe('dark');
   });
 
@@ -37,6 +35,5 @@ describe('ThemeSwitch', () => {
     window.localStorage.setItem('ilham-theme', 'dark');
     render(<ThemeSwitch />);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(document.documentElement.dataset.theme).toBe('dark');
   });
 });

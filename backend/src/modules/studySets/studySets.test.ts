@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import request from 'supertest';
 import { app } from '../../app.js';
 import { pool } from '../../db/pool.js';
-import { bearer, registerAndGetToken, uniqueEmail } from '../../testUtils/helpers.js';
+import { bearer, loginAndGetToken, registerAndGetToken, uniqueEmail } from '../../testUtils/helpers.js';
+import { hashPassword } from '../../lib/password.js';
 
 async function firstHadithId(): Promise<number> {
   const { rows } = await pool.query<{ hadith_id: number }>(
@@ -170,5 +171,89 @@ describe('set item repeats (PRD 5.7: 409 on a repeat)', () => {
       .set(bearer(accessToken))
       .send({ hadith_id: hadith.rows[0].hadith_id });
     assert.equal(second.status, 409);
+  });
+});
+
+describe('GET /sets/:id -- assigned-student read access', () => {
+  async function verifiedTeacher(tag: string): Promise<{ accessToken: string; userId: number }> {
+    const email = uniqueEmail(tag);
+    const { accessToken } = await registerAndGetToken(app, email, 'teacher');
+    const { rows } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    const adminEmail = uniqueEmail(`${tag}admin`);
+    await pool.query(
+      `INSERT INTO app.admins (email, password_hash, full_name, role, admin_level)
+       VALUES ($1, $2, 'Flow Admin', 'admin', 'super')`,
+      [adminEmail, await hashPassword('password123')],
+    );
+    const adminToken = await loginAndGetToken(app, adminEmail);
+    await request(app).post(`/teachers/${rows[0].user_id}/verify`).set(bearer(adminToken));
+    return { accessToken, userId: rows[0].user_id };
+  }
+
+  async function assignedSetup(tag: string) {
+    const teacher = await verifiedTeacher(`${tag}t`);
+    const studentEmail = uniqueEmail(`${tag}s`);
+    const { accessToken: studentToken } = await registerAndGetToken(app, studentEmail, 'student');
+    const { rows: stu } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [studentEmail],
+    );
+    const circle = await request(app)
+      .post('/circles')
+      .set(bearer(teacher.accessToken))
+      .send({ name: `Circle ${tag}` });
+    const setId = await createStudySet(teacher.accessToken, `Set ${tag}`);
+    await request(app)
+      .post(`/sets/${setId}/items`)
+      .set(bearer(teacher.accessToken))
+      .send({ hadith_id: await firstHadithId() });
+    await request(app)
+      .post(`/circles/${circle.body.data.circle_id}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: stu[0].user_id });
+    const assigned = await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({
+        circle_id: circle.body.data.circle_id,
+        study_set_id: setId,
+        due_date: '2027-06-01',
+      });
+    assert.equal(assigned.status, 201);
+    return { teacher, studentToken, studentId: stu[0].user_id, setId };
+  }
+
+  test('an enrolled student reads the assigned set with its items', async () => {
+    const { studentToken, setId } = await assignedSetup('assignedread');
+
+    const res = await request(app).get(`/sets/${setId}`).set(bearer(studentToken));
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.study_set_id, setId);
+    assert.ok(Array.isArray(res.body.data.items));
+    assert.equal(res.body.data.items.length, 1);
+  });
+
+  test('a student outside the circle gets 404, and writes stay owner-only', async () => {
+    const { setId } = await assignedSetup('assignedstranger');
+    const { accessToken: outsiderToken } = await registerAndGetToken(
+      app,
+      uniqueEmail('assignedoutsider'),
+      'student',
+    );
+
+    const res = await request(app).get(`/sets/${setId}`).set(bearer(outsiderToken));
+    assert.equal(res.status, 404);
+
+    const patch = await request(app)
+      .patch(`/sets/${setId}`)
+      .set(bearer(outsiderToken))
+      .send({ name: 'Hijacked' });
+    assert.equal(patch.status, 404);
+
+    const del = await request(app).delete(`/sets/${setId}`).set(bearer(outsiderToken));
+    assert.equal(del.status, 404);
   });
 });

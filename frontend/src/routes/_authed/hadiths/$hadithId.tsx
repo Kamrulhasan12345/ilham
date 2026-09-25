@@ -6,7 +6,14 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
@@ -18,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -34,11 +42,11 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Crumbs } from '../../../domain/Crumbs';
+import { PageHeader } from '../../../app/PageHeader';
 import { DistributionStrip } from '../../../domain/DistributionStrip';
 import { GenerationFilter } from '../../../domain/GenerationFilter';
 import { IsnadChain, type IsnadLinkData } from '../../../domain/IsnadChain';
-import { Absent, Rail, RailRow } from '../../../domain/Rail';
+import { Absent, RailRow } from '../../../domain/Rail';
 import { StrengthPlot } from '../../../domain/StrengthPlot';
 import { VerdictBand, type VerdictWord } from '../../../domain/VerdictBand';
 import { gradeInfo, groupIsnadChains } from '../../../domain/grading';
@@ -265,279 +273,281 @@ function HadithDetailPage() {
   const verdictStrength = activeStrength ?? chainStrength;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Crumbs
-        trail={[
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        crumbs={[
           { label: 'Collections', href: '/collections' },
           {
             label: collection.title_en ?? collection.title_ar,
             href: `/collections/${collection.slug}`,
-            arabic: collection.title_en ? collection.title_ar : undefined,
           },
           ...(chapter
             ? [
                 {
                   label: `Chapter ${chapter.seq}`,
                   href: `/collections/${collection.slug}/${chapter.seq}`,
-                  arabic: chapter.title_ar,
                 },
               ]
             : []),
           { label: `Hadith ${hadith.hadith_num}` },
         ]}
+        title={<span className="tabular-nums">Hadith {hadith.hadith_num}</span>}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <Badge variant={verdict === 'strong' ? 'default' : 'secondary'}>
+              {verdict === 'none' ? 'unscored' : `${verdict} ${verdictStrength?.toFixed(2)}`}
+            </Badge>
+            <Badge variant="outline">{hadith.sanad_count} sanads</Badge>
+            <Badge variant="outline">{scoredLinks.length} narrators + collector</Badge>
+          </span>
+        }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="font-mono text-2xl font-semibold tabular-nums">
-          Hadith {hadith.hadith_num}
-        </h1>
-        <Badge variant={verdict === 'strong' ? 'default' : 'secondary'}>
-          {verdict === 'none' ? 'unscored' : `${verdict} ${verdictStrength?.toFixed(2)}`}
-        </Badge>
-        <Badge variant="outline">{hadith.sanad_count} sanads</Badge>
-        <Badge variant="outline">{scoredLinks.length} narrators + collector</Badge>
-      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Arabic text</h2>
+              </CardTitle>
+              <CardAction>
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  size="sm"
+                  value={vocalised ? 'vowelled' : 'plain'}
+                  onValueChange={(next) => next && setVocalisedStored(next === 'vowelled')}
+                  aria-label="Arabic rendering"
+                >
+                  <ToggleGroupItem value="vowelled" aria-label="Vowelled">
+                    Vowelled
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="plain" aria-label="Plain">
+                    Plain
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              <p dir="rtl" lang="ar" className="font-arabic text-3xl leading-[2.2] md:text-4xl">
+                {vocalised ? hadith.text_diac : hadith.text_plain}
+              </p>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="text-base">Arabic text</CardTitle>
-          <ToggleGroup
-            type="single"
-            value={vocalised ? 'vowelled' : 'plain'}
-            onValueChange={(next) => next && setVocalisedStored(next === 'vowelled')}
-            aria-label="Arabic rendering"
-          >
-            <ToggleGroupItem value="vowelled" aria-label="Vowelled">
-              Vowelled
-            </ToggleGroupItem>
-            <ToggleGroupItem value="plain" aria-label="Plain">
-              Plain
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </CardHeader>
-        <CardContent>
-          <p
-            dir="rtl"
-            lang="ar"
-            className="text-right font-arabic text-3xl leading-loose md:text-4xl"
-          >
-            {vocalised ? hadith.text_diac : hadith.text_plain}
-          </p>
-        </CardContent>
-      </Card>
-
-      {translation ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              English translation
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                {translation.source}
-                {translation.match_via ? ` · matched ${translation.match_via}` : null}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg leading-relaxed md:text-xl md:leading-relaxed">
-              {translation.text_full}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent>
-            <p className="text-muted-foreground">
-              No English translation exists for this hadith yet.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Chain strength</CardTitle>
-          <CardDescription>{chainBodyText(chainLinks)}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <VerdictBand word={verdict} strength={verdictStrength}>
-            {chainBodyText(chainLinks)}
-            {!chainStrengthBasis.words_aligned && hadith.sanad_count > 1 ? (
-              <>
-                {' '}
-                The loader aligns transmission words for single-chain hadiths only, so this score
-                carries no anʿana penalty and is not comparable across hadiths.
-              </>
-            ) : null}
-          </VerdictBand>
-          {chains.length > 1 ? (
-            <ToggleGroup
-              type="single"
-              value={String(activeSanad)}
-              onValueChange={(next) => next && setSelectedSanad(Number(next))}
-              aria-label="Chains"
-            >
-              {chains.map((chain) => (
-                <ToggleGroupItem key={chain.sanadNo} value={String(chain.sanadNo)}>
-                  Sanad {chain.sanadNo}
-                  {chain.strength !== null ? ` · ${chain.strength.toFixed(2)}` : ''}
-                  {strongest && chain.sanadNo === strongest.sanadNo ? ' · strongest' : ''}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      {maxGeneration > 0 ? (
-        <GenerationFilter
-          maxGeneration={maxGeneration}
-          value={cut}
-          onChange={setGenCut}
-          visibleCount={visibleLinks.filter((link) => !link.is_compiler).length}
-          totalCount={scoredLinks.length}
-          alwaysShown={alwaysShown}
-        />
-      ) : null}
-
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">Chain of transmission</h2>
-        <IsnadChain
-          links={visibleLinks}
-          strongestSanadNo={strongest?.sanadNo}
-          linkHref={(id) => `/narrators/${id}`}
-        />
-      </section>
-
-      <Accordion type="single" collapsible value={gradingOpen} onValueChange={setGradingOpen}>
-        <AccordionItem value="grading">
-          <AccordionTrigger>Show grading detail</AccordionTrigger>
-          <AccordionContent>
-            <div className="flex flex-col gap-3">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Narrator</TableHead>
-                    <TableHead>Generation</TableHead>
-                    <TableHead>Ibn Hajar</TableHead>
-                    <TableHead>Al-Dhahabi</TableHead>
-                    <TableHead>Weight</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scoredLinks.map((link) => {
-                    const info = gradeInfo(link);
-                    return (
-                      <TableRow key={`${link.sanad_no}-${link.position}`}>
-                        <TableCell>
-                          <span dir="rtl" lang="ar" className="font-arabic">
-                            {link.display_name ?? link.raw_name}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {link.generation !== null && link.generation !== undefined ? (
-                            <span className="font-mono tabular-nums">{link.generation}</span>
-                          ) : (
-                            <Absent>not recorded</Absent>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {link.rank_ibn_hajar_raw ? (
-                            <>
-                              <span dir="rtl" lang="ar" className="font-arabic">
-                                {link.rank_ibn_hajar_raw}
-                              </span>{' '}
-                              {link.rank_ibn_hajar_via ? (
-                                <span className="font-mono text-sm text-muted-foreground">
-                                  [{link.rank_ibn_hajar_via}]
-                                </span>
-                              ) : null}
-                            </>
-                          ) : (
-                            <Absent>no verdict</Absent>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {link.rank_dhahabi_raw ? (
-                            <>
-                              <span dir="rtl" lang="ar" className="font-arabic">
-                                {link.rank_dhahabi_raw}
-                              </span>{' '}
-                              {link.rank_dhahabi_via ? (
-                                <span className="font-mono text-sm text-muted-foreground">
-                                  [{link.rank_dhahabi_via}]
-                                </span>
-                              ) : null}
-                            </>
-                          ) : (
-                            <Absent>no verdict</Absent>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {info.weight !== null ? (
-                            <span className="font-mono tabular-nums">{info.weight.toFixed(2)}</span>
-                          ) : (
-                            <Absent>unscored</Absent>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <StrengthPlot
-                weights={plotWeights}
-                baseWeights={plotBase}
-                strength={activeStrength}
-              />
-              {distribution.data ? (
-                <DistributionStrip buckets={distribution.data} strength={chainStrength} />
-              ) : distribution.isLoading ? (
-                <p className="text-sm text-muted-foreground">Drawing the corpus distribution…</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>English translation</h2>
+              </CardTitle>
+              {translation ? <CardDescription>{translation.source}</CardDescription> : null}
+              {translation?.match_via ? (
+                <CardAction>
+                  <Badge variant="outline">matched {translation.match_via}</Badge>
+                </CardAction>
               ) : null}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
-      <Rail
-        side={
-          <>
-            <RailRow label="Source">
-              {collection.title_en ?? collection.title_ar}{' '}
-              <span className="ar" dir="rtl">
-                {collection.title_ar}
-              </span>
-            </RailRow>
-            <RailRow label="Identifier">
-              <span className="m">{hadith.hadith_num}</span>
-            </RailRow>
-            <RailRow label="Chapter">
-              {chapter ? (
-                <>
-                  <span className="m m--bare">{`[${chapter.seq}]`}</span>{' '}
-                  <span className="ar" dir="rtl">
-                    {chapter.title_ar}
-                  </span>
-                </>
+            </CardHeader>
+            <CardContent>
+              {translation ? (
+                <p className="text-lg leading-relaxed">{translation.text_full}</p>
               ) : (
-                <Absent>not filed</Absent>
+                <p className="text-muted-foreground">
+                  No English translation exists for this hadith yet.
+                </p>
               )}
-            </RailRow>
-            <RailRow label="Sanads recorded">
-              <span className="m m--bare">{`[${hadith.sanad_count}]`}</span>
-            </RailRow>
-            <RailRow label="Chain length">
-              <span className="m m--bare">{`[${scoredLinks.length}]`}</span> and the collector
-            </RailRow>
-            <RailRow label="Translation">
-              {translation ? translation.source : <Absent>none attached</Absent>}
-            </RailRow>
-          </>
-        }
-      >
-        <StudyActions hadithId={hadith.hadith_id} />
-      </Rail>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Chain of transmission</h2>
+              </CardTitle>
+              <CardDescription>From the collector back to the Companion</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <VerdictBand word={verdict} strength={verdictStrength}>
+                {chainBodyText(chainLinks)}
+                {!chainStrengthBasis.words_aligned && hadith.sanad_count > 1 ? (
+                  <>
+                    {' '}
+                    The loader aligns transmission words for single-chain hadiths only, so this
+                    score carries no anʿana penalty and is not comparable across hadiths.
+                  </>
+                ) : null}
+              </VerdictBand>
+              {chains.length > 1 ? (
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  className="flex-wrap"
+                  value={String(activeSanad)}
+                  onValueChange={(next) => next && setSelectedSanad(Number(next))}
+                  aria-label="Chains"
+                >
+                  {chains.map((chain) => (
+                    <ToggleGroupItem key={chain.sanadNo} value={String(chain.sanadNo)}>
+                      Sanad {chain.sanadNo}
+                      {chain.strength !== null ? ` (${chain.strength.toFixed(2)})` : ''}
+                      {strongest && chain.sanadNo === strongest.sanadNo ? ', strongest' : ''}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              ) : null}
+              {maxGeneration > 0 ? (
+                <GenerationFilter
+                  maxGeneration={maxGeneration}
+                  value={cut}
+                  onChange={setGenCut}
+                  visibleCount={visibleLinks.filter((link) => !link.is_compiler).length}
+                  totalCount={scoredLinks.length}
+                  alwaysShown={alwaysShown}
+                />
+              ) : null}
+              <IsnadChain
+                links={visibleLinks}
+                strongestSanadNo={strongest?.sanadNo}
+                linkHref={(id) => `/narrators/${id}`}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="py-0">
+            <CardContent>
+              <Accordion
+                type="single"
+                collapsible
+                value={gradingOpen}
+                onValueChange={setGradingOpen}
+              >
+                <AccordionItem value="grading" className="border-b-0">
+                  <AccordionTrigger>Show grading detail</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col gap-4">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Narrator</TableHead>
+                            <TableHead>Generation</TableHead>
+                            <TableHead>Ibn Hajar</TableHead>
+                            <TableHead>Al-Dhahabi</TableHead>
+                            <TableHead>Weight</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {scoredLinks.map((link) => {
+                            const info = gradeInfo(link);
+                            return (
+                              <TableRow key={`${link.sanad_no}-${link.position}`}>
+                                <TableCell>
+                                  <span dir="rtl" lang="ar" className="font-arabic">
+                                    {link.display_name ?? link.raw_name}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  {link.generation !== null && link.generation !== undefined ? (
+                                    <span className="tabular-nums">{link.generation}</span>
+                                  ) : (
+                                    <Absent>not recorded</Absent>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <GradeCell
+                                    raw={link.rank_ibn_hajar_raw}
+                                    via={link.rank_ibn_hajar_via}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <GradeCell
+                                    raw={link.rank_dhahabi_raw}
+                                    via={link.rank_dhahabi_via}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  {info.weight !== null ? (
+                                    <span className="tabular-nums">{info.weight.toFixed(2)}</span>
+                                  ) : (
+                                    <Absent>unscored</Absent>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                      <StrengthPlot
+                        weights={plotWeights}
+                        baseWeights={plotBase}
+                        strength={activeStrength}
+                      />
+                      {distribution.data ? (
+                        <DistributionStrip buckets={distribution.data} strength={chainStrength} />
+                      ) : distribution.isLoading ? (
+                        <p className="text-sm text-muted-foreground">
+                          Drawing the corpus distribution…
+                        </p>
+                      ) : null}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </div>
+
+        <aside className="flex h-fit flex-col gap-6 lg:sticky lg:top-20">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Details</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <RailRow label="Source">
+                {collection.title_en ?? collection.title_ar}{' '}
+                <span className="font-arabic" dir="rtl" lang="ar">
+                  {collection.title_ar}
+                </span>
+              </RailRow>
+              <RailRow label="Chapter">
+                {chapter ? (
+                  <>
+                    <span className="text-muted-foreground tabular-nums">{`[${chapter.seq}]`}</span>{' '}
+                    <span className="font-arabic" dir="rtl" lang="ar">
+                      {chapter.title_ar}
+                    </span>
+                  </>
+                ) : (
+                  <Absent>not filed</Absent>
+                )}
+              </RailRow>
+              <Separator />
+              <div className="grid grid-cols-2 gap-4">
+                <RailRow label="Sanads">
+                  <span className="text-lg font-semibold tabular-nums">{hadith.sanad_count}</span>
+                </RailRow>
+                <RailRow label="Chain length">
+                  <span className="text-lg font-semibold tabular-nums">{scoredLinks.length}</span>
+                </RailRow>
+              </div>
+            </CardContent>
+          </Card>
+          <StudyActions hadithId={hadith.hadith_id} />
+        </aside>
+      </div>
     </div>
+  );
+}
+
+function GradeCell({ raw, via }: { raw?: string | null; via?: string | null }) {
+  if (!raw) return <Absent>no verdict</Absent>;
+  return (
+    <>
+      <span dir="rtl" lang="ar" className="font-arabic">
+        {raw}
+      </span>{' '}
+      {via ? <span className="text-sm text-muted-foreground">[{via}]</span> : null}
+    </>
   );
 }
 
@@ -588,7 +598,10 @@ function StudyActions({ hadithId }: { hadithId: number }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Study</CardTitle>
+        <CardTitle>
+          <h2>Study</h2>
+        </CardTitle>
+        <CardDescription>Save this hadith or write a note on it</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={writeNote}>
@@ -626,7 +639,7 @@ function StudyActions({ hadithId }: { hadithId: number }) {
                 onChange={(event) => setNoteBody(event.target.value)}
               />
             </Field>
-            <Field orientation="horizontal">
+            <Field>
               <Button type="submit" disabled={busy || !noteBody.trim()}>
                 Save note
               </Button>

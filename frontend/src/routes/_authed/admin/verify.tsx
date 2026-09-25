@@ -10,15 +10,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
+import { Pager } from '../../../app/Pager';
+import { UserAvatar } from '../../../app/UserAvatar';
 import { useAuth } from '../../../auth/AuthContext';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 
@@ -51,7 +61,7 @@ function VerifyPage() {
   // redirecting in silence (docs/frontend-prd.md §5.4).
   if (!isAdmin) {
     return (
-      <Empty>
+      <Empty className="border">
         <EmptyHeader>
           <EmptyTitle>Verification queue</EmptyTitle>
           <EmptyDescription>
@@ -129,13 +139,11 @@ function VerifyQueue({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <ShieldCheck className="size-6" />
-          Verification queue
-        </h1>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Verification queue"
+        description="Teachers waiting for review. A verified teacher can open circles; everything else works before verification."
+      />
       {error ? (
         <Alert variant="destructive">
           <AlertTitle>The queue needs attention</AlertTitle>
@@ -143,16 +151,19 @@ function VerifyQueue({
         </Alert>
       ) : null}
       {isLoading ? (
-        <Skeleton className="h-24 w-full" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+        </div>
       ) : isError || !data ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>The queue could not be loaded</EmptyTitle>
             <EmptyDescription>Try again.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : data.length === 0 ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>No teacher waits</EmptyTitle>
             <EmptyDescription>Every application has an answer.</EmptyDescription>
@@ -160,61 +171,70 @@ function VerifyQueue({
         </Empty>
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {data.map((teacher) => (
               <Card key={teacher.user_id}>
-                <CardContent>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="flex-1">
-                      {teacher.full_name} — {teacher.email}
-                      {teacher.institution ? ` — ${teacher.institution}` : null}
-                      {teacher.specialization ? ` — ${teacher.specialization}` : null}
+                <CardHeader className="flex items-center gap-3">
+                  <UserAvatar name={teacher.full_name} className="size-10" />
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <CardTitle>{teacher.full_name}</CardTitle>
+                    <CardDescription className="truncate">{teacher.email}</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Institution</span>
+                    <span>{teacher.institution ?? 'not given'}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Specialization
                     </span>
-                    <Button
-                      type="button"
-                      disabled={verifying === teacher.user_id}
-                      onClick={() => handleVerify(teacher.user_id)}
-                    >
-                      {verifying === teacher.user_id ? <Spinner data-icon="inline-start" /> : null}
-                      Verify
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      disabled={verifying === teacher.user_id}
-                      onClick={() => setDeclining({ id: teacher.user_id, name: teacher.full_name })}
-                    >
-                      Decline
-                    </Button>
+                    <span>{teacher.specialization ?? 'not given'}</span>
+                  </div>
+                  <div className="col-span-2 flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Applied</span>
+                    <span>
+                      {new Date(teacher.created_at).toLocaleDateString('en', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
                   </div>
                 </CardContent>
+                <CardFooter className="justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={verifying === teacher.user_id}
+                    onClick={() => setDeclining({ id: teacher.user_id, name: teacher.full_name })}
+                  >
+                    <X data-icon="inline-start" />
+                    Decline
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={verifying === teacher.user_id}
+                    onClick={() => handleVerify(teacher.user_id)}
+                  >
+                    {verifying === teacher.user_id ? (
+                      <Spinner data-icon="inline-start" />
+                    ) : (
+                      <Check data-icon="inline-start" />
+                    )}
+                    Verify
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              Showing {offset + 1}–{offset + data.length}
-            </span>
-            <span className="flex-1" />
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={offset === 0}
-              onClick={() => navigate({ search: { offset: Math.max(0, offset - LIMIT) } })}
-            >
-              <ChevronLeft data-icon="inline-start" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={data.length < LIMIT}
-              onClick={() => navigate({ search: { offset: offset + LIMIT } })}
-            >
-              Next
-              <ChevronRight data-icon="inline-end" />
-            </Button>
-          </div>
+          <Pager
+            offset={offset}
+            count={data.length}
+            limit={LIMIT}
+            onOffset={(next) => navigate({ search: { offset: next } })}
+          />
         </>
       )}
 

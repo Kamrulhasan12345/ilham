@@ -27,6 +27,16 @@ const FAKE_COLLECTIONS = [
   },
 ];
 
+// The dashboard also reads stats, sessions, assignments, and progress: answer
+// those with empty data so only the collections carry content.
+function mockDashboardApi() {
+  vi.mocked(apiFetch).mockImplementation(async (path: unknown) => {
+    if (path === '/collections') return FAKE_COLLECTIONS as never;
+    if (typeof path === 'string' && path.endsWith('/stats')) return null as never;
+    return [] as never;
+  });
+}
+
 function fakeAuth(state: AuthState): AuthContextValue {
   return {
     state,
@@ -53,8 +63,23 @@ function renderRouter(router: Parameters<typeof RouterProvider>[0]['router']) {
 }
 
 describe('the signedIn guard', () => {
-  it('redirects an unauthenticated visitor from / to /login', async () => {
+  it('shows the landing page to an unauthenticated visitor at /', async () => {
     const history = createMemoryHistory({ initialEntries: ['/'] });
+    const router = createRouter({
+      routeTree,
+      history,
+      context: { auth: fakeAuth({ status: 'signed-out' }) },
+    });
+    renderRouter(router);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Every hadith, with the chain that carried it.' }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('redirects an unauthenticated visitor from an app page to /login', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/collections'] });
     const router = createRouter({
       routeTree,
       history,
@@ -67,7 +92,7 @@ describe('the signedIn guard', () => {
   });
 
   it('lets a signed-in visitor reach the authenticated home', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    mockDashboardApi();
     const history = createMemoryHistory({ initialEntries: ['/'] });
     const router = createRouter({
       routeTree,
@@ -102,7 +127,7 @@ describe('the signedIn guard', () => {
 
 describe('focus management on route change', () => {
   it('moves focus to the #main landmark after a route change', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    mockDashboardApi();
     const focusSpy = vi.spyOn(HTMLElement.prototype, 'focus');
     const history = createMemoryHistory({ initialEntries: ['/login'] });
     const router = createRouter({
@@ -146,7 +171,7 @@ describe('sign-out control', () => {
   });
 
   it('shows a sign-out button when signed in', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    mockDashboardApi();
     const history = createMemoryHistory({ initialEntries: ['/'] });
     const router = createRouter({
       routeTree,

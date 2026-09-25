@@ -1,20 +1,13 @@
-import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
+import { Pager } from '../../../app/Pager';
 import { HadithList } from '../../../domain/HadithList';
 import { apiFetch } from '../../../lib/apiClient';
-
-const collectionSchema = z.object({
-  collection_id: z.number(),
-  slug: z.string(),
-  title_ar: z.string(),
-  title_en: z.string().nullable(),
-  hadith_count: z.coerce.number().optional(),
-});
-const collectionsSchema = z.array(collectionSchema);
+import { useCollections } from '../../../lib/corpus';
 
 const chapterSchema = z.object({
   chapter_id: z.number(),
@@ -47,18 +40,13 @@ function HadithsInChapterPage() {
   const { offset } = Route.useSearch();
   const navigate = Route.useNavigate();
 
-  const collections = useQuery({
-    queryKey: ['collections'],
-    queryFn: () => apiFetch('/collections', collectionsSchema),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
+  const collections = useCollections();
   const collectionId = collections.data?.find((c) => c.slug === slug)?.collection_id;
   const collection = collections.data?.find((c) => c.slug === slug);
 
   const chapters = useQuery({
     queryKey: ['chapters', { collectionId, seq }],
-    queryFn: () =>
-      apiFetch(`/chapters?collection_id=${collectionId}&seq=${seq}`, chaptersSchema),
+    queryFn: () => apiFetch(`/chapters?collection_id=${collectionId}&seq=${seq}`, chaptersSchema),
     enabled: collectionId !== undefined,
     staleTime: Number.POSITIVE_INFINITY,
   });
@@ -75,144 +63,94 @@ function HadithsInChapterPage() {
     enabled: chapterId !== undefined,
   });
 
-  if (collections.isLoading || chapters.isLoading || hadiths.isLoading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>Loading</EmptyTitle>
-            <EmptyDescription>Reading the chapter.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-  if (collections.isError) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>The collection could not be loaded</EmptyTitle>
-            <EmptyDescription>Try again.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-  if (collectionId === undefined) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>No such collection</EmptyTitle>
-            <EmptyDescription>
-              <Link to="/collections" className="underline">
-                Return to the collections.
-              </Link>
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-  if (chapters.isError) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>The chapter could not be loaded</EmptyTitle>
-            <EmptyDescription>Try again.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-  if (chapterId === undefined) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>No such chapter</EmptyTitle>
-            <EmptyDescription>
-              <Link to="/collections/$slug" params={{ slug }} className="underline">
-                Return to {collection?.title_en ?? collection?.title_ar ?? 'the collection'}.
-              </Link>
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-  if (hadiths.isError || !hadiths.data) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>The hadith list could not be loaded</EmptyTitle>
-            <EmptyDescription>Try again.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
+  const collectionTitle = collection?.title_en ?? collection?.title_ar;
+  const header = (
+    <PageHeader
+      crumbs={[
+        { label: 'Collections', href: '/collections' },
+        { label: collectionTitle ?? slug, href: `/collections/${slug}` },
+        { label: `Chapter ${seq}` },
+      ]}
+      title={
+        chapter ? (
+          <span dir="rtl" lang="ar" className="font-arabic font-normal">
+            {chapter.title_ar}
+          </span>
+        ) : (
+          `Chapter ${seq}`
+        )
+      }
+      description={collectionTitle ? `Chapter ${seq} of ${collectionTitle}` : undefined}
+    />
+  );
 
-  const data = hadiths.data;
-  if (data.length === 0 && offset === 0) {
-    return (
+  const message = (title: string, description: React.ReactNode) => (
+    <Empty className="border">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+
+  let body: React.ReactNode;
+  if (collections.isLoading || chapters.isLoading || hadiths.isLoading) {
+    body = (
       <div className="flex flex-col gap-4">
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>This chapter has no hadiths yet</EmptyTitle>
-            <EmptyDescription>The chapter stands empty in the corpus.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+        {[0, 1, 2].map((n) => (
+          <Skeleton key={n} className="h-36 w-full rounded-xl" />
+        ))}
       </div>
+    );
+  } else if (collections.isError) {
+    body = message('The collection could not be loaded', 'Try again.');
+  } else if (collectionId === undefined) {
+    body = message(
+      'No such collection',
+      <Link to="/collections" className="underline">
+        Return to the collections.
+      </Link>,
+    );
+  } else if (chapters.isError) {
+    body = message('The chapter could not be loaded', 'Try again.');
+  } else if (chapterId === undefined) {
+    body = message(
+      'No such chapter',
+      <Link to="/collections/$slug" params={{ slug }} className="underline">
+        Return to {collectionTitle ?? 'the collection'}.
+      </Link>,
+    );
+  } else if (hadiths.isError || !hadiths.data) {
+    body = message('The hadith list could not be loaded', 'Try again.');
+  } else if (hadiths.data.length === 0 && offset === 0) {
+    body = message('This chapter has no hadiths yet', 'The chapter stands empty in the corpus.');
+  } else {
+    const data = hadiths.data;
+    body = (
+      <>
+        <HadithList
+          items={data.map((hadith) => ({
+            hadith_id: hadith.hadith_id,
+            hadith_num: hadith.hadith_num,
+            text_plain: hadith.text_plain,
+            text_en: hadith.text_en,
+            chain_strength: hadith.chain_strength === null ? null : Number(hadith.chain_strength),
+          }))}
+        />
+        <Pager
+          offset={offset}
+          count={data.length}
+          limit={LIMIT}
+          onOffset={(next) => navigate({ search: { offset: next } })}
+        />
+      </>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-baseline gap-x-3">
-        <h1 dir="rtl" lang="ar" className="font-arabic text-3xl">
-          {chapter?.title_ar}
-        </h1>
-        <span className="font-mono text-sm tabular-nums text-muted-foreground">
-          chapter {chapter?.seq}
-        </span>
-      </div>
-      <HadithList
-        items={data.map((hadith) => ({
-          hadith_id: hadith.hadith_id,
-          hadith_num: hadith.hadith_num,
-          text_plain: hadith.text_plain,
-          text_en: hadith.text_en,
-          chain_strength: hadith.chain_strength === null ? null : Number(hadith.chain_strength),
-        }))}
-      />
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          Showing {offset + 1}–{offset + data.length}
-        </span>
-        <span className="flex-1" />
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={offset === 0}
-          onClick={() => navigate({ search: { offset: Math.max(0, offset - LIMIT) } })}
-        >
-          <ChevronLeft data-icon="inline-start" />
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={data.length < LIMIT}
-          onClick={() => navigate({ search: { offset: offset + LIMIT } })}
-        >
-          Next
-          <ChevronRight data-icon="inline-end" />
-        </Button>
-      </div>
+    <div className="flex flex-col gap-6">
+      {header}
+      {body}
     </div>
   );
 }

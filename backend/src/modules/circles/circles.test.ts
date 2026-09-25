@@ -283,3 +283,110 @@ describe('enrolment repeats (PRD 5.6: 409 on a repeat)', () => {
     assert.equal(second.status, 409);
   });
 });
+
+describe('DELETE /circles/:id (delete-when-empty)', () => {
+  test('an empty circle deletes with 200; a second DELETE is 404', async () => {
+    const teacher = await verifiedTeacher('circledel');
+    const circleId = await makeCircle(teacher.accessToken, 'del');
+
+    const deleted = await request(app)
+      .delete(`/circles/${circleId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(deleted.status, 200);
+    assert.equal(deleted.body.data, null);
+
+    const again = await request(app)
+      .delete(`/circles/${circleId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(again.status, 404);
+  });
+
+  test('a circle with an enrolled student refuses with 409 and survives', async () => {
+    const teacher = await verifiedTeacher('circledelconflict');
+    const student = await registerStudent('circledelconflictstudent');
+    const circleId = await makeCircle(teacher.accessToken, 'delconflict');
+
+    const enrolled = await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+    assert.equal(enrolled.status, 201);
+
+    const res = await request(app)
+      .delete(`/circles/${circleId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(res.status, 409);
+
+    const { rows } = await pool.query('SELECT count(*) FROM app.circles WHERE circle_id = $1', [
+      circleId,
+    ]);
+    assert.equal(Number(rows[0].count), 1);
+  });
+
+  test('a stranger teacher gets 403 and an unknown id gets 404', async () => {
+    const teacher = await verifiedTeacher('circledelowner');
+    const intruder = await verifiedTeacher('circledelintruder');
+    const circleId = await makeCircle(teacher.accessToken, 'delstranger');
+
+    const blocked = await request(app)
+      .delete(`/circles/${circleId}`)
+      .set(bearer(intruder.accessToken));
+    assert.equal(blocked.status, 403);
+
+    const missing = await request(app)
+      .delete('/circles/999999')
+      .set(bearer(teacher.accessToken));
+    assert.equal(missing.status, 404);
+  });
+});
+
+describe('DELETE /circles/:id/students/:sid self-leave', () => {
+  test('an enrolled student leaves their own enrolment with 200', async () => {
+    const teacher = await verifiedTeacher('circleleave');
+    const student = await registerStudent('circleleaver');
+    const circleId = await makeCircle(teacher.accessToken, 'leave');
+
+    const enrolled = await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId });
+    assert.equal(enrolled.status, 201);
+
+    const left = await request(app)
+      .delete(`/circles/${circleId}/students/${student.userId}`)
+      .set(bearer(student.accessToken));
+    assert.equal(left.status, 200);
+
+    const { rows } = await pool.query(
+      'SELECT count(*) FROM app.enrollments WHERE circle_id = $1 AND student_id = $2',
+      [circleId, student.userId],
+    );
+    assert.equal(Number(rows[0].count), 0);
+  });
+
+  test('a student cannot remove a different student (403)', async () => {
+    const teacher = await verifiedTeacher('circleleaveother');
+    const leaver = await registerStudent('circleleaverother');
+    const other = await registerStudent('circleleavevictim');
+    const circleId = await makeCircle(teacher.accessToken, 'leaveother');
+
+    for (const s of [leaver, other]) {
+      const enrolled = await request(app)
+        .post(`/circles/${circleId}/students`)
+        .set(bearer(teacher.accessToken))
+        .send({ student_id: s.userId });
+      assert.equal(enrolled.status, 201);
+    }
+
+    const res = await request(app)
+      .delete(`/circles/${circleId}/students/${other.userId}`)
+      .set(bearer(leaver.accessToken));
+    assert.equal(res.status, 403);
+
+    const { rows } = await pool.query(
+      'SELECT count(*) FROM app.enrollments WHERE circle_id = $1 AND student_id = $2',
+      [circleId, other.userId],
+    );
+    assert.equal(Number(rows[0].count), 1);
+  });
+});
