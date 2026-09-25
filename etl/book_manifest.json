@@ -7,7 +7,14 @@
     "titles afterwards, because a later UPDATE nobody runs leaves the corpus",
     "permanently wrong.",
     "",
-    "Titles are taken verbatim from the `book` field inside the records."
+    "Titles are taken verbatim from the `book` field inside the records.",
+    "",
+    "unnumbered_label: a book whose numberless records are real content, not",
+    "front matter. Sahih Muslim's 40 numberless records are its Muqaddimah (the",
+    "introduction): 28 reports about narrators and 12 passages of Imam Muslim's",
+    "own prose. The extractor keeps them and numbers them '<label> 1' .. '<label> N'",
+    "in source order. A book without the key drops numberless records, as Bukhari",
+    "must: its 135 are bab headings and verse glosses (issue #18)."
   ],
   "sahih-al-bukhari": {
     "title_ar": "صحيح البخاري",
@@ -15,6 +22,7 @@
   },
   "sahih-muslim": {
     "title_ar": "صحيح مسلم",
-    "title_en": "Sahih Muslim"
+    "title_en": "Sahih Muslim",
+    "unnumbered_label": "Muqaddimah"
   }
 }

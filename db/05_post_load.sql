@@ -11,16 +11,21 @@
 -- Heavy expression index, deferred out of 01_corpus.sql. Nothing reads it
 -- during the load, so building it once at the end costs less than maintaining
 -- it through the COPY — by a wide margin at the full dataset's 276K rows, and
--- still the right shape at the 14,901 currently loaded.
+-- still the right shape at the 14,941 currently loaded.
 CREATE INDEX hadiths_matn_norm_idx ON corpus.hadiths
     (corpus.normalize_arabic(left(matn_plain, 200)))
     WHERE matn_plain IS NOT NULL;
 
 -- resolution is fully populated by now; make the guarantee structural.
 ALTER TABLE corpus.isnad_links ALTER COLUMN resolution SET NOT NULL;
+-- Every hadith has a kitab by now (etl/hadith_placement.sql is total). A
+-- hadith the placement missed fails this statement and stops the seal.
+ALTER TABLE corpus.hadiths ALTER COLUMN kitab_id SET NOT NULL;
 
 ANALYZE corpus.collections;
-ANALYZE corpus.chapters;
+ANALYZE corpus.kitabs;
+ANALYZE corpus.surahs;
+ANALYZE corpus.babs;
 ANALYZE corpus.hadiths;
 ANALYZE corpus.narrators;
 ANALYZE corpus.isnad_links;
@@ -36,10 +41,9 @@ ANALYZE corpus.rank_levels;
 DO $$
 DECLARE v_orphan int; v_unres numeric; v_nochain int;
 BEGIN
-  SELECT count(*) INTO v_orphan FROM corpus.hadiths WHERE chapter_id IS NULL;
-  IF v_orphan > 0 THEN
-    RAISE WARNING '% hadiths have no chapter — check the chapter_seq load', v_orphan;
-  END IF;
+  SELECT count(*) INTO v_orphan FROM corpus.babs b
+  WHERE NOT EXISTS (SELECT 1 FROM corpus.hadiths h WHERE h.bab_id = b.bab_id);
+  RAISE NOTICE '% babs hold no corpus hadith (heading-only babs, or hadiths this corpus lacks)', v_orphan;
 
   SELECT round(100.0 * count(*) FILTER (WHERE resolution = 'X') / nullif(count(*),0), 2)
     INTO v_unres FROM corpus.isnad_links WHERE NOT is_compiler;

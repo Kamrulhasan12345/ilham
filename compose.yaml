@@ -61,9 +61,12 @@ services:
       - ./db/docker-init.sh:/docker-entrypoint-initdb.d/10-ilham.sh:ro,z
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      # Names the db explicitly — pg_isready against the default would report
-      # ready while the init scripts are still running.
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ilham"]
+      # Names the db explicitly, and asks over TCP. During first start the
+      # entrypoint runs a temporary server on the Unix socket only, while it
+      # restores db/ilham.dump (about 40 s). A socket check reports ready then,
+      # and the api starts against a half-restored database. TCP opens only
+      # when the real server starts, after the restore.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d ilham"]
       interval: 5s
       timeout: 5s
       retries: 20

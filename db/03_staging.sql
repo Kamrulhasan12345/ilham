@@ -7,8 +7,8 @@
 -- correct failure, provided something upstream reports the row first.
 --
 -- Division of labour: Node does STRUCTURAL flattening (nesting -> rows,
--- front-matter filter, "N - " prefix strip, transmission-word alignment,
--- chapter sequencing). SQL does ALL SEMANTIC shaping (dimension extraction,
+-- front-matter filter, "N - " prefix strip, transmission-word alignment). SQL
+-- does ALL SEMANTIC shaping (dimension extraction,
 -- resolution, normalisation, typed loads).
 --
 -- Dropped at the end of 05_post_load.sql.
@@ -27,11 +27,9 @@ CREATE TABLE staging.book_manifest (
 CREATE TABLE staging.hadiths (
     hadith_id   integer PRIMARY KEY,       -- mainId
     book_slug   text NOT NULL REFERENCES staging.book_manifest,
-    chapter_seq smallint NOT NULL,         -- ADDED: source order of first appearance.
-                                           -- Chapter identity cannot be the title:
-                                           -- many chapters are titled bare باب and
-                                           -- would collapse under SELECT DISTINCT.
-    chapter_ar  text NOT NULL,
+    chapter_ar  text NOT NULL,             -- Ifta bab title. Read only by stage 14,
+                                           -- to strip the heading from text_plain.
+                                           -- Structure comes from site_babs.
     hadith_num  text NOT NULL,             -- front-matter ('') filtered by loader
     text_plain  text NOT NULL,             -- "N - " prefix stripped by loader
     text_diac   text NOT NULL,
@@ -43,7 +41,40 @@ CREATE TABLE staging.hadiths (
                                            -- transform. Recovers shape evidence
                                            -- without JSON operators.
 );
-CREATE INDEX ON staging.hadiths (book_slug, chapter_seq);
+
+-- The book's structure and each hadith's place in it. Curated, committed, and
+-- loaded by psql before the transform (etl/sunnah_structure.sql,
+-- etl/hadith_placement.sql). Stage 10 and stage 11 read them.
+-- No FK to book_manifest: `npm run load` truncates the manifest with CASCADE,
+-- which would empty these tables too. Stage 10 joins on the slug instead.
+CREATE TABLE staging.site_kitabs (
+    book_slug text     NOT NULL,
+    kitab_num smallint NOT NULL,
+    title_en  text     NOT NULL,
+    title_ar  text     NOT NULL,
+    PRIMARY KEY (book_slug, kitab_num)
+);
+
+CREATE TABLE staging.site_babs (
+    book_slug text     NOT NULL,
+    kitab_num smallint NOT NULL,
+    seq       smallint NOT NULL,           -- page position inside the kitab
+    bab_num   text,
+    surah_num smallint,                    -- Bukhari Tafseer only
+    surah_en  text,
+    surah_ar  text,
+    title_en  text,
+    title_ar  text     NOT NULL,
+    PRIMARY KEY (book_slug, kitab_num, seq),
+    FOREIGN KEY (book_slug, kitab_num) REFERENCES staging.site_kitabs
+);
+
+CREATE TABLE staging.placement (
+    hadith_id integer  PRIMARY KEY,        -- Ifta mainId
+    kitab_num smallint NOT NULL,
+    bab_seq   smallint,                    -- NULL = filed at kitab level
+    via       char(1)  NOT NULL CHECK (via IN ('T','F','S','M'))
+);
 
 CREATE TABLE staging.chain_rows (          -- flattened chain_of_narrators
     hadith_id         integer  NOT NULL REFERENCES staging.hadiths,
@@ -175,7 +206,7 @@ $$;
 -- anchor: cut everything before the first narration verb.
 --
 -- Ifta prepends the باب chapter heading to text_plain on 4,462 hadiths, often
--- followed by a Qur'anic or commentary preamble that is NOT in chapters.title_ar
+-- followed by a Qur'anic or commentary preamble that is NOT in the Ifta bab title
 -- and so cannot be stripped by comparing against it. LK stores the hadith alone.
 -- Both editions begin the hadith proper at the same word, so cutting there is
 -- symmetric: it removes Ifta's preamble and leaves LK untouched. Measured: the

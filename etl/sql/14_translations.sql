@@ -35,7 +35,7 @@
 -- Two systematic differences between the editions are removed first:
 --
 --   1. Ifta prepends the باب chapter heading to text_plain (4,462 hadiths),
---      sometimes with a Qur'anic preamble that is not in chapters.title_ar.
+--      sometimes with a Qur'anic preamble that is not in the Ifta bab title.
 --      staging.anchor() cuts both sides at the first narration verb, which
 --      removes Ifta's preamble and leaves LK unchanged.
 --   2. The tails diverge — the same hadith ends differently between editions
@@ -61,7 +61,7 @@
 --
 -- NOTHING IS DELETED. A hadith with no acceptable match keeps its Arabic and
 -- simply has no translation row. Coverage is a property of LK, not of the
--- corpus: LK ships 7,314 rows for Muslim's 7,626 hadiths, so at least 312 of
+-- corpus: LK ships 7,314 rows for Muslim's 7,666 hadiths, so at least 352 of
 -- them can never have an English text from this source.
 -- =============================================================================
 
@@ -85,16 +85,16 @@ SELECT h.hadith_id,
        -- The heading is stripped first because anchoring alone leaves headings
        -- that themselves contain a narration verb.
        staging.anchor(
-           CASE WHEN staging.match_key(ch.title_ar) <> ''
+           CASE WHEN staging.match_key(sh.chapter_ar) <> ''
                  AND staging.match_key(h.text_plain)
-                     LIKE staging.match_key(ch.title_ar) || '%'
+                     LIKE staging.match_key(sh.chapter_ar) || '%'
                 THEN substr(staging.match_key(h.text_plain),
-                            length(staging.match_key(ch.title_ar)) + 1)
+                            length(staging.match_key(sh.chapter_ar)) + 1)
                 ELSE staging.match_key(h.text_plain) END) AS a,
        staging.match_key(h.matn_plain) AS m
 FROM corpus.hadiths h
 JOIN corpus.collections c USING (collection_id)
-JOIN corpus.chapters ch ON ch.chapter_id = h.chapter_id;
+JOIN staging.hadiths sh ON sh.hadith_id = h.hadith_id;   -- the Ifta bab title
 
 ALTER TABLE t_ifta ADD COLUMN alen int, ADD COLUMN mlen int, ADD COLUMN hf text,
                    ADD COLUMN p100 text, ADD COLUMN p60 text, ADD COLUMN p40 text,
