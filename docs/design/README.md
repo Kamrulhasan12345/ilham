@@ -22,9 +22,10 @@ directions, 1a Codex and 1b Register. Do not build from those two.
 - `specimen.html` — the live specimen. It shows both grounds, the foundations,
   the chain, the component library, the analytics forms, the motion contract and
   the nine implementation rules. Open it in a browser. The `:root` block at the
-  top of the file is the **source of truth** for the tokens. Copy that block to
-  `frontend/src/styles/tokens.css` when somebody creates the frontend. Every
-  chapter carries an `id`, so the hub can link into it.
+  top of the file is the **source of truth** for the tokens of this design
+  reference. The running frontend does not load them. It uses the shadcn
+  preset in `frontend/src/index.css`. Every chapter carries an `id`, so the hub
+  can link into it.
 - `demo.html` — a working prototype of four screens: the hadith page, a
   narrator profile, a teacher circle dashboard, and the disagreement analytics.
   It routes on the hash, and the top bar switches the ground. Its token block is
