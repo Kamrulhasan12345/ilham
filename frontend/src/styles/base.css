@@ -1,9 +1,0 @@
-html {
-  color-scheme: light dark;
-}
-
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}

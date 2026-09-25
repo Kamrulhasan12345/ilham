@@ -1,22 +1,25 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from '../../auth/AuthContext';
 import { AuthContext } from '../../auth/AuthContext';
 import { routeTree } from '../../routeTree.gen';
 
+vi.mock('../../lib/apiClient', async () => {
+  const actual = await vi.importActual<typeof import('../../lib/apiClient')>('../../lib/apiClient');
+  return { ...actual, apiFetch: vi.fn() };
+});
+
+import { apiFetch } from '../../lib/apiClient';
+
+const USER = { user_id: 1, role: 'student' as const, full_name: 'Amina', email: 'a@example.com' };
+
 function renderSettings() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const auth: AuthContextValue = {
-    state: {
-      status: 'signed-in',
-      user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
-    },
-    ready: Promise.resolve({
-      status: 'signed-in',
-      user: { user_id: 1, role: 'student', full_name: 'Amina', email: 'a@example.com' },
-    }),
+    state: { status: 'signed-in', user: USER },
+    ready: Promise.resolve({ status: 'signed-in', user: USER }),
     signIn: async () => {},
     signOut: async () => {},
   };
@@ -31,19 +34,38 @@ function renderSettings() {
   );
 }
 
-describe('Settings page', () => {
-  it('renders the Settings title and the theme switch', async () => {
+describe('Settings page password form', () => {
+  it('sends the change request with both passwords on submit', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(null as never);
     renderSettings();
-    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
-    // One toggle button, not the old two-ground segmented control. Scoped
-    // out of necessity: the shell header holds its own ThemeSwitch, so an
-    // unscoped query would match both copies.
-    const card = (await screen.findByText('Light or dark. The app remembers your choice.')).closest(
-      '[data-slot="card"]',
-    );
-    expect(card).not.toBeNull();
-    expect(
-      within(card as HTMLElement).getByRole('button', { name: /switch to (light|dark) theme/i }),
-    ).toBeInTheDocument();
+
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Current password'), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText('New password'), {
+      target: { value: 'newpassword456' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Change password' }));
+
+    await vi.waitFor(() => {
+      expect(vi.mocked(apiFetch)).toHaveBeenCalledWith('/auth/change-password', expect.anything(), {
+        method: 'POST',
+        body: { current_password: 'password123', new_password: 'newpassword456' },
+      });
+    });
+  });
+
+  it('keeps the submit disabled until the new password is long enough', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(null as never);
+    renderSettings();
+
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Change password' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Current password'), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'short' } });
+    expect(screen.getByRole('button', { name: 'Change password' })).toBeDisabled();
   });
 });

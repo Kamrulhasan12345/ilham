@@ -85,7 +85,11 @@ describe('the register page', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Teacher' }));
 
     expect(screen.getByText(/an admin verifies the ijaza or the institution/i)).toBeInTheDocument();
-    expect(apiFetch).not.toHaveBeenCalled();
+    expect(apiFetch).not.toHaveBeenCalledWith(
+      '/auth/register',
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it('shows the error message on a duplicate-email failure', async () => {

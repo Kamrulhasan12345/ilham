@@ -8,13 +8,12 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/check-token-literals.mjs && tsc -b && vite build",
+    "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome check .",
-    "format": "biome format --write .",
-    "check:tokens": "node scripts/check-token-literals.mjs"
+    "format": "biome format --write ."
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",

@@ -64,7 +64,8 @@ describe('Students page', () => {
       },
     ]);
     renderStudents(TEACHER);
-    expect(await screen.findByText(/Amina — a@example.com/)).toBeInTheDocument();
+    expect(await screen.findByText('Amina')).toBeInTheDocument();
+    expect(screen.getByText('a@example.com')).toBeInTheDocument();
   });
 
   it('explains the rule to a student instead of redirecting in silence', async () => {

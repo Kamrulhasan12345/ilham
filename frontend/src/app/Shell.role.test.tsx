@@ -79,7 +79,8 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 9, role: 'admin', full_name: 'Root', email: 'a@x.io' },
     });
-    expect(await screen.findByText(/root · admin/i)).toBeInTheDocument();
+    expect(await screen.findByText('Root')).toBeInTheDocument();
+    expect(screen.getByText('admin')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Verify teachers' })).toBeInTheDocument();
   });
 

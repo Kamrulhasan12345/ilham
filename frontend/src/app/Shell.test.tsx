@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   RouterProvider,
   createMemoryHistory,
@@ -15,11 +16,14 @@ import { Shell } from './Shell';
 // brand). AuthProvider (real, uncontrolled) starts in "loading" status, so
 // the nav itself never renders here and no apiFetch mocking is needed.
 function renderShell(children: React.ReactNode) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const rootRoute = createRootRoute({
     component: () => (
-      <AuthProvider>
-        <Shell>{children}</Shell>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Shell>{children}</Shell>
+        </AuthProvider>
+      </QueryClientProvider>
     ),
   });
   const router = createRouter({ routeTree: rootRoute, history: createMemoryHistory() });

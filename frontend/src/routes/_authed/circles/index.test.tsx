@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthContextValue } from '../../../auth/AuthContext';
 import { AuthContext } from '../../../auth/AuthContext';
@@ -78,5 +78,25 @@ describe('Circles page', () => {
     vi.mocked(apiFetch).mockRejectedValue(new Error('network error'));
     renderCircles(STUDENT);
     expect(await screen.findByText(/could not be loaded/i)).toBeInTheDocument();
+  });
+});
+
+describe('Circles page leave control', () => {
+  it('shows a student a Leave button that deletes their own enrolment', async () => {
+    vi.mocked(apiFetch).mockImplementation(async (path: unknown) => {
+      if (path === '/circles') {
+        return [{ circle_id: 1, teacher_id: 2, name: 'Halaqa', created_at: '2026-01-01' }] as never;
+      }
+      return null as never;
+    });
+    renderCircles(STUDENT);
+    expect(await screen.findByText('Halaqa')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Leave' }));
+    await vi.waitFor(() => {
+      expect(vi.mocked(apiFetch)).toHaveBeenCalledWith('/circles/1/students/1', expect.anything(), {
+        method: 'DELETE',
+      });
+    });
   });
 });

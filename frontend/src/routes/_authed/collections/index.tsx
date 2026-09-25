@@ -1,100 +1,78 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { ArrowRight, BookOpen } from 'lucide-react';
-import { z } from 'zod';
-import { apiFetch } from '../../../lib/apiClient';
-
-const collectionSchema = z.object({
-  collection_id: z.number(),
-  slug: z.string(),
-  title_ar: z.string(),
-  title_en: z.string().nullable(),
-  hadith_count: z.coerce.number(),
-});
-const collectionsSchema = z.array(collectionSchema);
+import { ChevronRight } from 'lucide-react';
+import { PageHeader } from '../../../app/PageHeader';
+import { GeoPattern } from '../../../app/Showcase';
+import { useCollections } from '../../../lib/corpus';
 
 export const Route = createFileRoute('/_authed/collections/')({
   component: CollectionsPage,
 });
 
-function useCollections() {
-  return useQuery({
-    queryKey: ['collections'],
-    queryFn: () => apiFetch('/collections', collectionsSchema),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-}
-
 function CollectionsPage() {
   const { data, isLoading, isError } = useCollections();
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <BookOpen className="size-6" />
-          Collections
-        </h1>
-        <p className="text-muted-foreground">Two canonical collections, read-only as always.</p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Collections"
+        description="The canonical collections, browsed by chapter. The corpus is read-only."
+      />
 
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {[0, 1].map((n) => (
-            <Card key={n}>
-              <CardHeader>
-                <Skeleton className="h-5 w-2/3" />
-                <Skeleton className="h-4 w-1/3" />
-              </CardHeader>
-            </Card>
+            <Skeleton key={n} className="h-64 rounded-xl" />
           ))}
         </div>
       ) : isError || !data ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>The collections could not be loaded</EmptyTitle>
             <EmptyDescription>Try again.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : data.length === 0 ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>No collections are loaded yet</EmptyTitle>
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {data.map((collection) => (
-            <Card key={collection.collection_id}>
-              <CardHeader>
-                <CardTitle>
-                  <Link
-                    to="/collections/$slug"
-                    params={{ slug: collection.slug }}
-                    className="hover:underline"
-                  >
-                    <span>{collection.title_en ?? collection.title_ar}</span>
+            <Card
+              key={collection.collection_id}
+              className="gap-0 p-0 transition-shadow hover:shadow-lg"
+            >
+              <Link
+                to="/collections/$slug"
+                params={{ slug: collection.slug }}
+                className="flex flex-col hover:no-underline"
+              >
+                <div className="relative flex h-44 items-end justify-end overflow-hidden bg-primary p-6 text-primary-foreground">
+                  <GeoPattern className="text-primary-foreground/15 [mask-image:linear-gradient(to_top_left,transparent_20%,black)]" />
+                  <span dir="rtl" lang="ar" className="relative font-arabic text-4xl leading-loose">
+                    {collection.title_ar}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 p-6">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
                     {collection.title_en ? (
-                      <span dir="rtl" lang="ar" className="font-arabic">
-                        {' '}
-                        {collection.title_ar}
-                      </span>
+                      <p className="font-heading text-lg font-semibold">{collection.title_en}</p>
                     ) : null}
-                  </Link>
-                </CardTitle>
-                <CardDescription>{collection.hadith_count} hadiths</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/collections/$slug" params={{ slug: collection.slug }}>
-                    Browse chapters <ArrowRight data-icon="inline-end" />
-                  </Link>
-                </Button>
-              </CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {collection.hadith_count.toLocaleString('en')} hadiths
+                    </p>
+                  </div>
+                  <span className="flex items-center gap-1 text-sm font-medium text-primary">
+                    Browse chapters
+                    <ChevronRight className="size-4" />
+                  </span>
+                </div>
+              </Link>
             </Card>
           ))}
         </div>

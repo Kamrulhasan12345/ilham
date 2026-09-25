@@ -8,16 +8,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { NotebookPen } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
 
 // A note has no title, no privacy flag, no updated_at, and no soft delete
@@ -57,7 +59,7 @@ function NotesPage() {
     }
   }
 
-  const grouped = new Map<number, { note_id: number; body: string }[]>();
+  const grouped = new Map<number, { note_id: number; body: string; created_at: string }[]>();
   for (const note of data ?? []) {
     const list = grouped.get(note.hadith_id) ?? [];
     list.push(note);
@@ -65,46 +67,34 @@ function NotesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <NotebookPen className="size-6" />
-          Notes
-        </h1>
-        <p className="text-muted-foreground">
-          Everything you wrote, grouped by hadith. Write new notes from a hadith page.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Notes"
+        description="Everything you wrote, grouped by hadith. Write new notes from a hadith page."
+      />
 
       {isLoading ? (
-        <div className="flex flex-col gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {[0, 1].map((n) => (
-            <Card key={n}>
-              <CardHeader>
-                <Skeleton className="h-5 w-1/3" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full" />
-              </CardContent>
-            </Card>
+            <Skeleton key={n} className="h-40 rounded-xl" />
           ))}
         </div>
       ) : isError || !data ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>The notes could not be loaded</EmptyTitle>
             <EmptyDescription>Try again.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : data.length === 0 ? (
-        <Empty>
+        <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>No notes yet</EmptyTitle>
             <EmptyDescription>Open any hadith and write the first one there.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="grid items-start gap-4 md:grid-cols-2">
           {[...grouped].map(([groupHadithId, notes]) => (
             <Card key={groupHadithId}>
               <CardHeader>
@@ -117,19 +107,37 @@ function NotesPage() {
                     Hadith {groupHadithId}
                   </Link>
                 </CardTitle>
+                <CardAction>
+                  <Badge variant="secondary">
+                    {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+                  </Badge>
+                </CardAction>
               </CardHeader>
               <CardContent>
                 <ul className="flex flex-col gap-2">
                   {notes.map((note) => (
-                    <li key={note.note_id} className="flex items-start justify-between gap-2">
-                      <span>{note.body}</span>
+                    <li
+                      key={note.note_id}
+                      className="flex items-start gap-2 rounded-lg bg-muted/50 p-3"
+                    >
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <p className="text-sm whitespace-pre-wrap">{note.body}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(note.created_at).toLocaleDateString('en', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
+                        size="icon-sm"
+                        aria-label="Delete"
                         onClick={() => setDeleting(note.note_id)}
                       >
-                        Delete
+                        <Trash2 />
                       </Button>
                     </li>
                   ))}
