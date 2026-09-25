@@ -51,3 +51,10 @@ etl/shape.override.local.json
 # are already tracked, so the output itself does not belong in git.
 # ---------------------------------------------------------------------------
 submission/
+
+# ---------------------------------------------------------------------------
+# Local tool output. Opencode plugin logs and the vitest JSON reporter output;
+# regenerated on every run, never part of a change.
+# ---------------------------------------------------------------------------
+.logs/
+frontend/.vitest/

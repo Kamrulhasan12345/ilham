@@ -1,10 +1,20 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
 import { Dumbbell } from '../../../domain/Dumbbell';
-import { State } from '../../../domain/State';
 import { apiFetch } from '../../../lib/apiClient';
-import { Table } from '../../../ui/Table';
 
 const contestedSchema = z.array(
   z.object({
@@ -34,16 +44,20 @@ function ContestedPage() {
 
   if (isLoading) {
     return (
-      <State title="Comparing the scholars" quiet>
-        <p>Reading both grade columns.</p>
-      </State>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-48 w-full" />
+      </div>
     );
   }
   if (isError || !data) {
     return (
-      <State title="The comparison could not be loaded">
-        <p>Try again.</p>
-      </State>
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyTitle>The comparison could not be loaded</EmptyTitle>
+          <EmptyDescription>Try again.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -54,56 +68,81 @@ function ContestedPage() {
   );
 
   return (
-    <div>
-      <h1>Where do the two scholars disagree?</h1>
-      <p className="label">
-        Sorted by the gap, which runs 1 to 5. The first {LIMIT} contested narrators — a cap, printed
-        because a silent top-N reads as everyone.
-      </p>
-      <Dumbbell
-        rows={rows.map((row) => ({
-          key: row.narrator_id,
-          name: row.display_name,
-          ordinalA: row.ordinal_ibn_hajar,
-          ordinalB: row.ordinal_dhahabi,
-          gap: Math.abs(row.ordinal_ibn_hajar - row.ordinal_dhahabi),
-        }))}
-        label="Dumbbell chart of contested narrators: Ibn Hajar against al-Dhahabi on the six-grade axis"
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        crumbs={[{ label: 'Analytics', href: '/analytics' }]}
+        title="Where do the two scholars disagree?"
+        description={`Sorted by the gap, which runs 1 to 5. The first ${LIMIT} contested narrators: a cap, printed because a silent top-N reads as everyone.`}
       />
-      <Table caption="Contested narrators with both grades and the gap. The chart above is the summary; this table is the source of truth.">
-        <thead>
-          <tr>
-            <th scope="col">Narrator</th>
-            <th scope="col">Ibn Hajar</th>
-            <th scope="col">Al-Dhahabi</th>
-            <th scope="col">Gap</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.narrator_id}>
-              <td>
-                <Link to="/narrators/$narratorId" params={{ narratorId: String(row.narrator_id) }}>
-                  <span className="ar" dir="rtl">
-                    {row.display_name}
-                  </span>
-                </Link>
-              </td>
-              <td>
-                <span className="ar" dir="rtl">
-                  {row.label_ibn_hajar}
-                </span>
-              </td>
-              <td>
-                <span className="ar" dir="rtl">
-                  {row.label_dhahabi}
-                </span>
-              </td>
-              <td className="m m--bare">{`[${Math.abs(row.ordinal_ibn_hajar - row.ordinal_dhahabi)}]`}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Ibn Hajar against al-Dhahabi</h2>
+          </CardTitle>
+          <CardDescription>Each row joins the two grades on the six-grade axis</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Dumbbell
+            rows={rows.map((row) => ({
+              key: row.narrator_id,
+              name: row.display_name,
+              ordinalA: row.ordinal_ibn_hajar,
+              ordinalB: row.ordinal_dhahabi,
+              gap: Math.abs(row.ordinal_ibn_hajar - row.ordinal_dhahabi),
+            }))}
+            label="Dumbbell chart of contested narrators: Ibn Hajar against al-Dhahabi on the six-grade axis"
+          />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Grades side by side</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Narrator</TableHead>
+                <TableHead>Ibn Hajar</TableHead>
+                <TableHead>Al-Dhahabi</TableHead>
+                <TableHead className="w-20">Gap</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.narrator_id}>
+                  <TableCell>
+                    <Link
+                      to="/narrators/$narratorId"
+                      params={{ narratorId: String(row.narrator_id) }}
+                      className="hover:underline"
+                    >
+                      <span dir="rtl" lang="ar" className="font-arabic">
+                        {row.display_name}
+                      </span>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <span dir="rtl" lang="ar" className="font-arabic">
+                      {row.label_ibn_hajar}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span dir="rtl" lang="ar" className="font-arabic">
+                      {row.label_dhahabi}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-mono tabular-nums">
+                    {Math.abs(row.ordinal_ibn_hajar - row.ordinal_dhahabi)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

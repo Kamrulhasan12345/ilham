@@ -180,7 +180,9 @@ describe('apiFetchEnvelope', () => {
     );
     const result = await apiFetchEnvelope(
       '/analytics/top-narrators?limit=15',
-      z.array(z.object({ narrator_id: z.number(), display_name: z.string(), positions: z.number() })),
+      z.array(
+        z.object({ narrator_id: z.number(), display_name: z.string(), positions: z.number() }),
+      ),
       z.object({ total_positions: z.number(), top_count: z.number(), top_share: z.number() }),
     );
     expect(result.data).toHaveLength(1);
@@ -197,5 +199,18 @@ describe('apiFetchEnvelope', () => {
     );
     expect(result.data).toEqual([]);
     expect(result.summary).toBeNull();
+  });
+});
+
+describe('resolveApiBase', () => {
+  it('falls back to the same-origin proxy for an empty or missing base', async () => {
+    const { resolveApiBase } = await import('./apiClient');
+    expect(resolveApiBase(undefined)).toBe('/api');
+    expect(resolveApiBase('')).toBe('/api');
+  });
+
+  it('keeps an explicitly set base, even cross-origin', async () => {
+    const { resolveApiBase } = await import('./apiClient');
+    expect(resolveApiBase('https://api.example.com')).toBe('https://api.example.com');
   });
 });

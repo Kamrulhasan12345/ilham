@@ -1,8 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
-import { BadRequestError, NotFoundError } from '../../lib/errors.js';
+import { BadRequestError, ConflictError, NotFoundError } from '../../lib/errors.js';
 import {
   createReviewSession,
+  deleteReviewSession,
   getReviewSessionById,
   listReviewItems,
   listReviewSessionsForStudent,
@@ -70,6 +71,36 @@ export async function getReviewSession(req: Request, res: Response, next: NextFu
 
     const items = await listReviewItems(id);
     res.json({ data: { ...session, items } });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function deleteReviewSessionHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) throw new BadRequestError('invalid session id');
+    const session = await getReviewSessionById(id);
+    if (!session) throw new NotFoundError('review session not found');
+
+    // Authors only, and existence stays hidden otherwise — same rule as the
+    // detail read. A student deletes their own self-logs; a teacher deletes
+    // the sessions they recorded; nobody deletes anybody else's.
+    const { userId, role } = req.user!;
+    const allowed =
+      role === 'admin' ||
+      (role === 'teacher' && session.reviewer_id === userId) ||
+      (role === 'student' && session.student_id === userId && session.reviewer_id === null);
+    if (!allowed) throw new NotFoundError('review session not found');
+
+    const outcome = await deleteReviewSession(id, userId);
+    if (outcome === 'missing') throw new NotFoundError('review session not found');
+    if (outcome === 'ambiguous') {
+      throw new ConflictError(
+        'session touches a hadith studied under several assignments; correct it with a teacher override instead',
+      );
+    }
+    res.json({ data: null });
   } catch (e) {
     next(e);
   }

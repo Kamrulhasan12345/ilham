@@ -1,4 +1,4 @@
-import styles from './VerdictBand.module.css';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export type VerdictWord = 'strong' | 'mixed' | 'weak' | 'none';
 
@@ -15,24 +15,26 @@ export function VerdictBand({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.verdict}>
-      <p className={styles.head}>
+    <Alert>
+      <AlertTitle>
         {word === 'none' ? (
           'This hadith carries no recorded chain.'
         ) : (
           <>
             This chain is <b>{word}</b>.{' '}
             {strength !== null ? (
-              <span className="m m--bare">{`[wt ${strength.toFixed(2)}]`}</span>
+              <span className="font-mono tabular-nums">[wt {strength.toFixed(2)}]</span>
             ) : null}
           </>
         )}
-      </p>
-      <p className={styles.body}>{children}</p>
-      <p className={styles.note}>
-        Ilham reports grades that classical scholars wrote centuries ago. It does not judge whether
-        a hadith is authentic, and a number here is never Ilham&rsquo;s own opinion.
-      </p>
-    </div>
+      </AlertTitle>
+      <AlertDescription className="flex flex-col gap-1">
+        <span>{children}</span>
+        <span>
+          Ilham reports grades that classical scholars wrote centuries ago. It does not judge
+          whether a hadith is authentic, and a number here is never Ilham&rsquo;s own opinion.
+        </span>
+      </AlertDescription>
+    </Alert>
   );
 }

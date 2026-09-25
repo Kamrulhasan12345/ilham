@@ -96,6 +96,26 @@ export async function unenrollStudent(circleId: number, studentId: number): Prom
   return (rowCount ?? 0) > 0;
 }
 
+// Delete-when-empty: a circle with students, assignments, or review sessions
+// refuses with 'conflict' instead of cascading pedagogical records away, and
+// an unknown id reports 'missing'. One DELETE after read-only checks; no
+// transaction needed.
+export async function deleteCircleWhenEmpty(
+  circleId: number,
+): Promise<'deleted' | 'conflict' | 'missing'> {
+  const { rows } = await pool.query<{ refs: number; gone: boolean }>(
+    `SELECT (SELECT count(*) FROM app.enrollments WHERE circle_id = $1)
+          + (SELECT count(*) FROM app.assignments WHERE circle_id = $1)
+          + (SELECT count(*) FROM app.review_sessions WHERE circle_id = $1) AS refs,
+          NOT EXISTS (SELECT 1 FROM app.circles WHERE circle_id = $1) AS gone`,
+    [circleId],
+  );
+  if (rows[0].gone) return 'missing';
+  if (Number(rows[0].refs) > 0) return 'conflict';
+  const { rowCount } = await pool.query('DELETE FROM app.circles WHERE circle_id = $1', [circleId]);
+  return (rowCount ?? 0) > 0 ? 'deleted' : 'missing';
+}
+
 // The teacher dashboard (PRD Q4): per enrolled student, assigned / mastered /
 // overdue. Mastery of 3 or more counts as mastered (frontend PRD §9.2; the
 // schema names no levels). (see the mastery

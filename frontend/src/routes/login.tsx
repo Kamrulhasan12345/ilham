@@ -1,11 +1,18 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import { Spinner } from '@/components/ui/spinner';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
+import { AuthLayout } from '../app/AuthLayout';
 import { ApiError, apiFetch } from '../lib/apiClient';
-import { Button } from '../ui/Button';
-import { Field } from '../ui/Field';
-import { Input } from '../ui/Input';
-import styles from './auth-form.module.css';
 
 const loginResponseSchema = z.object({ accessToken: z.string() });
 
@@ -24,7 +31,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const errorRef = useRef<HTMLParagraphElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   // docs/frontend-prd.md §7.1: a failed submit shows one plain error above
   // the form, and moves focus to it.
@@ -43,7 +50,7 @@ function LoginPage() {
       });
       // §5.3: signIn does the rest (setAccessToken, GET /auth/me, sign-in state).
       await auth.signIn(accessToken);
-      navigate({ to: redirect || '/collections' });
+      navigate({ to: redirect || '/' });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
     } finally {
@@ -52,60 +59,84 @@ function LoginPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <h1>Sign in</h1>
-
-      {error ? (
-        <p ref={errorRef} tabIndex={-1} className={styles.formError}>
-          {error}
+    <AuthLayout
+      switchTo={
+        <Button variant="ghost" asChild>
+          <Link to="/register">Sign up</Link>
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight">Sign in</h1>
+        <p className="text-balance text-muted-foreground">
+          Welcome back. Pick up your study where you left off.
         </p>
+      </div>
+      {/* docs/frontend-prd.md §7.1: a failed submit shows one plain error
+          above the form, and focus moves to it. Alert takes no ref, so the
+          focus target is this wrapper. */}
+      {error ? (
+        <div ref={errorRef} tabIndex={-1} className="outline-none">
+          <Alert variant="destructive">
+            <AlertTitle>Sign-in failed</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
       ) : null}
-
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <Field label="Email">
-          {({ controlId }) => (
-            <Input
-              id={controlId}
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          )}
-        </Field>
-
-        <Field label="Password">
-          {({ controlId }) => (
-            <div className={styles.passwordRow}>
-              <Input
-                id={controlId}
+      <form onSubmit={handleSubmit}>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="login-email">Email</FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </InputGroup>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="login-password">Password</FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
-              <Button
-                type="button"
-                variant="default"
-                aria-pressed={showPassword}
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </Button>
-            </div>
-          )}
-        </Field>
-
-        <Button type="submit" variant="primary" disabled={submitting}>
-          Sign in
-        </Button>
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
+          <Field>
+            <Button type="submit" size="lg" disabled={submitting}>
+              {submitting ? <Spinner data-icon="inline-start" /> : null}
+              Sign in
+            </Button>
+          </Field>
+        </FieldGroup>
       </form>
-
-      <p>
-        <Link to="/register">Create an account</Link>
+      <p className="text-center text-sm text-muted-foreground">
+        New to Ilham?{' '}
+        <Link to="/register" className="font-medium text-foreground underline underline-offset-4">
+          Create an account
+        </Link>
       </p>
-    </div>
+    </AuthLayout>
   );
 }

@@ -18,6 +18,23 @@ export async function getStudySetById(studySetId: number): Promise<StudySetRow |
   return rows[0] ?? null;
 }
 
+// Read access for assignees: a set assigned to a circle the student is
+// enrolled in. Writes stay owner-only; this function gates reads alone.
+export async function isSetAssignedToStudent(
+  studySetId: number,
+  studentId: number,
+): Promise<boolean> {
+  const { rows } = await pool.query<{ ok: number }>(
+    `SELECT 1 AS ok
+       FROM app.assignments a
+       JOIN app.enrollments e ON e.circle_id = a.circle_id
+      WHERE a.set_id = $1 AND e.student_id = $2
+      LIMIT 1`,
+    [studySetId, studentId],
+  );
+  return rows.length > 0;
+}
+
 export async function createStudySet(input: { ownerId: number; name: string }): Promise<StudySetRow> {
   const { rows } = await pool.query<StudySetRow>(
     `INSERT INTO app.study_sets (owner_id, name) VALUES ($1, $2)

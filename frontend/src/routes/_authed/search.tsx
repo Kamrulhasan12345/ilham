@@ -1,24 +1,25 @@
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { PageHeader } from '../../app/PageHeader';
+import { Pager } from '../../app/Pager';
+import { SearchForm } from '../../app/SearchForm';
 import { HadithList } from '../../domain/HadithList';
-import { State } from '../../domain/State';
 import { apiFetch } from '../../lib/apiClient';
-import { Button } from '../../ui/Button';
-import { Field } from '../../ui/Field';
-import { Input } from '../../ui/Input';
-import { Pager } from '../../ui/Pager';
 
 const hadithRowSchema = z.object({
   hadith_id: z.number(),
   hadith_num: z.string(),
   text_plain: z.string(),
+  text_en: z.string().nullable(),
   sanad_count: z.number(),
   chain_strength: z.coerce.number().nullable(),
 });
 const hadithListSchema = z.array(hadithRowSchema);
 
-const searchParamsSchema = z.object({ q: z.coerce.string().catch(''), offset: z.number().catch(0) });
+const searchParamsSchema = z.object({ q: z.string().catch(''), offset: z.number().catch(0) });
 const LIMIT = 50;
 
 export const Route = createFileRoute('/_authed/search')({
@@ -41,60 +42,53 @@ function SearchPage() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
+  const message = (title: string, description: React.ReactNode) => (
+    <Empty className="border">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+
   return (
-    <div>
-      <h1>Search the hadiths</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const value = new FormData(event.currentTarget).get('q');
-          navigate({ search: { q: typeof value === 'string' ? value : '', offset: 0 } });
-        }}
-      >
-        <Field
-          label="Search the Arabic text"
-          hint="Search removes the diacritic marks and the tatweel, and unifies the alif, ta marbuta, and ya forms. A vocalised word still matches its unvocalised record."
-        >
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              name="q"
-              type="search"
-              defaultValue={q}
-              dir="rtl"
-            />
-          )}
-        </Field>
-        <Button type="submit" variant="primary">
-          Search
-        </Button>
-      </form>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Search the hadiths"
+        description="Find a hadith by any words of its Arabic text."
+      />
+      <SearchForm
+        id="hadith-search"
+        label="Search the Arabic text"
+        defaultValue={q}
+        placeholder="ابحث في متن الحديث…"
+        hint="Search removes the diacritic marks and the tatweel, and unifies the alif, ta marbuta, and ya forms. A vocalised word still matches its unvocalised record."
+        onSearch={(next) => navigate({ search: { q: next, offset: 0 } })}
+      />
 
       {q.trim().length === 0 ? (
-        <State title="Type to search" quiet>
-          <p>Search reads hadith text only. To find a person instead, search the narrators.</p>
-        </State>
+        message(
+          'Type to search',
+          'Search reads hadith text only. To find a person instead, search the narrators.',
+        )
       ) : results.isLoading ? (
-        <State title="Searching" quiet>
-          <p>Reading the corpus for your words.</p>
-        </State>
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+        </div>
       ) : results.isError || !results.data ? (
-        <State title="The search could not run">
-          <p>Try again.</p>
-        </State>
+        message('The search could not run', 'Try again.')
       ) : results.data.length === 0 ? (
-        <State title="Nothing matches">
-          <p>
-            Either no hadith carries these words, or the vocalisation differs. Try fewer words, or
-            search the narrators for the same string.
-          </p>
-          <p>
-            <Link to="/narrators" search={{ q, offset: 0 }}>
-              Search the narrators for “{q}”
+        message(
+          'Nothing matches',
+          <>
+            Either no hadith carries these words, or the vocalisation differs. Try fewer words, or{' '}
+            <Link to="/narrators" search={{ q, offset: 0 }} className="underline">
+              search the narrators for “{q}”
             </Link>
-          </p>
-        </State>
+            .
+          </>,
+        )
       ) : (
         <>
           <HadithList
@@ -102,15 +96,15 @@ function SearchPage() {
               hadith_id: hadith.hadith_id,
               hadith_num: hadith.hadith_num,
               text_plain: hadith.text_plain,
+              text_en: hadith.text_en,
               chain_strength: hadith.chain_strength === null ? null : Number(hadith.chain_strength),
             }))}
           />
           <Pager
             offset={offset}
-            limit={LIMIT}
             count={results.data.length}
-            onPrev={() => navigate({ search: { q, offset: Math.max(0, offset - LIMIT) } })}
-            onNext={() => navigate({ search: { q, offset: offset + LIMIT } })}
+            limit={LIMIT}
+            onOffset={(next) => navigate({ search: { q, offset: next } })}
           />
         </>
       )}

@@ -10,9 +10,12 @@ This document uses ASD-STE100 Simplified Technical English.
   and the app remembers. Never auto-switch by time of day.
 - **Thesis:** the Arabic is the object on the table, set at 44px. The English
   interface shrinks to a quiet apparatus around it.
-- **Source of truth:** the `:root` block in `docs/design/specimen.html`. Copy it
-  to `frontend/src/styles/tokens.css`. If this file and that block disagree, the
-  block wins and this file is stale.
+- **Source of truth:** the `:root` block in `docs/design/specimen.html` for this
+  design reference.
+- **Status in the app:** the running frontend does not load these tokens. It
+  uses the shadcn preset in `frontend/src/index.css` (see
+  `docs/frontend-prd.md` §4). Use this document for the reading rules (the
+  Arabic, the chain, the grades), not for colour values.
 
 ---
 

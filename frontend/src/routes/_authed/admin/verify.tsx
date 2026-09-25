@@ -1,12 +1,36 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { Check, X } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
+import { PageHeader } from '../../../app/PageHeader';
+import { Pager } from '../../../app/Pager';
+import { UserAvatar } from '../../../app/UserAvatar';
 import { useAuth } from '../../../auth/AuthContext';
-import { State } from '../../../domain/State';
 import { ApiError, apiFetch } from '../../../lib/apiClient';
-import { Button } from '../../../ui/Button';
-import { Dialog } from '../../../ui/Dialog';
 
 const teacherSchema = z.object({
   user_id: z.number(),
@@ -19,6 +43,7 @@ const teacherSchema = z.object({
 const queueSchema = z.array(teacherSchema);
 
 export const Route = createFileRoute('/_authed/admin/verify')({
+  validateSearch: z.object({ offset: z.number().catch(0) }),
   component: VerifyPage,
 });
 
@@ -36,16 +61,18 @@ function VerifyPage() {
   // redirecting in silence (docs/frontend-prd.md §5.4).
   if (!isAdmin) {
     return (
-      <div>
-        <h1>Verification queue</h1>
-        <p>
-          Only an admin verifies a teacher. Your account does not hold that role, so there is
-          nothing to show here.
-        </p>
-        <p>
-          <Link to="/collections">Return to the collections.</Link>
-        </p>
-      </div>
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyTitle>Verification queue</EmptyTitle>
+          <EmptyDescription>
+            Only an admin verifies a teacher. Your account does not hold that role, so there is
+            nothing to show here.{' '}
+            <Link to="/collections" className="underline">
+              Return to the collections.
+            </Link>
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -73,9 +100,12 @@ function VerifyQueue({
   setVerifying: (id: number | null) => void;
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
+  const { offset } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const LIMIT = 20;
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['teachers', 'unverified'],
-    queryFn: () => apiFetch('/teachers/unverified', queueSchema),
+    queryKey: ['teachers', 'unverified', { limit: LIMIT, offset }],
+    queryFn: () => apiFetch(`/teachers/unverified?limit=${LIMIT}&offset=${offset}`, queueSchema),
   });
   const [declining, setDeclining] = useState<{ id: number; name: string } | null>(null);
 
@@ -109,80 +139,122 @@ function VerifyQueue({
   }
 
   return (
-    <div>
-      <h1>Verification queue</h1>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Verification queue"
+        description="Teachers waiting for review. A verified teacher can open circles; everything else works before verification."
+      />
       {error ? (
-        <State title="The queue needs attention">
-          <p>{error}</p>
-        </State>
+        <Alert variant="destructive">
+          <AlertTitle>The queue needs attention</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
       {isLoading ? (
-        <State title="Loading the queue" quiet>
-          <p>Reading the waiting teachers.</p>
-        </State>
-      ) : null}
-      {isError || (!isLoading && !data) ? (
-        <State title="The queue could not be loaded">
-          <p>Try again.</p>
-        </State>
-      ) : null}
-      {data && data.length === 0 ? (
-        <State title="No teacher waits" quiet>
-          <p>Every application has an answer.</p>
-        </State>
-      ) : null}
-      {data && data.length > 0 ? (
-        <ul>
-          {data.map((teacher) => (
-            <li key={teacher.user_id}>
-              {teacher.full_name} — {teacher.email}
-              {teacher.institution ? ` — ${teacher.institution}` : null}
-              {teacher.specialization ? ` — ${teacher.specialization}` : null}{' '}
-              <Button
-                type="button"
-                variant="primary"
-                disabled={verifying === teacher.user_id}
-                onClick={() => handleVerify(teacher.user_id)}
-              >
-                Verify
-              </Button>{' '}
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={verifying === teacher.user_id}
-                onClick={() => setDeclining({ id: teacher.user_id, name: teacher.full_name })}
-              >
-                Decline
-              </Button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+        </div>
+      ) : isError || !data ? (
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>The queue could not be loaded</EmptyTitle>
+            <EmptyDescription>Try again.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : data.length === 0 ? (
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>No teacher waits</EmptyTitle>
+            <EmptyDescription>Every application has an answer.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2">
+            {data.map((teacher) => (
+              <Card key={teacher.user_id}>
+                <CardHeader className="flex items-center gap-3">
+                  <UserAvatar name={teacher.full_name} className="size-10" />
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <CardTitle>{teacher.full_name}</CardTitle>
+                    <CardDescription className="truncate">{teacher.email}</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Institution</span>
+                    <span>{teacher.institution ?? 'not given'}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Specialization
+                    </span>
+                    <span>{teacher.specialization ?? 'not given'}</span>
+                  </div>
+                  <div className="col-span-2 flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Applied</span>
+                    <span>
+                      {new Date(teacher.created_at).toLocaleDateString('en', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </CardContent>
+                <CardFooter className="justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={verifying === teacher.user_id}
+                    onClick={() => setDeclining({ id: teacher.user_id, name: teacher.full_name })}
+                  >
+                    <X data-icon="inline-start" />
+                    Decline
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={verifying === teacher.user_id}
+                    onClick={() => handleVerify(teacher.user_id)}
+                  >
+                    {verifying === teacher.user_id ? (
+                      <Spinner data-icon="inline-start" />
+                    ) : (
+                      <Check data-icon="inline-start" />
+                    )}
+                    Verify
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+          <Pager
+            offset={offset}
+            count={data.length}
+            limit={LIMIT}
+            onOffset={(next) => navigate({ search: { offset: next } })}
+          />
+        </>
+      )}
 
-      <Dialog
-        open={declining !== null}
-        title={`Decline ${declining?.name ?? 'this teacher'}?`}
-        onClose={() => setDeclining(null)}
-        actions={
-          <>
-            <Button variant="default" onClick={() => setDeclining(null)}>
-              Keep the application
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={verifying !== null}
-              onClick={() => declining && handleDecline(declining.id)}
-            >
+      <AlertDialog open={declining !== null} onOpenChange={(open) => !open && setDeclining(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Decline {declining?.name ?? 'this teacher'}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Declining ends this application. Their existing circles keep running, and they keep
+              building sets, writing notes, and reviewing — only new circles stay closed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep the application</AlertDialogCancel>
+            <AlertDialogAction onClick={() => declining && handleDecline(declining.id)}>
               Decline it
-            </Button>
-          </>
-        }
-      >
-        <p>
-          Declining ends this application. Their existing circles keep running, and they keep
-          building sets, writing notes, and reviewing — only new circles stay closed.
-        </p>
-      </Dialog>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

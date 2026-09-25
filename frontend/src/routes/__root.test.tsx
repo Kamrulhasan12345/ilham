@@ -1,4 +1,9 @@
-import { RouterProvider, createMemoryHistory, createRootRoute, createRouter } from '@tanstack/react-router';
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+} from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
@@ -19,7 +24,9 @@ async function renderWithRouter(ui: ReactElement) {
 
 describe('RouteError', () => {
   it('shows the ApiError message and a way forward, never a stack trace', async () => {
-    await renderWithRouter(<RouteError error={new ApiError(404, 'not_found', 'hadith not found')} />);
+    await renderWithRouter(
+      <RouteError error={new ApiError(404, 'not_found', 'hadith not found')} />,
+    );
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
     expect(screen.getByText('hadith not found')).toBeInTheDocument();
@@ -31,7 +38,9 @@ describe('RouteError', () => {
   });
 
   it('falls back to a generic message for a non-ApiError', async () => {
-    await renderWithRouter(<RouteError error={new Error('some internal detail leaked from a stack trace')} />);
+    await renderWithRouter(
+      <RouteError error={new Error('some internal detail leaked from a stack trace')} />,
+    );
 
     expect(screen.getByText('Something went wrong.')).toBeInTheDocument();
     expect(

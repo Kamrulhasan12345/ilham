@@ -20,7 +20,12 @@ export function setStoredTheme(theme: Theme): void {
 }
 
 export function applyTheme(theme: Theme): void {
-  document.documentElement.dataset.theme = theme;
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  try {
+    document.documentElement.style.colorScheme = theme;
+  } catch {
+    // Headless DOM without style support — the class stands.
+  }
 }
 
 export function detectSystemTheme(): Theme {

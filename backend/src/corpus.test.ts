@@ -93,6 +93,16 @@ describe('GET /chapters', () => {
     assert.equal(res.status, 400);
   });
 
+  test('returns 400 when seq is not an integer', async () => {
+    const token = await tokenFor('chapters-bad-seq');
+    const collectionId = await firstCollectionId(token);
+    const res = await authed(
+      token,
+      request(app).get(`/chapters?collection_id=${collectionId}&seq=abc`),
+    );
+    assert.equal(res.status, 400);
+  });
+
   test('returns 200 with chapters for a real collection id from the API', async () => {
     const token = await tokenFor('chapters-ok');
     const collectionId = await firstCollectionId(token);
@@ -109,6 +119,31 @@ describe('GET /chapters', () => {
     for (const row of res.body.data) {
       assert.equal(row.collection_id, collectionId);
     }
+  });
+
+  test('filters to one chapter when seq is given', async () => {
+    const token = await tokenFor('chapters-seq');
+    const collectionId = await firstCollectionId(token);
+    const res = await authed(
+      token,
+      request(app).get(`/chapters?collection_id=${collectionId}&seq=2`),
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.length, 1);
+    assert.equal(res.body.data[0].collection_id, collectionId);
+    assert.equal(res.body.data[0].seq, 2);
+    assert.equal(res.body.page.total, 1);
+  });
+
+  test('returns 200 with an empty array for an unknown seq', async () => {
+    const token = await tokenFor('chapters-seq-unknown');
+    const collectionId = await firstCollectionId(token);
+    const res = await authed(
+      token,
+      request(app).get(`/chapters?collection_id=${collectionId}&seq=9999`),
+    );
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.data, []);
   });
 
   test('returns 200 with an empty array for an unknown collection id (no 404 in controller)', async () => {
@@ -189,6 +224,46 @@ describe('GET /hadiths', () => {
     const token = await tokenFor('hadiths-bad');
     const res = await authed(token, request(app).get('/hadiths?collection_id=abc'));
     assert.equal(res.status, 400);
+  });
+
+  test('rows carry text_en when an English translation exists for that hadith', async () => {
+    const token = await tokenFor('hadiths-text-en');
+    const { rows } = await pool.query<{ hadith_id: number }>(
+      `SELECT hadith_id FROM corpus.hadith_translations WHERE lang = 'en' ORDER BY hadith_id LIMIT 1`,
+    );
+    assert.ok(rows.length > 0, 'expected at least one English translation in the corpus');
+    const translatedId = rows[0].hadith_id;
+
+    // The list endpoint has no id filter, so page through until the known
+    // translated hadith turns up, capped well under the corpus size.
+    let found: { hadith_id: number; text_en: string | null } | undefined;
+    for (let offset = 0; offset < 500 && !found; offset += 100) {
+      const res = await authed(token, request(app).get(`/hadiths?limit=100&offset=${offset}`));
+      assert.equal(res.status, 200);
+      found = res.body.data.find((h: { hadith_id: number }) => h.hadith_id === translatedId);
+    }
+    assert.ok(found, 'expected the translated hadith to appear in the list within 500 rows');
+    assert.equal(typeof found?.text_en, 'string');
+  });
+
+  test('rows carry text_en: null when no English translation exists for that hadith', async () => {
+    const token = await tokenFor('hadiths-text-en-null');
+    const { rows } = await pool.query<{ hadith_id: number }>(
+      `SELECT h.hadith_id FROM corpus.hadiths h
+        LEFT JOIN corpus.hadith_translations t ON t.hadith_id = h.hadith_id AND t.lang = 'en'
+       WHERE t.hadith_id IS NULL LIMIT 1`,
+    );
+    assert.ok(rows.length > 0, 'expected at least one untranslated hadith in the corpus');
+    const untranslatedId = rows[0].hadith_id;
+
+    let found: { hadith_id: number; text_en: string | null; text_plain: string } | undefined;
+    for (let offset = 0; offset < 500 && !found; offset += 100) {
+      const res = await authed(token, request(app).get(`/hadiths?limit=100&offset=${offset}`));
+      found = res.body.data.find((h: { hadith_id: number }) => h.hadith_id === untranslatedId);
+    }
+    assert.ok(found, 'expected the untranslated hadith to appear in the list within 500 rows');
+    assert.equal(found?.text_en, null);
+    assert.equal(typeof found?.text_plain, 'string');
   });
 });
 

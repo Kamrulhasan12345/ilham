@@ -1,15 +1,15 @@
+import { Card, CardContent } from '@/components/ui/card';
 import type { ReactNode } from 'react';
-import styles from './Rail.module.css';
 
-/** The signature element: a 210px rail at the same x on every screen,
-    holding whatever English the current object needs. It never changes
-    width and never wraps around the Arabic. Below 62rem it becomes a
-    strip above the content, keeping its content and its order. */
+/** The metadata rail: whatever English the current object needs, beside
+    the content on wide screens and stacked above it on narrow ones. */
 export function Rail({ side, children }: { side: ReactNode; children: ReactNode }) {
   return (
-    <div className={styles.doc}>
-      <aside className={`${styles.rail} ${styles.tint}`}>{side}</aside>
-      <div>{children}</div>
+    <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
+      <Card className="h-fit">
+        <CardContent className="flex flex-col gap-3">{side}</CardContent>
+      </Card>
+      <div className="flex min-w-0 flex-col gap-4">{children}</div>
     </div>
   );
 }
@@ -26,16 +26,14 @@ export interface RailRowProps {
     label is never printed. */
 export function RailRow({ label, children, arabic }: RailRowProps) {
   return (
-    <div className={styles.row}>
-      <span className={styles.key}>{label}</span>
-      <span className={arabic ? `${styles.value} ${styles.valueAr}` : styles.value}>
-        {children}
-      </span>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+      <span className={arabic ? 'text-right font-arabic text-xl' : undefined}>{children}</span>
     </div>
   );
 }
 
 /** The absent value: words, never a blank and never a colour. */
 export function Absent({ children }: { children: ReactNode }) {
-  return <span className={styles.absent}>{children}</span>;
+  return <span className="text-muted-foreground">{children}</span>;
 }

@@ -1,12 +1,19 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { UserRound } from 'lucide-react';
 import { z } from 'zod';
-import { Absent, Rail, RailRow } from '../../../domain/Rail';
-import { State } from '../../../domain/State';
+import { Pager } from '../../../app/Pager';
+import { GeoPattern } from '../../../app/Showcase';
+import { Crumbs } from '../../../domain/Crumbs';
 import { apiFetch } from '../../../lib/apiClient';
-import { Pager } from '../../../ui/Pager';
-import { Table } from '../../../ui/Table';
-import { Tag } from '../../../ui/Tag';
 
 const narratorSchema = z.object({
   narrator_id: z.number(),
@@ -52,6 +59,15 @@ export const Route = createFileRoute('/_authed/narrators/$narratorId')({
   component: NarratorProfilePage,
 });
 
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+      <span>{children ?? <span className="text-muted-foreground">not recorded</span>}</span>
+    </div>
+  );
+}
+
 function NarratorProfilePage() {
   const { narratorId } = Route.useParams();
   const { offset } = Route.useSearch();
@@ -79,16 +95,20 @@ function NarratorProfilePage() {
 
   if (profile.isLoading) {
     return (
-      <State title="Loading the narrator" quiet>
-        <p>Reading the profile.</p>
-      </State>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-10 w-1/2" />
+        <Skeleton className="h-40 w-full" />
+      </div>
     );
   }
   if (profile.isError || !profile.data) {
     return (
-      <State title="This narrator could not be loaded">
-        <p>Try again.</p>
-      </State>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>This narrator could not be loaded</EmptyTitle>
+          <EmptyDescription>Try again.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -98,14 +118,18 @@ function NarratorProfilePage() {
   // empty state — the absence is the finding.
   if (narrator.is_placeholder) {
     return (
-      <div>
-        <h1>Narrator</h1>
-        <State title="The source records no name here">
-          <p>
-            This link in the chain is unnamed: no profile matched it, or the name fits more than one
-            person. The chain shows the raw name and scores the link at the unnamed weight.
-          </p>
-        </State>
+      <div className="flex flex-col gap-6">
+        <Crumbs trail={[{ label: 'Narrators', href: '/narrators' }, { label: 'Unnamed' }]} />
+        <h1 className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">Narrator</h1>
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>The source records no name here</EmptyTitle>
+            <EmptyDescription>
+              This link in the chain is unnamed: no profile matched it, or the name fits more than
+              one person. The chain shows the raw name and scores the link at the unnamed weight.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }
@@ -114,161 +138,244 @@ function NarratorProfilePage() {
   const taught = (adjacent.data ?? []).filter((row) => row.direction === 'taught');
 
   return (
-    <article>
-      <Rail
-        side={
-          <>
-            <RailRow label="Kunya">{narrator.kunya ?? <Absent>not recorded</Absent>}</RailRow>
-            <RailRow label="Lineage">{narrator.lineage ?? <Absent>not recorded</Absent>}</RailRow>
-            <RailRow label="Relation">{narrator.relation ?? <Absent>not recorded</Absent>}</RailRow>
-            <RailRow label="Generation">
-              {narrator.generation !== null ? (
-                <span className="m m--bare">{`[${narrator.generation}]`}</span>
-              ) : (
-                <Absent>not recorded</Absent>
-              )}
-            </RailRow>
-            <RailRow label="School">{narrator.school ?? <Absent>not recorded</Absent>}</RailRow>
-            <RailRow label="Death">
-              {narrator.date_of_death ?? <Absent>not recorded</Absent>}
-            </RailRow>
-          </>
-        }
-      >
-        <h1>
-          <span className="ar" dir="rtl">
-            {narrator.display_name}
+    <div className="flex flex-col gap-6">
+      <Crumbs
+        trail={[
+          { label: 'Narrators', href: '/narrators' },
+          { label: narrator.name_en ?? narrator.display_name },
+        ]}
+      />
+
+      <Card className="gap-0 p-0">
+        <div className="relative h-24 overflow-hidden rounded-t-xl bg-primary">
+          <GeoPattern className="text-primary-foreground/15" />
+        </div>
+        <CardContent className="flex flex-col gap-4 pb-6 md:flex-row md:items-end">
+          <span className="-mt-10 flex size-20 shrink-0 items-center justify-center rounded-full border-4 border-card bg-muted text-primary">
+            <UserRound className="size-9" />
           </span>
-        </h1>
-        {narrator.name_en ? <p className="label">{narrator.name_en}</p> : null}
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h1
+              dir="rtl"
+              lang="ar"
+              className="text-left font-arabic text-3xl leading-relaxed md:text-4xl"
+            >
+              {narrator.display_name}
+            </h1>
+            {narrator.name_en ? (
+              <p className="text-lg text-muted-foreground">{narrator.name_en}</p>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {narrator.generation !== null ? (
+              <Badge variant="secondary">Generation {narrator.generation}</Badge>
+            ) : null}
+            {narrator.school ? <Badge variant="outline">{narrator.school}</Badge> : null}
+            {narrator.date_of_death ? (
+              <Badge variant="outline">Died {narrator.date_of_death}</Badge>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
 
-        <h2 className="label">Grades</h2>
-        <p>
-          {narrator.rank_ibn_hajar_raw ? (
-            <>
-              Ibn Hajar:{' '}
-              <span className="ar" dir="rtl">
-                {narrator.rank_ibn_hajar_raw}
-              </span>{' '}
-              {narrator.rank_ibn_hajar_weight !== null ? (
-                <span className="m m--bare">{`[${Number(narrator.rank_ibn_hajar_weight).toFixed(2)}]`}</span>
-              ) : null}
-            </>
-          ) : (
-            <>Ibn Hajar left no grade. </>
-          )}
-          {narrator.rank_dhahabi_raw ? (
-            <>
-              Al-Dhahabi:{' '}
-              <span className="ar" dir="rtl">
-                {narrator.rank_dhahabi_raw}
-              </span>{' '}
-              {narrator.rank_dhahabi_weight !== null ? (
-                <span className="m m--bare">{`[${Number(narrator.rank_dhahabi_weight).toFixed(2)}]`}</span>
-              ) : null}
-            </>
-          ) : (
-            <>Al-Dhahabi left no grade.</>
-          )}
-        </p>
-        <p className="label">The score uses the stricter of the two.</p>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="flex flex-col gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Grades</h2>
+              </CardTitle>
+              <CardDescription>The score uses the stricter of the two.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <GradeRow
+                scholar="Ibn Hajar"
+                raw={narrator.rank_ibn_hajar_raw}
+                weight={narrator.rank_ibn_hajar_weight}
+              />
+              <Separator />
+              <GradeRow
+                scholar="Al-Dhahabi"
+                raw={narrator.rank_dhahabi_raw}
+                weight={narrator.rank_dhahabi_weight}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Profile</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Fact label="Kunya">{narrator.kunya}</Fact>
+              <Fact label="Lineage">{narrator.lineage}</Fact>
+              <Fact label="Relation">{narrator.relation}</Fact>
+              <Fact label="Generation">
+                {narrator.generation !== null ? (
+                  <span className="tabular-nums">{narrator.generation}</span>
+                ) : null}
+              </Fact>
+              <Fact label="School">{narrator.school}</Fact>
+              <Fact label="Death">{narrator.date_of_death}</Fact>
+            </CardContent>
+          </Card>
+        </div>
 
-        <h2 className="label">Chains</h2>
-        {chains.isLoading ? (
-          <p className="label">Reading the chains…</p>
-        ) : chains.isError || !chains.data ? (
-          <p className="label">The chains could not be loaded. Try again.</p>
-        ) : chains.data.length === 0 ? (
-          <p className="label">No chain positions name this narrator.</p>
-        ) : (
-          <>
-            <ul>
-              {chains.data.map((hadith) => (
-                <li key={hadith.hadith_id}>
-                  <Link to="/hadiths/$hadithId" params={{ hadithId: String(hadith.hadith_id) }}>
-                    <span className="m">{hadith.hadith_num}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Pager
-              offset={offset}
-              limit={LIMIT}
-              count={chains.data.length}
-              onPrev={() => navigate({ search: { offset: Math.max(0, offset - LIMIT) } })}
-              onNext={() => navigate({ search: { offset: offset + LIMIT } })}
-            />
-          </>
-        )}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Teachers and students</h2>
+              </CardTitle>
+              <CardDescription>
+                Who this narrator heard from, and who heard from them
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {adjacent.isLoading ? (
+                <Skeleton className="h-24 w-full" />
+              ) : adjacent.isError || !adjacent.data ? (
+                <p className="text-sm text-muted-foreground">
+                  The neighbours could not be loaded. Try again.
+                </p>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2">
+                  <NeighbourList title="Learned from" rows={learnedFrom} />
+                  <NeighbourList title="Taught" rows={taught} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <h2 className="label">Teachers and students</h2>
-        {adjacent.isLoading ? (
-          <p className="label">Reading the neighbours…</p>
-        ) : adjacent.isError || !adjacent.data ? (
-          <p className="label">The neighbours could not be loaded. Try again.</p>
-        ) : (
-          <Table caption="Who they learned from and who learned from them. An adjacency table, never a network graph.">
-            <thead>
-              <tr>
-                <th scope="col">Direction</th>
-                <th scope="col">Narrator</th>
-              </tr>
-            </thead>
-            <tbody>
-              {learnedFrom.map((row) => (
-                <tr
-                  key={`from-${row.narrator_id}-${row.display_name}-${row.transmission_word ?? ''}`}
-                >
-                  <td>
-                    <Tag>Learned from</Tag>
-                  </td>
-                  <td>
-                    {row.narrator_id !== null ? (
-                      <Link
-                        to="/narrators/$narratorId"
-                        params={{ narratorId: String(row.narrator_id) }}
-                      >
-                        <span className="ar" dir="rtl">
-                          {row.display_name}
-                        </span>
-                      </Link>
-                    ) : (
-                      <span className="ar" dir="rtl">
-                        {row.display_name ?? 'unnamed'}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {taught.map((row) => (
-                <tr
-                  key={`to-${row.narrator_id}-${row.display_name}-${row.transmission_word ?? ''}`}
-                >
-                  <td>
-                    <Tag>Taught</Tag>
-                  </td>
-                  <td>
-                    {row.narrator_id !== null ? (
-                      <Link
-                        to="/narrators/$narratorId"
-                        params={{ narratorId: String(row.narrator_id) }}
-                      >
-                        <span className="ar" dir="rtl">
-                          {row.display_name}
-                        </span>
-                      </Link>
-                    ) : (
-                      <span className="ar" dir="rtl">
-                        {row.display_name ?? 'unnamed'}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </Rail>
-    </article>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>Hadiths</h2>
+              </CardTitle>
+              <CardDescription>Hadiths whose chains name this narrator</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              {chains.isLoading ? (
+                <Skeleton className="h-20 w-full" />
+              ) : chains.isError || !chains.data ? (
+                <p className="text-sm text-muted-foreground">
+                  The chains could not be loaded. Try again.
+                </p>
+              ) : chains.data.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No chain positions name this narrator.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {chains.data.map((hadith) => (
+                      <Button key={hadith.hadith_id} variant="outline" size="sm" asChild>
+                        <Link
+                          to="/hadiths/$hadithId"
+                          params={{ hadithId: String(hadith.hadith_id) }}
+                        >
+                          <span className="tabular-nums">{hadith.hadith_num}</span>
+                        </Link>
+                      </Button>
+                    ))}
+                  </div>
+                  <Pager
+                    offset={offset}
+                    count={chains.data.length}
+                    limit={LIMIT}
+                    onOffset={(next) => navigate({ search: { offset: next } })}
+                  />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GradeRow({
+  scholar,
+  raw,
+  weight,
+}: {
+  scholar: string;
+  raw: string | null;
+  weight: number | null;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-semibold text-muted-foreground">{scholar}</span>
+      {raw ? (
+        <>
+          <span dir="rtl" lang="ar" className="text-start font-arabic text-xl">
+            {raw}
+          </span>
+          {weight !== null ? (
+            <span className="flex items-center gap-2">
+              <Progress value={Number(weight) * 100} aria-label={`${scholar} weight`} />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {Number(weight).toFixed(2)}
+              </span>
+            </span>
+          ) : null}
+        </>
+      ) : (
+        <span className="text-muted-foreground">{scholar} left no grade.</span>
+      )}
+    </div>
+  );
+}
+
+function NeighbourList({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: z.infer<typeof adjacentSchema>;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-sm font-medium text-muted-foreground">
+        {title} <span className="tabular-nums">({rows.length})</span>
+      </h3>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">None recorded.</p>
+      ) : (
+        <ItemGroup className="gap-1">
+          {rows.map((row) => {
+            const key = `${title}-${row.narrator_id}-${row.display_name}-${row.transmission_word ?? ''}`;
+            return row.narrator_id !== null ? (
+              <Item key={key} size="sm" asChild>
+                <Link to="/narrators/$narratorId" params={{ narratorId: String(row.narrator_id) }}>
+                  <NeighbourName name={row.display_name} />
+                </Link>
+              </Item>
+            ) : (
+              <Item key={key} size="sm">
+                <NeighbourName name={row.display_name} />
+              </Item>
+            );
+          })}
+        </ItemGroup>
+      )}
+    </div>
+  );
+}
+
+function NeighbourName({ name }: { name: string | null }) {
+  return (
+    <>
+      <ItemMedia variant="icon" className="size-8 rounded-full bg-muted">
+        <UserRound />
+      </ItemMedia>
+      <ItemContent>
+        <ItemTitle dir="rtl" lang="ar" className="font-arabic text-base font-normal">
+          {name ?? 'unnamed'}
+        </ItemTitle>
+      </ItemContent>
+    </>
   );
 }

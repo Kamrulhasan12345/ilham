@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useCallback,
@@ -41,6 +42,11 @@ export { AuthContext };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
+  // main.tsx mounts AuthProvider inside QueryClientProvider, so this hook
+  // always resolves. Every sign-in, sign-out, and session loss clears the
+  // query cache: without it the next account inherits the previous one's
+  // rows (teacher circles rendered for a student) until a hard refresh.
+  const queryClient = useQueryClient();
 
   const readyRef = useRef<{ promise: Promise<AuthState>; resolve: (s: AuthState) => void }>();
   if (!readyRef.current) {
@@ -51,19 +57,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     readyRef.current = { promise, resolve };
   }
 
-  const establishSession = useCallback(async (accessToken: string): Promise<void> => {
-    setAccessToken(accessToken);
-    const user = await apiFetch('/auth/me', meSchema);
-    // flushSync forces the re-render (and, with it, RouterProvider's fresh
-    // `context={{ auth }}` prop) to commit synchronously before this promise
-    // resolves. Without it, a caller's `await signIn(token); navigate(...)`
-    // races React's own batching: `navigate()` runs in the same microtask as
-    // this setState, so the router still holds the pre-sign-in (signed-out)
-    // context and immediately guards the new location back to /login.
-    flushSync(() => {
-      setState({ status: 'signed-in', user });
-    });
-  }, []);
+  const establishSession = useCallback(
+    async (accessToken: string): Promise<void> => {
+      // Drop the previous account's rows before loading the new one's.
+      queryClient.clear();
+      setAccessToken(accessToken);
+      const user = await apiFetch('/auth/me', meSchema);
+      // flushSync forces the re-render (and, with it, RouterProvider's fresh
+      // `context={{ auth }}` prop) to commit synchronously before this promise
+      // resolves. Without it, a caller's `await signIn(token); navigate(...)`
+      // races React's own batching: `navigate()` runs in the same microtask as
+      // this setState, so the router still holds the pre-sign-in (signed-out)
+      // context and immediately guards the new location back to /login.
+      flushSync(() => {
+        setState({ status: 'signed-in', user });
+      });
+    },
+    [queryClient],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -92,9 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // that crashes any test importing a route module first.
   useEffect(() => {
     return onSessionLost(() => {
+      queryClient.clear();
       setState({ status: 'signed-out' });
     });
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -108,11 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Best-effort: the user is signed out locally even if the network call fails.
         } finally {
           setAccessToken(null);
+          queryClient.clear();
           setState({ status: 'signed-out' });
         }
       },
     }),
-    [state, establishSession],
+    [state, establishSession, queryClient],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

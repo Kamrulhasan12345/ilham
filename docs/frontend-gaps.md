@@ -4,6 +4,32 @@ Status of the frontend against `docs/frontend-prd.md` on 2026-09-24. The
 backend serves every endpoint this document needs, and the frontend now
 renders every page in the route table.
 
+## Closed 2026-09-24 (shadcn rewrite)
+
+**Design language.** The frontend now uses shadcn Nova on Radix primitives
+with Tailwind v4. The hand-rolled `src/ui/*` layer is gone, with every CSS
+module in the project. The old tokens file stays for the page base and the
+canvas chart. Arabic keeps one theme token (`--font-arabic`). A preset change
+replaces the shadcn theme and keeps the application code. The product
+requirements do not change. All behaviours in this ledger still hold.
+
+**Shell.** A sidebar holds Corpus, Study, and Account groups with role gates.
+A header holds a search trigger, a theme toggle, and the brand. `⌘K` opens a
+palette with corpus search and page jumps. The home route is a dashboard, not
+a redirect. The theme toggle drives the `.dark` class and the legacy
+`data-theme` together.
+
+**Pages.** Every route renders shadcn composition: Card, Table, Dialog and
+AlertDialog, Field and InputGroup, Select, ToggleGroup, Accordion, Empty,
+Skeleton, and Sonner toasts. Notes is a library now. It lists and deletes.
+Writing moved to the hadith page. Hadith English sits in its own card at
+display size. Charts (Bars, Dumbbell, ChainPair, StrengthPlot,
+DistributionStrip, IsnadChain) keep their data rules under new styling.
+
+**Tests.** 133 green. The suite grew shadcn needs: `matchMedia`,
+`ResizeObserver`, and `scrollIntoView` stubs, an 8s async budget, lazy route
+chunks off under Vitest, and Tailwind off under Vitest.
+
 ## Closed 2026-09-24
 
 **Design language.** The shell follows the specimen, not the stale sidebar
@@ -56,12 +82,64 @@ encode by hue.
 chain marks, the plot foot, the filter readout, Seg, VerdictBand, and the
 API envelope, plus the review-submit integration test.
 
+## Closed 2026-09-24 (frontend redesign)
+
+A live browser pass on the running app found several pages that never
+used the design system above: bare `<ul><li>` lists with no width
+constraint, no `Card`, no hierarchy, and the query boxes on `/search` and
+`/narrators` rendering the literal string `undefined`. Fixed:
+
+1. **The `q=undefined` bug.** `z.coerce.string().catch('')` coerces a
+   missing param to the *valid* string `"undefined"` before `.catch`
+   ever runs. Both routes now use plain `z.string().catch('')`.
+2. **`Card` and `PageHeader`** (new `ui/` primitives) replace every bare
+   list and `<h1>` on collections, chapters, circles, and notes.
+3. **English-first hadith text.** `hadiths.model.ts` now `LEFT JOIN`s
+   `corpus.hadith_translations`; `HadithList` shows the English
+   translation ahead of the Arabic snippet when one exists, Arabic-only
+   otherwise. Chapter titles stay Arabic-only — no `title_en` column
+   exists on `corpus.chapters`.
+4. **Nav overhaul.** The flat topbar links became three `Menu` dropdowns
+   (Corpus, Study, Account — new `ui/Menu` primitive), consolidating the
+   loose Sign-out button and adding a new `/settings` route that now
+   holds the theme switch.
+5. **Notes.** The raw numeric Hadith ID field is gone; a new
+   `HadithPicker` type-ahead (queries the existing `/hadiths?q=` endpoint)
+   replaces it.
+
+12 tasks, each with its own test, on `feat/frontend-redesign`. See
+`docs/superpowers/specs/2026-09-24-frontend-redesign-design.md` and
+`docs/superpowers/plans/2026-09-24-frontend-redesign.md`.
+
 ## Remaining, by choice
 
 - No Storybook (§16 decision 6): `specimen.html` is the living reference.
 - No route animation: motion is allowed, never required.
 - The `/students` page exists with no PRD section that specifies it.
 - Notes have no edit control. The PRD does not ask for one.
+
+## Browser pass 2026-09-24 (real Chromium against the containers)
+
+Login, collections, hadith detail, grading disclosure, search, analytics,
+and account pass end to end. The pass caught three bugs no mocked suite
+could see, all fixed and covered:
+
+1. The Docker build passes an empty `VITE_API_BASE`, and `??` kept it —
+   every app request missed `/api` (405). Now `resolveApiBase` with unit
+   tests.
+2. The API mounted `/study-sets` while the frontend calls `/sets` — every
+   set call 404'd. Mount renamed (backend PRD §5.7 updated).
+3. `$circleId.assign.tsx` nests under `$circleId.tsx`, which rendered no
+   `<Outlet/>` — the overview answered the assign URL. Restructured to
+   `$circleId/route.tsx` + `index.tsx` + `assign.tsx`, pinned by a nesting
+   test.
+4. `requireRole('teacher')` excluded the admin, against PRD §2. Admins now
+   pass any role check (backend PRD §3.2 updated), pinned by a test.
+
+The full study loop (register ×2, admin verify, circle, set, add-to-set,
+enrol, assign) passes in the browser. The verify queue gained the missing
+pager (§7.24) after the pass showed new teachers falling off the first
+page.
 
 ## Closed backend gaps
 

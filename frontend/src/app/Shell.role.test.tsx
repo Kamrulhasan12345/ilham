@@ -23,13 +23,11 @@ function fakeAuth(state: AuthState): AuthContextValue {
   };
 }
 
-// Shell's nav now renders TanStack Router <Link>s (Task: nav-full-reload
-// fix), and a <Link> throws without a real router in context. So, unlike
-// before, this file renders Shell through a real RouterProvider — the same
-// wiring routes/__root.tsx uses in production — instead of a bare <Shell>.
-// Every _authed leaf page fetches through apiFetch on mount; the page body is
-// not under test here (its own *.test.tsx covers that), so one shared
-// empty-array stub satisfies every schema.
+// The shell is a sidebar now: every group renders TanStack Router <Link>s
+// directly (no dropdown menus), so — like before — this file renders through
+// a real RouterProvider. Every _authed leaf page fetches through apiFetch on
+// mount; the page body is not under test here, so one shared empty-array stub
+// satisfies every schema.
 function renderShellAt(initialPath: string, state: AuthState) {
   vi.mocked(apiFetch).mockResolvedValue([]);
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -72,7 +70,7 @@ describe('role-aware shell', () => {
         is_verified: true,
       },
     });
-    await screen.findByRole('navigation', { name: 'Study' });
+    await screen.findByRole('link', { name: /collections/i });
     expect(screen.queryByText(/waiting for review/i)).not.toBeInTheDocument();
   });
 
@@ -81,7 +79,8 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 9, role: 'admin', full_name: 'Root', email: 'a@x.io' },
     });
-    expect(await screen.findByText(/root · admin/i)).toBeInTheDocument();
+    expect(await screen.findByText('Root')).toBeInTheDocument();
+    expect(screen.getByText('admin')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Verify teachers' })).toBeInTheDocument();
   });
 
@@ -90,7 +89,7 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    await screen.findByRole('navigation', { name: 'Study' });
+    await screen.findByRole('link', { name: /collections/i });
     expect(screen.queryByRole('link', { name: 'Verify teachers' })).not.toBeInTheDocument();
   });
 
@@ -113,17 +112,16 @@ describe('role-aware shell', () => {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },
     });
-    await screen.findByRole('navigation', { name: 'Study' });
+    await screen.findByRole('link', { name: /collections/i });
     expect(screen.queryByRole('link', { name: 'Students' })).not.toBeInTheDocument();
   });
 
-  it('renders the nav as real router links: clicking one navigates client-side, not via a full reload', async () => {
-    // A plain <a> would not update the router's own location in jsdom (a raw
-    // anchor click either no-ops or hits jsdom's unimplemented-navigation
-    // path). Only a TanStack Router <Link> intercepts the click, calls
-    // preventDefault, and pushes the new location through the router itself
-    // — so asserting the router's location changed is exactly the evidence
-    // that this is a client-side SPA navigation, not a page reload.
+  it('renders nav items as real router links: clicking one navigates client-side, not via a full reload', async () => {
+    // A plain <a> would not update the router's own location in jsdom. Only
+    // a TanStack Router <Link> intercepts the click, calls preventDefault,
+    // and pushes the new location through the router itself — so asserting
+    // the router's location changed is exactly the evidence that this is a
+    // client-side SPA navigation, not a page reload.
     const router = renderShellAt('/collections', {
       status: 'signed-in',
       user: { user_id: 1, role: 'student', full_name: 'Amina', email: 's@x.io' },

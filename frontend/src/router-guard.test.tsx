@@ -14,18 +14,28 @@ vi.mock('./lib/apiClient', async () => {
 
 import { apiFetch } from './lib/apiClient';
 
-// The signed-in home ('/') redirects to /collections (Task 7), which fetches
-// real collections data. These tests only exercise routing/auth/focus
-// behavior, not the Collections page's own data states (that's
-// collections/index.test.tsx's job) — so mock a stable, minimal response.
+// The signed-in home ('/') is the dashboard, which fetches the collections
+// for its grid. These tests only exercise routing/auth/focus behavior, not
+// the dashboard's own data states — so mock a stable, minimal response.
 const FAKE_COLLECTIONS = [
   {
     collection_id: 1,
     slug: 'sahih-al-bukhari',
     title_ar: 'صحيح البخاري',
     title_en: 'Sahih al-Bukhari',
+    hadith_count: 3,
   },
 ];
+
+// The dashboard also reads stats, sessions, assignments, and progress: answer
+// those with empty data so only the collections carry content.
+function mockDashboardApi() {
+  vi.mocked(apiFetch).mockImplementation(async (path: unknown) => {
+    if (path === '/collections') return FAKE_COLLECTIONS as never;
+    if (typeof path === 'string' && path.endsWith('/stats')) return null as never;
+    return [] as never;
+  });
+}
 
 function fakeAuth(state: AuthState): AuthContextValue {
   return {
@@ -53,8 +63,23 @@ function renderRouter(router: Parameters<typeof RouterProvider>[0]['router']) {
 }
 
 describe('the signedIn guard', () => {
-  it('redirects an unauthenticated visitor from / to /login', async () => {
+  it('shows the landing page to an unauthenticated visitor at /', async () => {
     const history = createMemoryHistory({ initialEntries: ['/'] });
+    const router = createRouter({
+      routeTree,
+      history,
+      context: { auth: fakeAuth({ status: 'signed-out' }) },
+    });
+    renderRouter(router);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Every hadith, with the chain that carried it.' }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('redirects an unauthenticated visitor from an app page to /login', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/collections'] });
     const router = createRouter({
       routeTree,
       history,
@@ -67,7 +92,7 @@ describe('the signedIn guard', () => {
   });
 
   it('lets a signed-in visitor reach the authenticated home', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    mockDashboardApi();
     const history = createMemoryHistory({ initialEntries: ['/'] });
     const router = createRouter({
       routeTree,
@@ -81,9 +106,9 @@ describe('the signedIn guard', () => {
     });
     renderRouter(router);
 
-    // '/' redirects to /collections (Task 7); a signed-in visitor lands on
-    // the real Collections page, not a stub — assert its actual content.
-    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
+    // '/' is the dashboard: a signed-in visitor lands on it directly and
+    // sees the collections grid — assert its actual content.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
     expect(await screen.findByText('صحيح البخاري')).toBeInTheDocument();
   });
 
@@ -102,7 +127,7 @@ describe('the signedIn guard', () => {
 
 describe('focus management on route change', () => {
   it('moves focus to the #main landmark after a route change', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    mockDashboardApi();
     const focusSpy = vi.spyOn(HTMLElement.prototype, 'focus');
     const history = createMemoryHistory({ initialEntries: ['/login'] });
     const router = createRouter({
@@ -146,7 +171,7 @@ describe('sign-out control', () => {
   });
 
   it('shows a sign-out button when signed in', async () => {
-    vi.mocked(apiFetch).mockResolvedValue(FAKE_COLLECTIONS);
+    mockDashboardApi();
     const history = createMemoryHistory({ initialEntries: ['/'] });
     const router = createRouter({
       routeTree,
@@ -160,7 +185,9 @@ describe('sign-out control', () => {
     });
     renderRouter(router);
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
-    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+    // The sign-out control lives in the sidebar footer, beside the
+    // signed-in identity — no menu to open first.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(await screen.findByRole('button', { name: /sign out/i })).toBeInTheDocument();
   });
 });

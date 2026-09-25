@@ -33,7 +33,7 @@ async function makeCircleAndStudySet(
     .set(bearer(teacherToken))
     .send({ name: `Circle ${uniqueEmail('c')}` });
   const studySet = await request(app)
-    .post('/study-sets')
+    .post('/sets')
     .set(bearer(teacherToken))
     .send({ name: `Set ${uniqueEmail('s')}` });
   return { circleId: circle.body.data.circle_id, studySetId: studySet.body.data.study_set_id };
@@ -254,7 +254,7 @@ describe('completion mastered threshold (frontend PRD: mastery >= 3)', () => {
       'SELECT hadith_id FROM corpus.hadiths ORDER BY hadith_id LIMIT 1',
     );
     await request(app)
-      .post(`/study-sets/${studySetId}/items`)
+      .post(`/sets/${studySetId}/items`)
       .set(bearer(teacher.accessToken))
       .send({ hadith_id: hadith.rows[0].hadith_id });
 
@@ -304,5 +304,192 @@ describe('completion mastered threshold (frontend PRD: mastery >= 3)', () => {
       .set(bearer(teacher.accessToken))
       .send({ mastery: 2 });
     assert.equal(await mastered(), 0);
+  });
+});
+
+describe('PATCH and DELETE /assignments/:id, and study-set ownership on POST', () => {
+  async function setup(tag: string) {
+    const teacher = await verifiedTeacher(tag);
+    const { circleId, studySetId } = await makeCircleAndStudySet(teacher.accessToken);
+    const created = await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({ circle_id: circleId, study_set_id: studySetId, due_date: '2027-06-01' });
+    assert.equal(created.status, 201);
+    const { rows } = await pool.query<{ assignment_id: number }>(
+      'SELECT assignment_id FROM app.assignments WHERE circle_id = $1 ORDER BY assignment_id DESC LIMIT 1',
+      [circleId],
+    );
+    return { teacher, circleId, studySetId, assignmentId: rows[0].assignment_id };
+  }
+
+  test('the owner moves the due date; a stranger gets 403 and nothing changes', async () => {
+    const { teacher, assignmentId } = await setup('dueowner');
+    const intruder = await verifiedTeacher('dueintruder');
+
+    const moved = await request(app)
+      .patch(`/assignments/${assignmentId}`)
+      .set(bearer(teacher.accessToken))
+      .send({ due_date: '2027-09-01' });
+    assert.equal(moved.status, 200);
+    // node-pg parses a DATE as local midnight, so compare local components:
+    // an ISO slice shifts a day forward or back outside UTC.
+    const day = new Date(moved.body.data.due_date);
+    assert.deepEqual([day.getFullYear(), day.getMonth(), day.getDate()], [2027, 8, 1]);
+
+    const blocked = await request(app)
+      .patch(`/assignments/${assignmentId}`)
+      .set(bearer(intruder.accessToken))
+      .send({ due_date: '2027-10-01' });
+    assert.equal(blocked.status, 403);
+
+    const { rows } = await pool.query<{ due_date: string }>(
+      'SELECT due_date::text AS due_date FROM app.assignments WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(rows[0].due_date.slice(0, 10), '2027-09-01');
+  });
+
+  test('PATCH rejects a non-date with 400, an unknown id with 404, and a student with 403', async () => {
+    const { teacher, assignmentId } = await setup('duebad');
+    const email = uniqueEmail('duestudent');
+    const { accessToken: studentToken } = await registerAndGetToken(app, email, 'student');
+
+    const bad = await request(app)
+      .patch(`/assignments/${assignmentId}`)
+      .set(bearer(teacher.accessToken))
+      .send({ due_date: 'someday' });
+    assert.equal(bad.status, 400);
+
+    const missing = await request(app)
+      .patch('/assignments/999999')
+      .set(bearer(teacher.accessToken))
+      .send({ due_date: '2027-09-01' });
+    assert.equal(missing.status, 404);
+
+    const student = await request(app)
+      .patch(`/assignments/${assignmentId}`)
+      .set(bearer(studentToken))
+      .send({ due_date: '2027-09-01' });
+    assert.equal(student.status, 403);
+  });
+
+  test('DELETE removes the assignment and its progress rows; a second DELETE is 404', async () => {
+    const { teacher, assignmentId } = await setup('delowner');
+
+    const deleted = await request(app)
+      .delete(`/assignments/${assignmentId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(deleted.status, 200);
+    assert.equal(deleted.body.data, null);
+
+    const { rows: gone } = await pool.query(
+      'SELECT count(*) FROM app.assignments WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(Number(gone[0].count), 0);
+
+    const { rows: prog } = await pool.query(
+      'SELECT count(*) FROM app.progress WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(Number(prog[0].count), 0);
+
+    const again = await request(app)
+      .delete(`/assignments/${assignmentId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(again.status, 404);
+  });
+
+  test('DELETE removes the progress rows of an enrolled student', async () => {
+    const { teacher, circleId, studySetId } = await setup('delprog');
+    const { rows: hadithRows } = await pool.query<{ hadith_id: number }>(
+      'SELECT hadith_id FROM corpus.hadiths LIMIT 1',
+    );
+    const item = await request(app)
+      .post(`/sets/${studySetId}/items`)
+      .set(bearer(teacher.accessToken))
+      .send({ hadith_id: hadithRows[0].hadith_id });
+    assert.equal(item.status, 201);
+
+    const email = uniqueEmail('delprogstudent');
+    await registerAndGetToken(app, email, 'student');
+    const { rows: stu } = await pool.query<{ user_id: number }>(
+      'SELECT user_id FROM app.users WHERE email = $1',
+      [email],
+    );
+    const enrolled = await request(app)
+      .post(`/circles/${circleId}/students`)
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: stu[0].user_id });
+    assert.equal(enrolled.status, 201);
+
+    // Assign after the enrolment, so the fan-out writes progress rows.
+    const created = await request(app)
+      .post('/assignments')
+      .set(bearer(teacher.accessToken))
+      .send({ circle_id: circleId, study_set_id: studySetId, due_date: '2027-06-01' });
+    assert.equal(created.status, 201);
+    const { rows: found } = await pool.query<{ assignment_id: number }>(
+      'SELECT assignment_id FROM app.assignments WHERE circle_id = $1 ORDER BY assignment_id DESC LIMIT 1',
+      [circleId],
+    );
+    const assignmentId = found[0].assignment_id;
+    const { rows: before } = await pool.query(
+      'SELECT count(*) FROM app.progress WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(Number(before[0].count), 1);
+
+    const deleted = await request(app)
+      .delete(`/assignments/${assignmentId}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(deleted.status, 200);
+
+    const { rows: after } = await pool.query(
+      'SELECT count(*) FROM app.progress WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(Number(after[0].count), 0);
+    const { rows: gone } = await pool.query(
+      'SELECT count(*) FROM app.assignments WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(Number(gone[0].count), 0);
+  });
+
+  test('DELETE by a stranger is 403 and the assignment survives', async () => {
+    const { assignmentId } = await setup('delstranger');
+    const intruder = await verifiedTeacher('delintruder');
+
+    const res = await request(app)
+      .delete(`/assignments/${assignmentId}`)
+      .set(bearer(intruder.accessToken));
+    assert.equal(res.status, 403);
+
+    const { rows } = await pool.query(
+      'SELECT count(*) FROM app.assignments WHERE assignment_id = $1',
+      [assignmentId],
+    );
+    assert.equal(Number(rows[0].count), 1);
+  });
+
+  test('POST refuses another teacher set (403) and an unknown set (404)', async () => {
+    const owner = await verifiedTeacher('setowner');
+    const intruder = await verifiedTeacher('setintruder');
+    const { circleId: intruderCircle } = await makeCircleAndStudySet(intruder.accessToken);
+    const { studySetId: ownerSet } = await makeCircleAndStudySet(owner.accessToken);
+
+    const foreign = await request(app)
+      .post('/assignments')
+      .set(bearer(intruder.accessToken))
+      .send({ circle_id: intruderCircle, study_set_id: ownerSet, due_date: '2027-06-01' });
+    assert.equal(foreign.status, 403);
+
+    const missing = await request(app)
+      .post('/assignments')
+      .set(bearer(intruder.accessToken))
+      .send({ circle_id: intruderCircle, study_set_id: 999999, due_date: '2027-06-01' });
+    assert.equal(missing.status, 404);
   });
 });

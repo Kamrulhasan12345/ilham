@@ -2,7 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../../middleware/requireAuth.js';
 import { resolveClientKey } from '../../middleware/rateLimit.js';
-import { login, logout, me, refresh, register } from './auth.controller.js';
+import { login, logout, me, refresh, register, changePasswordHandler } from './auth.controller.js';
 
 export const authRoutes = Router();
 
@@ -20,3 +20,6 @@ authRoutes.post('/login', loginLimiter, login);
 authRoutes.post('/refresh', refresh);
 authRoutes.post('/logout', logout);
 authRoutes.get('/me', requireAuth, me);
+// Authenticated, so the identity comes from the token — but it still burns
+// the shared login bucket, which keeps password guessing at 5 tries a minute.
+authRoutes.post('/change-password', requireAuth, loginLimiter, changePasswordHandler);

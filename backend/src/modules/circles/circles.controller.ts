@@ -1,8 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
-import { BadRequestError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
+import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import {
   createCircle,
+  deleteCircleWhenEmpty,
   enrollStudent,
   getCircleById,
   getCircleOverview,
@@ -129,9 +130,30 @@ export async function deleteCircleStudent(req: Request, res: Response, next: Nex
     if (!Number.isInteger(circleId) || !Number.isInteger(studentId)) {
       throw new BadRequestError('invalid id');
     }
-    await requireOwnedCircle(req, circleId);
+    // A student leaves their own enrolment; anything else stays the owner's call.
+    if (req.user!.role === 'student') {
+      if (studentId !== req.user!.userId) throw new ForbiddenError('you can only leave yourself');
+    } else {
+      await requireOwnedCircle(req, circleId);
+    }
     const removed = await unenrollStudent(circleId, studentId);
     if (!removed) throw new NotFoundError('enrollment not found');
+    res.json({ data: null });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function deleteCircleHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const circleId = Number(req.params.id);
+    if (!Number.isInteger(circleId)) throw new BadRequestError('invalid circle id');
+    await requireOwnedCircle(req, circleId);
+    const outcome = await deleteCircleWhenEmpty(circleId);
+    if (outcome === 'missing') throw new NotFoundError('circle not found');
+    if (outcome === 'conflict') {
+      throw new ConflictError('circle still has students, assignments, or review sessions');
+    }
     res.json({ data: null });
   } catch (e) {
     next(e);

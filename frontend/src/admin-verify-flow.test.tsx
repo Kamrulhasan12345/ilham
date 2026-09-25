@@ -70,29 +70,64 @@ describe('role switch in one tab', () => {
         if (me === null) throw new ApiError(401, 'unauthenticated', 'no session');
         return me as never;
       }
-      if (path === '/teachers/unverified') return [] as never;
-      if (path === '/collections') return [] as never;
+      if (path.startsWith('/teachers/unverified')) return [] as never;
+      // The dashboard's study panels; empty keeps this test on the role switch.
+      if (['/assignments', '/review-sessions', '/progress', '/circles'].includes(path)) {
+        return [] as never;
+      }
+      if (path.endsWith('/stats')) return null as never;
+      if (path === '/collections') {
+        // Each account sees its own rows: the switch below must refetch,
+        // never serve the previous account's cached list.
+        return (
+          me === ADMIN
+            ? [
+                {
+                  collection_id: 2,
+                  slug: 'muslim',
+                  title_ar: 'صحيح مسلم',
+                  title_en: 'Admin Collection',
+                  hadith_count: 2,
+                },
+              ]
+            : [
+                {
+                  collection_id: 1,
+                  slug: 'bukhari',
+                  title_ar: 'صحيح البخاري',
+                  title_en: 'Student Collection',
+                  hadith_count: 1,
+                },
+              ]
+        ) as never;
+      }
       throw new Error(`unexpected apiFetch path in test: ${path}`);
     });
 
     // Startup restores the student session from the refresh cookie.
+    // The sidebar shows the signed-in identity directly — no menu to open.
     const router = renderAppWithAuth('/collections');
-    expect(
-      await screen.findByText((_, el) => el?.textContent === 'Amina · student'),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Amina · student' })).toBeInTheDocument();
+    expect(await screen.findByText('Student Collection')).toBeInTheDocument();
 
     await router.navigate({ to: '/admin/verify' });
     expect(await screen.findByText(/does not hold that role/i)).toBeInTheDocument();
 
-    // Switch accounts without reloading.
+    // Switch accounts without reloading. Sign out sits in the sidebar
+    // footer and stays mounted across route changes.
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     me = ADMIN;
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
     await signInAs('demo-admin@example.com', 'password123');
-    await waitFor(() => expect(router.state.location.pathname).toBe('/collections'));
-    expect(
-      await screen.findByText((_, el) => el?.textContent === 'Demo Admin · admin'),
-    ).toBeInTheDocument();
+    // Post-login landing is the dashboard ('/'), not /collections.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(await screen.findByRole('link', { name: 'Demo Admin · admin' })).toBeInTheDocument();
+
+    // The student's cached collection list must not leak into the admin's
+    // view: the switch clears the query cache, so this refetches.
+    await router.navigate({ to: '/collections' });
+    expect(await screen.findByText('Admin Collection')).toBeInTheDocument();
+    expect(screen.queryByText('Student Collection')).not.toBeInTheDocument();
 
     await router.navigate({ to: '/admin/verify' });
     expect(await screen.findByText('No teacher waits')).toBeInTheDocument();

@@ -1,13 +1,34 @@
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
+import { Field, FieldLabel } from '@/components/ui/field';
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from '@/components/ui/item';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { ChevronRight, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
-import { State } from '../../../domain/State';
+import { PageHeader } from '../../../app/PageHeader';
+import { Pager } from '../../../app/Pager';
+import { SearchForm } from '../../../app/SearchForm';
 import { apiFetch } from '../../../lib/apiClient';
-import { Chip } from '../../../ui/Chip';
-import { Field } from '../../../ui/Field';
-import { Input } from '../../../ui/Input';
-import { Pager } from '../../../ui/Pager';
 
 const narratorRowSchema = z.object({
   narrator_id: z.number(),
@@ -18,7 +39,7 @@ const narratorRowSchema = z.object({
 });
 const narratorListSchema = z.array(narratorRowSchema);
 
-const searchParamsSchema = z.object({ q: z.coerce.string().catch(''), offset: z.number().catch(0) });
+const searchParamsSchema = z.object({ q: z.string().catch(''), offset: z.number().catch(0) });
 const LIMIT = 50;
 
 export const Route = createFileRoute('/_authed/narrators/')({
@@ -45,87 +66,103 @@ function NarratorListPage() {
     (narrator) => includePlaceholders || !narrator.is_placeholder,
   );
 
+  const message = (title: string, description: React.ReactNode) => (
+    <Empty className="border">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+
   return (
-    <div>
-      <h1>Find a narrator</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const value = new FormData(event.currentTarget).get('q');
-          navigate({ search: { q: typeof value === 'string' ? value : '', offset: 0 } });
-        }}
-      >
-        <Field label="Search narrator names">
-          {({ controlId, describedBy }) => (
-            <Input
-              id={controlId}
-              aria-describedby={describedBy}
-              name="q"
-              type="search"
-              defaultValue={q}
-              dir="rtl"
-            />
-          )}
-        </Field>
-      </form>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Narrators"
+        description="Find a narrator by name, then read their grades and their place in the chains."
+      />
+      <SearchForm
+        id="narrator-search"
+        label="Search narrator names"
+        defaultValue={q}
+        placeholder="اسم الراوي…"
+        onSearch={(next) => navigate({ search: { q: next, offset: 0 } })}
+      />
 
       {q.trim().length === 0 ? (
-        <State title="Type to search" quiet>
-          <p>Twenty thousand narrators stand behind this box. Name one.</p>
-        </State>
+        message('Type to search', 'Twenty thousand narrators stand behind this box. Name one.')
       ) : results.isLoading ? (
-        <State title="Searching" quiet>
-          <p>Reading the narrator records.</p>
-        </State>
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
       ) : results.isError || !results.data ? (
-        <State title="The search could not run">
-          <p>Try again.</p>
-        </State>
+        message('The search could not run', 'Try again.')
       ) : (
-        <>
-          <p>
-            <Chip
-              pressed={includePlaceholders}
-              onClick={() => setIncludePlaceholders(!includePlaceholders)}
-            >
-              Include unnamed records
-            </Chip>
-          </p>
-          {visible.length === 0 ? (
-            <State title="Nothing matches">
-              <p>
-                No narrator carries this name. Unnamed records carry no name at all — include them,
-                or try fewer words.
-              </p>
-            </State>
-          ) : (
-            <ul>
-              {visible.map((narrator) => (
-                <li key={narrator.narrator_id}>
-                  <Link
-                    to="/narrators/$narratorId"
-                    params={{ narratorId: String(narrator.narrator_id) }}
-                  >
-                    <span className="ar" dir="rtl">
-                      {narrator.display_name}
-                    </span>
-                    {narrator.name_en ? <span> — {narrator.name_en}</span> : null}
-                  </Link>{' '}
-                  {narrator.generation !== null ? (
-                    <span className="m m--bare">{`[generation ${narrator.generation}]`}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          <Pager
-            offset={offset}
-            limit={LIMIT}
-            count={results.data.length}
-            onPrev={() => navigate({ search: { q, offset: Math.max(0, offset - LIMIT) } })}
-            onNext={() => navigate({ search: { q, offset: offset + LIMIT } })}
-          />
-        </>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>Results</h2>
+            </CardTitle>
+            <CardDescription>Arabic name, English name where known, and generation</CardDescription>
+            <CardAction>
+              <Field orientation="horizontal">
+                <Switch
+                  id="include-placeholders"
+                  checked={includePlaceholders}
+                  onCheckedChange={setIncludePlaceholders}
+                />
+                <FieldLabel htmlFor="include-placeholders">Include unnamed records</FieldLabel>
+              </Field>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {visible.length === 0 ? (
+              message(
+                'Nothing matches',
+                'No narrator carries this name. Unnamed records carry no name at all, so include them, or try fewer words.',
+              )
+            ) : (
+              <ItemGroup className="gap-1">
+                {visible.map((narrator) => (
+                  <Item key={narrator.narrator_id} size="sm" asChild>
+                    <Link
+                      to="/narrators/$narratorId"
+                      params={{ narratorId: String(narrator.narrator_id) }}
+                    >
+                      <ItemMedia
+                        variant="icon"
+                        className="size-10 rounded-full bg-primary/10 text-primary"
+                      >
+                        <UserRound />
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle dir="rtl" lang="ar" className="font-arabic text-lg font-normal">
+                          {narrator.display_name}
+                        </ItemTitle>
+                        {narrator.name_en ? (
+                          <ItemDescription>{narrator.name_en}</ItemDescription>
+                        ) : null}
+                      </ItemContent>
+                      <ItemActions>
+                        {narrator.generation !== null ? (
+                          <Badge variant="secondary">Generation {narrator.generation}</Badge>
+                        ) : null}
+                        <ChevronRight className="size-4 text-muted-foreground" />
+                      </ItemActions>
+                    </Link>
+                  </Item>
+                ))}
+              </ItemGroup>
+            )}
+            <Pager
+              offset={offset}
+              count={results.data.length}
+              limit={LIMIT}
+              onOffset={(next) => navigate({ search: { q, offset: next } })}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );

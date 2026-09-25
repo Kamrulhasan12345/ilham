@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
@@ -16,9 +17,15 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      // Vitest never asserts on Tailwind output, and the plugin re-scans
+      // every file it transforms — under parallel workers that starves the
+      // event loop past Testing Library's 1s findBy budget. Skip it there.
+      ...(process.env.VITEST ? [] : [tailwindcss()]),
       tanstackRouter({
         target: 'react',
-        autoCodeSplitting: true,
+        // ponytail: no lazy route chunks under Vitest — chunk loading is not
+        // under test, and cold workers stall past the findBy budget.
+        autoCodeSplitting: !process.env.VITEST,
         // A *.test.tsx file legitimately living under src/routes/ (testing a
         // route's own component, e.g. __root.test.tsx) is not itself a route —
         // without this the codegen warns on every build. Matches any test
@@ -27,6 +34,9 @@ export default defineConfig(({ mode }) => {
       }),
       react(),
     ],
+    resolve: {
+      alias: { '@': `${import.meta.dirname}/src` },
+    },
     server: {
       proxy: {
         // Development only. In production the app calls the API by its absolute
@@ -42,6 +52,10 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
+      // ponytail: 5s default kills healthy tests when 38 files share a slow
+      // box (a lazy route + query paint can take 2s+ cold). 10s still fails
+      // a genuinely hung test fast enough. Lower it if workers get faster.
+      testTimeout: 10_000,
       // Two projects, not one suite plus environmentMatchGlobs: Vitest 4 removed
       // environmentMatchGlobs, and a removed option is ignored in silence. The
       // scripts/ tests then ran under jsdom, where import.meta.url is not a

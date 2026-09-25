@@ -68,4 +68,7 @@ describe('Notes page', () => {
       }),
     );
   });
+
+  // The page is a library: writing moved to the hadith page (point of
+  // study), so there is no create form here and no test for one.
 });

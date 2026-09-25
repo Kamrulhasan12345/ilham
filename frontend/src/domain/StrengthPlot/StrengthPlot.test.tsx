@@ -39,7 +39,7 @@ describe('StrengthPlot', () => {
       <StrengthPlot weights={[0.95, 0.6, 0.95]} baseWeights={[0.95, 0.6, 0.95]} strength={0.6} />,
     );
     expect(screen.queryAllByTestId('plot-dot-excluded')).toHaveLength(0);
-    expect(screen.getByText(/sets the score/i)).toBeInTheDocument();
+    expect(screen.getByText('sets the score')).toBeInTheDocument();
   });
 
   it('never renders a bare number without the six-grade legend', () => {
