@@ -41,7 +41,7 @@ function renderSearch(path: string) {
 describe('Search page', () => {
   it('renders an empty query box, not the literal string "undefined", when the URL carries no q', async () => {
     renderSearch('/search');
-    const input = await screen.findByLabelText(/search the arabic text/i);
+    const input = await screen.findByLabelText(/search the hadith text/i);
     expect(input).toHaveValue('');
     expect(apiFetch).not.toHaveBeenCalled();
   });

@@ -238,6 +238,16 @@ describe('GET /hadiths', () => {
     assert.ok(res.body.data.length > 0);
   });
 
+  test('searches the English text when q has no Arabic letter', async () => {
+    const token = await tokenFor('hadiths-q-en');
+    const res = await authed(token, request(app).get('/hadiths?q=Intentions&limit=5'));
+    assert.equal(res.status, 200);
+    assert.ok(res.body.page.total > 0);
+    for (const row of res.body.data) {
+      assert.match(row.text_en, /intentions/i);
+    }
+  });
+
   test('returns 400 for a non-integer collection_id', async () => {
     const token = await tokenFor('hadiths-bad');
     const res = await authed(token, request(app).get('/hadiths?collection_id=abc'));

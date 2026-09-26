@@ -23,11 +23,13 @@ const N_STUDENTS = 40;
 const N_CIRCLES  = 5;
 const SET_SIZE   = 25;
 const BCRYPT_DUMMY = '$2b$10$abcdefghijklmnopqrstuvREPLACEatRegistration.....';
-// The one working login in a fresh database: admin@ilham.test / 'ilham', the
-// same hash db/04_seed_reference.sql sets. The reset below deletes every user,
-// so the seed must re-create the admin with this hash, or no admin can sign
-// in to verify a teacher.
-const ADMIN_HASH = '$2a$10$WGZoaLJDh9tFzD.HJhqGq.9N2BopjGTXfLIp74mCy9ITcnUnAzEDa';
+// The working logins in a fresh database, all with password 'ilham':
+// admin@ilham.test, teacher1@ilham.test (verified, leads circles), and
+// student1@ilham.test (enrolled). The admin hash matches the one that
+// db/04_seed_reference.sql sets. The reset below deletes every user, so the
+// seed must re-create these, or nobody can sign in to try each role. Every
+// other seeded user keeps the dummy hash and cannot sign in.
+const DEMO_HASH = '$2a$10$WGZoaLJDh9tFzD.HJhqGq.9N2BopjGTXfLIp74mCy9ITcnUnAzEDa';
 
 const AR_FIRST = ['محمد','أحمد','عبد الله','عائشة','فاطمة','عمر','زينب','يوسف','مريم','إبراهيم'];
 const AR_LAST  = ['الرحمن','الهاشمي','الأنصاري','السلمي','القرشي','البخاري','النيسابوري','الطبري'];
@@ -63,7 +65,7 @@ export async function seed({ reset = true } = {}) {
         `INSERT INTO app.teachers (email, password_hash, full_name, role,
                                    institution, specialization, is_verified)
          VALUES ($1,$2,$3,'teacher',$4,$5,$6) RETURNING user_id`,
-        [`teacher${i}@ilham.test`, BCRYPT_DUMMY, name(i * 7),
+        [`teacher${i}@ilham.test`, i === 1 ? DEMO_HASH : BCRYPT_DUMMY, name(i * 7),
          ['دار الحديث','جامعة الأزهر','Madrasah Ilham'][i % 3],
          ['Rijal expert','Isnad criticism','Fiqh al-Hadith'][i % 3],
          i < N_TEACHERS]);
@@ -74,13 +76,13 @@ export async function seed({ reset = true } = {}) {
       const { rows } = await c.query(
         `INSERT INTO app.students (email, password_hash, full_name, role, student_level)
          VALUES ($1,$2,$3,'student',$4) RETURNING user_id`,
-        [`student${i}@ilham.test`, BCRYPT_DUMMY, name(i),
+        [`student${i}@ilham.test`, i === 1 ? DEMO_HASH : BCRYPT_DUMMY, name(i),
          ['beginner','intermediate','advanced'][i % 3]]);
       students.push(rows[0].user_id);
     }
     await c.query(
       `INSERT INTO app.admins (email, password_hash, full_name, role, admin_level)
-       VALUES ('admin@ilham.test',$1,'Platform Admin','admin','super')`, [ADMIN_HASH]);
+       VALUES ('admin@ilham.test',$1,'Platform Admin','admin','super')`, [DEMO_HASH]);
     log(`users: ${teachers.length} teachers (${N_TEACHERS - 1} verified), ${students.length} students, 1 admin`);
 
     // --- circles and enrollments ------------------------------------------

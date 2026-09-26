@@ -609,11 +609,15 @@ hadith score.
 **Job.** Find a hadith by its text.
 
 **Data.** `GET /hadiths?q=`. Closed 2026-09-23: the endpoint exists (Arabic
-normalised match) with a trigram index behind it (`db/08_search.sql`).
+normalised match) with a trigram index behind it (`db/08_search.sql`). A
+query with no Arabic letter searches the English translation
+(`db/10_search_en.sql`).
 
 **Tell the reader what search does.** It removes the diacritic marks and the
 tatweel, and it unifies the alif, ta marbuta, and ya forms. A reader who types a
 vocalised word and gets an unvocalised result must know the match is correct.
+Tell the reader that English text searches the translation, and that about 5%
+of hadiths have no English.
 
 **Empty result.** Name the two likely reasons and offer a way forward. Search
 reads hadith text only. Offer a narrator search for the same string.
