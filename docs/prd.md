@@ -74,7 +74,7 @@ one PostgreSQL instance. Schema design separates them, not different systems.
 |---|---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle, from sunnah.alifta.gov.sa. King Abdullah bin Abdul Aziz Program for the Prophetic Sunnah. University of Malta, 2025) | 276,347 hadiths, 33 books, about 863 MB of JSON, a manifest, and 20,957 narrator profiles. Coverage: text, chapter, and number 100%; chains 98.9%; narrator names 98.6%; mention to identifier 94.1%; matn split 87.8% to 94.1%. Profiles: rank_by_ibn_hajar 41.5%, rank_by_al_dhahabi 25.7%, tabaqa 41.6%. All Arabic | **PRIMARY corpus.** Text, chains, narrator identifiers, and rijal grades. One authoritative source links them all |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0. *Data in Brief* 54:110439) | Sahih Muslim: 7,748 hadiths, 14,155 sanads, 2,092 narrators, about 77,800 edge rows. The chains come from the IHSAN Network. The narrator identifiers come from muslimscholars.info, matched by fuzzy and manual methods and checked by experts. You can rebuild the ordered chains from `intractionLabel`. It has Arabic and English name columns | **VALIDATION set.** It checks ordered-chain agreement on the Muslim subset, and any disagreement is a cross-check between two extractions. It also gives **English narrator names** for the Muslim-chain narrators. You can cut it |
-| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable, with 42 of 296 distinct values. Only Bukhari is checked by hand | **ENGLISH text.** The join is on normalised Arabic text. The numbering systems do **not** agree: 99.94% of the matched Muslim pairs carry a different number. Loaded, with 95.2% coverage |
+| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable, with 42 of 296 distinct values. Only Bukhari is checked by hand | **ENGLISH text.** The join is on normalised Arabic text. The numbering systems do **not** agree: 99.94% of the matched Muslim pairs carry a different number. Loaded, with 95.5% coverage |
 
 ### 2.2 The structure of the source — spike #1, answered
 
@@ -154,7 +154,7 @@ different systems.
   do not agree at all: 99.94% of the matched Muslim pairs carry a different
   number. The join is therefore on normalised Arabic text, anchored at the first
   narration verb, in five tiers that `hadith_translations.match_via` records.
-  Coverage is 95.2%. MIS validation should use the same method.
+  Coverage is 95.5%. MIS validation should use the same method.
 
 ---
 
