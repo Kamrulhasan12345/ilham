@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Link } from '@tanstack/react-router';
 import { Check } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
 import { Brand } from './AuthLayout';
 import { GeoPattern, Showcase, useCorpusCounts } from './Showcase';
 import { ThemeSwitch } from './ThemeSwitch';
@@ -33,11 +33,30 @@ const SOURCES = [
 /** The signed-out front page. Colours are preset tokens only. */
 export function Landing() {
   const corpus = useCorpusCounts();
+  const heroRef = useRef<HTMLElement>(null);
+  const pastHero = usePastHero(heroRef);
+  const headerPatternRef = useAlignedPattern(pastHero);
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-50 border-b border-primary-foreground/15 bg-primary text-primary-foreground">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
+      <header
+        className={cn(
+          'sticky top-0 z-50 overflow-hidden border-b bg-primary text-primary-foreground transition-colors',
+          pastHero ? 'border-primary-foreground/15' : 'border-transparent',
+        )}
+      >
+        {/* The hero's pattern, continued under the header while the hero is in view. */}
+        <div
+          ref={headerPatternRef}
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute inset-x-0 -top-[120px] h-[304px] transition-opacity',
+            pastHero && 'opacity-0',
+          )}
+        >
+          <GeoPattern className="text-primary-foreground/10" />
+        </div>
+        <div className="relative mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
           <Brand inverse />
           <nav aria-label="Sections" className="hidden items-center gap-7 text-sm lg:flex">
             {NAV.map((item) => (
@@ -63,7 +82,7 @@ export function Landing() {
       </header>
 
       <main id="main" tabIndex={-1} className="outline-none">
-        <Hero hadiths={corpus?.hadiths} narrators={corpus?.narrators} />
+        <Hero sectionRef={heroRef} hadiths={corpus?.hadiths} narrators={corpus?.narrators} />
         <Sources hadiths={corpus?.hadiths} narrators={corpus?.narrators} />
         <Features />
         <Roles />
@@ -78,9 +97,62 @@ export function Landing() {
   );
 }
 
-function Hero({ hadiths, narrators }: { hadiths?: number; narrators?: number }) {
+// True once the hero has scrolled fully under the 64px sticky header. The
+// header shares the hero's colour, so its bottom border shows only below it.
+function usePastHero(ref: RefObject<HTMLElement>) {
+  const [past, setPast] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setPast(!entry.isIntersecting), {
+      rootMargin: '-64px 0px 0px 0px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+  return past;
+}
+
+// Keeps the header's pattern in phase with the hero's. The hero starts 64px
+// down the page and the tile is 120px, so the header shifts its copy by
+// (64 - scrollY) mod 120. Written to the style directly: no render per frame.
+function useAlignedPattern(pastHero: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (pastHero) return;
+    let frame = 0;
+    const place = () => {
+      frame = 0;
+      const shift = (((64 - window.scrollY) % 120) + 120) % 120;
+      if (ref.current) ref.current.style.transform = `translateY(${shift}px)`;
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(place);
+    };
+    place();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [pastHero]);
+  return ref;
+}
+
+function Hero({
+  sectionRef,
+  hadiths,
+  narrators,
+}: {
+  sectionRef: RefObject<HTMLElement>;
+  hadiths?: number;
+  narrators?: number;
+}) {
   return (
-    <section className="relative overflow-hidden bg-primary text-primary-foreground">
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-primary text-primary-foreground"
+    >
       <GeoPattern className="text-primary-foreground/10 [mask-image:linear-gradient(to_bottom,black,transparent_60%)]" />
       <div className="relative mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-6xl flex-col items-center justify-center gap-6 px-6 pt-12 pb-20 text-center">
         <p dir="rtl" lang="ar" className="font-arabic text-2xl text-primary-foreground/80">
