@@ -181,7 +181,7 @@ falls back to Arabic.
 
 ### The corpus — read-only
 
-1. Browse from collection to kitab to bab to hadith, as the printed book does. Search on normalised Arabic.
+1. Browse from collection to kitab to bab to hadith, as the printed book does. Search on normalised Arabic, or on the English translation.
 2. Hadith detail: the matn, the full isnad for each sanad with its transmission
    words, links to the narrators, and the chain-strength value.
 3. Narrator profiles: the biography, the rijal grades (raw strings for display,

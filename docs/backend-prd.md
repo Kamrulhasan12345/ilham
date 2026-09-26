@@ -449,6 +449,17 @@ degrade to exact-word matching with more machinery for no real gain.
 Normalise the search term with the same function the index uses. If the two
 differ, the index is never used and nothing tells you.
 
+**English search.** A query with no Arabic letter searches the English
+translation instead. The match is case-insensitive:
+
+```sql
+WHERE lower(t.text_full) LIKE '%' || lower($1) || '%'
+```
+
+`t` is `corpus.hadith_translations`, which the list query already joins. A
+trigram index on `lower(text_full)` serves it (`db/10_search_en.sql`). A
+hadith with no English is found by an Arabic query only.
+
 ### 5.5 Analytics (req 7)
 
 **These queries do not exist yet.** `docs/prd.md` §5 states six are written in
@@ -815,6 +826,13 @@ CREATE INDEX hadiths_text_trgm_idx ON corpus.hadiths
 ```
 
 `normalize_arabic` is `IMMUTABLE`, so the expression index is legal.
+
+The English search has its own index in `db/10_search_en.sql`:
+
+```sql
+CREATE INDEX hadith_translations_text_trgm_idx ON corpus.hadith_translations
+    USING gin (lower(text_full) gin_trgm_ops);
+```
 
 Two operational notes. `05_post_load.sql` is destructive and runs one time, so
 this index cannot go there — it needs its own numbered file. And

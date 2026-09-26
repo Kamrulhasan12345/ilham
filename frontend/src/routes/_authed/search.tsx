@@ -55,14 +55,14 @@ function SearchPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Search the hadiths"
-        description="Find a hadith by any words of its Arabic text."
+        description="Find a hadith by any words of its Arabic text or its English translation."
       />
       <SearchForm
         id="hadith-search"
-        label="Search the Arabic text"
+        label="Search the hadith text"
         defaultValue={q}
-        placeholder="ابحث في متن الحديث…"
-        hint="Search removes the diacritic marks and the tatweel, and unifies the alif, ta marbuta, and ya forms. A vocalised word still matches its unvocalised record."
+        placeholder="الأعمال or intentions"
+        hint="Type Arabic to search the Arabic text. Search removes the diacritic marks and the tatweel, and unifies the alif, ta marbuta, and ya forms. Type English to search the English translation. About 5% of hadiths have no English, so search them in Arabic."
         onSearch={(next) => navigate({ search: { q: next, offset: 0 } })}
       />
 
@@ -82,7 +82,8 @@ function SearchPage() {
         message(
           'Nothing matches',
           <>
-            Either no hadith carries these words, or the vocalisation differs. Try fewer words, or{' '}
+            Either no hadith carries these words, or the vocalisation or spelling differs. Try fewer
+            words, or{' '}
             <Link to="/narrators" search={{ q, offset: 0 }} className="underline">
               search the narrators for “{q}”
             </Link>

@@ -21,6 +21,16 @@ interface HadithListRow {
   chain_strength: number | null;
 }
 
+// A query with an Arabic letter searches the normalised Arabic text
+// (db/08_search.sql). Any other query searches the English translation,
+// case-insensitive (db/10_search_en.sql). Both sides expect the join alias t.
+const ARABIC_LETTER = /[\u0600-\u06FF]/;
+function searchCondition(q: string, placeholder: string): string {
+  return ARABIC_LETTER.test(q)
+    ? `corpus.normalize_arabic(h.text_plain) LIKE '%' || corpus.normalize_arabic(${placeholder}) || '%'`
+    : `lower(t.text_full) LIKE '%' || lower(${placeholder}) || '%'`;
+}
+
 export async function listHadiths(params: HadithListParams): Promise<HadithListRow[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
@@ -41,9 +51,7 @@ export async function listHadiths(params: HadithListParams): Promise<HadithListR
   }
   if (params.q) {
     values.push(params.q);
-    conditions.push(
-      `corpus.normalize_arabic(text_plain) LIKE '%' || corpus.normalize_arabic($${values.length}) || '%'`,
-    );
+    conditions.push(searchCondition(params.q, `$${values.length}`));
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -89,13 +97,14 @@ export async function countHadiths(params: Omit<HadithListParams, 'limit' | 'off
   }
   if (params.q) {
     values.push(params.q);
-    conditions.push(
-      `corpus.normalize_arabic(text_plain) LIKE '%' || corpus.normalize_arabic($${values.length}) || '%'`,
-    );
+    conditions.push(searchCondition(params.q, `$${values.length}`));
   }
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   const { rows } = await pool.query<{ count: string }>(
-    `SELECT count(*) FROM corpus.hadiths ${where}`,
+    `SELECT count(*)
+       FROM corpus.hadiths h
+       LEFT JOIN corpus.hadith_translations t ON t.hadith_id = h.hadith_id AND t.lang = 'en'
+       ${where}`,
     values,
   );
   return Number(rows[0].count);

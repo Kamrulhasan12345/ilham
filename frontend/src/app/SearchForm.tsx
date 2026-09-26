@@ -8,7 +8,7 @@ import {
 import { Search } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-/** One large Arabic search field with its submit inside, for the corpus
+/** One large search field with its submit inside, for the corpus
     search pages. The query lives in the URL, so the field is uncontrolled. */
 export function SearchForm({
   id,
@@ -46,7 +46,7 @@ export function SearchForm({
             name="q"
             type="search"
             defaultValue={defaultValue}
-            dir="rtl"
+            dir="auto"
             placeholder={placeholder}
             className="text-base"
           />
