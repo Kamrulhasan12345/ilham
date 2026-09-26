@@ -95,9 +95,14 @@ export async function deleteReviewSessionHandler(req: Request, res: Response, ne
 
     const outcome = await deleteReviewSession(id, userId);
     if (outcome === 'missing') throw new NotFoundError('review session not found');
-    if (outcome === 'ambiguous') {
+    if (outcome === 'legacy') {
       throw new ConflictError(
-        'session touches a hadith studied under several assignments; correct it with a teacher override instead',
+        'this session was recorded before undo was stored, so it cannot be deleted; correct the progress with a teacher override instead',
+      );
+    }
+    if (outcome === 'changed') {
+      throw new ConflictError(
+        'progress changed after this session, by a later review or an override; delete the later sessions first, or correct it with a teacher override',
       );
     }
     res.json({ data: null });

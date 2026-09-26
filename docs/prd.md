@@ -255,8 +255,12 @@ POST /assignments (a teacher who owns the circle):
   CALL app.assign_study_set(circle, set, due)   -- the procedure owns its transaction
 
 POST /review-sessions (a student or a teacher):
-  BEGIN → insert session → insert review_items → update progress
-        → [trg_progress_stats fires] → COMMIT or ROLLBACK
+  BEGIN → insert session → update progress → insert review_items (with the
+        progress state before) → [trg_progress_stats fires] → COMMIT or ROLLBACK
+
+DELETE /review-sessions/:id (the author):
+  BEGIN → restore each progress row from its review_items snapshot
+        → delete the items and the session → COMMIT or ROLLBACK
 
 PATCH /progress (a teacher override):
   set_config('ilham.user_id', …) → BEGIN → update → [trg_progress_audit] → COMMIT

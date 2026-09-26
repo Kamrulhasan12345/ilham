@@ -239,7 +239,7 @@ bootstrap_main() {
         # own new object, because 05's schema-wide grant ran before it existed.
         # The committed dump already carries them; this path must add them too,
         # or login (06) and the hadith detail (07) fail on a fresh ETL build.
-        for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en; do
+        for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en 11_review_undo; do
           echo "-- bootstrap: $f"
           PGPASSWORD="$PASS" psql -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p "$PORT" -U postgres -d "$DB" \
             -f "$DIR/$f.sql"

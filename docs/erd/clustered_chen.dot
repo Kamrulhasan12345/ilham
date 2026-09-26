@@ -56,6 +56,7 @@ graph ilham_full_chen {
     r_prog_stu [label="tracks"]; r_prog_asg [label="under"];
     r_rs_stu [label="by"]; r_rs_rev [label="reviewed_by"]; r_rs_circ [label="in_circle"];
     r_ri_sess [label="in_session"];
+    r_ri_prog [label="restores"];
     r_stats [label="summarizes"]; r_note_usr [label="wrote"];
 
     users -- r_teaches [taillabel="1"]; r_teaches -- circles [headlabel="N"];
@@ -71,6 +72,7 @@ graph ilham_full_chen {
     review_sessions -- r_rs_rev  [taillabel="N"]; r_rs_rev  -- users [headlabel="1"];
     review_sessions -- r_rs_circ [taillabel="N"]; r_rs_circ -- circles [headlabel="1"];
     review_items -- r_ri_sess [taillabel="N"]; r_ri_sess -- review_sessions [headlabel="1"];
+    review_items -- r_ri_prog [taillabel="N"]; r_ri_prog -- progress [headlabel="0..1"];
     student_stats -- r_stats [taillabel="1"]; r_stats -- users [headlabel="1"];
     notes -- r_note_usr [taillabel="N"]; r_note_usr -- users [headlabel="1"];
   }

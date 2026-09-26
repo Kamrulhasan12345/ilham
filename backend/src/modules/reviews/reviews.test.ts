@@ -262,7 +262,7 @@ describe('GET /review-sessions', () => {
   });
 });
 
-describe('DELETE /review-sessions/:id -- delete with progress recompute', () => {
+describe('DELETE /review-sessions/:id -- delete restores the progress snapshot', () => {
   async function verifiedTeacher(tag: string): Promise<{ accessToken: string; userId: number }> {
     const email = uniqueEmail(tag);
     const { accessToken } = await registerAndGetToken(app, email, 'teacher');
@@ -413,8 +413,8 @@ describe('DELETE /review-sessions/:id -- delete with progress recompute', () => 
     assert.equal(Number(rows[0].count), 1);
   });
 
-  test('a hadith studied under two triples refuses with 409', async () => {
-    const { teacher, student, hadithId, assignmentId } = await assignedTriple('ambiguous');
+  test('with the same hadith self-studied and assigned, deleting the self session restores only its row', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('tworows');
 
     const self = await request(app)
       .post('/review-sessions')
@@ -430,12 +430,101 @@ describe('DELETE /review-sessions/:id -- delete with progress recompute', () => 
     const res = await request(app)
       .delete(`/review-sessions/${self.body.data.session_id}`)
       .set(bearer(student.accessToken));
+    assert.equal(res.status, 200);
+
+    const rows = await progressOf(student.userId, hadithId);
+    const selfRow = rows.find((r) => r.assignment_id === null);
+    const assignedRow = rows.find((r) => r.assignment_id === assignmentId);
+    assert.equal(Number(selfRow.mastery), 0);
+    assert.equal(Number(selfRow.times_reviewed), 0);
+    assert.equal(Number(assignedRow.mastery), 1);
+    assert.equal(Number(assignedRow.times_reviewed), 1);
+  });
+
+  test('an earlier session cannot be deleted after a later review of the same row (409, nothing changes)', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('laterreview');
+    const send = (result: string) =>
+      request(app)
+        .post('/review-sessions')
+        .set(bearer(teacher.accessToken))
+        .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result }] });
+    const first = await send('pass');
+    await send('pass');
+
+    const res = await request(app)
+      .delete(`/review-sessions/${first.body.data.session_id}`)
+      .set(bearer(teacher.accessToken));
     assert.equal(res.status, 409);
 
-    const { rows } = await pool.query('SELECT count(*) FROM app.review_sessions WHERE session_id = $1', [
-      self.body.data.session_id,
-    ]);
-    assert.equal(Number(rows[0].count), 1);
+    const rows = await progressOf(student.userId, hadithId);
+    assert.equal(Number(rows[0].mastery), 2);
+    assert.equal(Number(rows[0].times_reviewed), 2);
+  });
+
+  test('a teacher override made before the session survives its delete', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('overridekeep');
+    const { rows: pr } = await pool.query<{ progress_id: number }>(
+      'SELECT progress_id FROM app.progress WHERE student_id = $1 AND assignment_id = $2',
+      [student.userId, assignmentId],
+    );
+    const patched = await request(app)
+      .patch(`/progress/${pr[0].progress_id}`)
+      .set(bearer(teacher.accessToken))
+      .send({ mastery: 3 });
+    assert.equal(patched.status, 200);
+
+    const session = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'fail' }] });
+    assert.equal(session.status, 201);
+
+    const res = await request(app)
+      .delete(`/review-sessions/${session.body.data.session_id}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(res.status, 200);
+
+    const rows = await progressOf(student.userId, hadithId);
+    assert.equal(Number(rows[0].mastery), 3);
+    assert.equal(Number(rows[0].times_reviewed), 0);
+  });
+
+  test('a teacher override made after the session blocks its delete (409, override kept)', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('overrideafter');
+    const session = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    const { rows: pr } = await pool.query<{ progress_id: number }>(
+      'SELECT progress_id FROM app.progress WHERE student_id = $1 AND assignment_id = $2',
+      [student.userId, assignmentId],
+    );
+    await request(app).patch(`/progress/${pr[0].progress_id}`).set(bearer(teacher.accessToken)).send({ mastery: 4 });
+
+    const res = await request(app)
+      .delete(`/review-sessions/${session.body.data.session_id}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(res.status, 409);
+
+    const rows = await progressOf(student.userId, hadithId);
+    assert.equal(Number(rows[0].mastery), 4);
+  });
+
+  test('a session recorded before undo was stored cannot be deleted (409)', async () => {
+    const { teacher, student, hadithId, assignmentId } = await assignedTriple('legacy');
+    const session = await request(app)
+      .post('/review-sessions')
+      .set(bearer(teacher.accessToken))
+      .send({ student_id: student.userId, assignment_id: assignmentId, items: [{ hadith_id: hadithId, result: 'pass' }] });
+    await pool.query(
+      'UPDATE app.review_items SET prev_mastery = NULL, prev_times_reviewed = NULL WHERE session_id = $1',
+      [session.body.data.session_id],
+    );
+
+    const res = await request(app)
+      .delete(`/review-sessions/${session.body.data.session_id}`)
+      .set(bearer(teacher.accessToken));
+    assert.equal(res.status, 409);
   });
 
   test('an unknown session id is 404', async () => {

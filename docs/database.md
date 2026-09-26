@@ -126,6 +126,26 @@ A third index on `student_id` alone is **not optional**. The stats trigger reads
 every row for one student on each insert. Both unique indexes above start with
 `student_id`, but both are partial, so neither one serves an unfiltered scan.
 
+#### `app.review_items` — undo by snapshot
+
+Each review item keeps the `progress_id` it changed, and that row's state just
+before the change: `prev_mastery`, `prev_times_reviewed`, and
+`prev_last_reviewed` (`db/11_review_undo.sql`).
+
+`DELETE /review-sessions/:id` writes those values back. The restore is exact, so
+a teacher override made before the session survives. A replay of the remaining
+review items cannot do that, because an override writes no review item.
+
+The API refuses the delete in two cases:
+
+- The row no longer holds what the session left in it. A later review or an
+  override changed it, and a restore would erase that change.
+- `prev_mastery IS NULL`. The item was recorded before `11` ran, and it holds
+  no snapshot.
+
+`progress_id` is `ON DELETE SET NULL`. Deleting an assignment deletes its
+progress rows and keeps the review history. Such an item has nothing to restore.
+
 #### IS-A through table inheritance
 
 Each row lives in exactly one child table. The parent is a read surface that

@@ -3,39 +3,59 @@ import { pool } from '../../db/pool.js';
 import { withTransaction } from '../../lib/transaction.js';
 import type { CreateReviewSessionInput, ReviewSessionRow } from './reviews.interface.js';
 
-function masteryExpression(result: 'pass' | 'partial' | 'fail'): string {
-  if (result === 'pass') return 'least(mastery + 1, 4)';
-  if (result === 'fail') return 'greatest(mastery - 1, 0)';
-  return 'mastery';
+type Result = 'pass' | 'partial' | 'fail';
+
+interface ProgressState {
+  mastery: number;
+  times_reviewed: number;
+  last_reviewed: string | null;
 }
 
-async function upsertProgressForItem(
+// The one review rule. The create path applies it, and the delete path uses it
+// to check that a progress row still holds what the session left there.
+function applyResult(mastery: number, result: Result): number {
+  if (result === 'pass') return Math.min(mastery + 1, 4);
+  if (result === 'fail') return Math.max(mastery - 1, 0);
+  return mastery;
+}
+
+// Apply one result to its progress row and return the row id and its state
+// before the change. A missing row counts as 0 / 0 / never, the same as a
+// fresh assignment row.
+async function applyToProgress(
   client: PoolClient,
   studentId: number,
   hadithId: number,
   assignmentId: number | null,
-  result: 'pass' | 'partial' | 'fail',
-): Promise<void> {
-  const masteryExpr = masteryExpression(result);
-
-  const { rowCount } = await client.query(
-    `UPDATE app.progress
-        SET mastery = ${masteryExpr},
-            times_reviewed = times_reviewed + 1,
-            last_reviewed = now()
+  result: Result,
+): Promise<{ progressId: number; prev: ProgressState }> {
+  const { rows } = await client.query<ProgressState & { progress_id: number }>(
+    `SELECT progress_id, mastery, times_reviewed, last_reviewed FROM app.progress
       WHERE student_id = $1 AND hadith_id = $2
-        AND assignment_id IS NOT DISTINCT FROM $3`,
+        AND assignment_id IS NOT DISTINCT FROM $3
+      FOR UPDATE`,
     [studentId, hadithId, assignmentId],
   );
+  const found = rows[0];
+  const prev: ProgressState = found ?? { mastery: 0, times_reviewed: 0, last_reviewed: null };
+  const mastery = applyResult(prev.mastery, result);
 
-  if ((rowCount ?? 0) === 0) {
-    const initialMastery = result === 'pass' ? 1 : 0;
+  if (found) {
     await client.query(
-      `INSERT INTO app.progress (student_id, hadith_id, assignment_id, mastery, times_reviewed, last_reviewed)
-       VALUES ($1, $2, $3, $4, 1, now())`,
-      [studentId, hadithId, assignmentId, initialMastery],
+      `UPDATE app.progress
+          SET mastery = $2, times_reviewed = times_reviewed + 1, last_reviewed = now()
+        WHERE progress_id = $1`,
+      [found.progress_id, mastery],
     );
+    return { progressId: found.progress_id, prev };
   }
+  const { rows: inserted } = await client.query<{ progress_id: number }>(
+    `INSERT INTO app.progress (student_id, hadith_id, assignment_id, mastery, times_reviewed, last_reviewed)
+     VALUES ($1, $2, $3, $4, 1, now())
+     RETURNING progress_id`,
+    [studentId, hadithId, assignmentId, mastery],
+  );
+  return { progressId: inserted[0].progress_id, prev };
 }
 
 export async function createReviewSession(input: CreateReviewSessionInput): Promise<ReviewSessionRow> {
@@ -48,49 +68,42 @@ export async function createReviewSession(input: CreateReviewSessionInput): Prom
     );
     const session = sessionRows[0];
 
-    if (input.items.length > 0) {
-      const values: unknown[] = [];
-      const rowsSql = input.items
-        .map((item, i) => {
-          values.push(session.session_id, item.hadith_id, item.result);
-          const base = i * 3;
-          return `($${base + 1}, $${base + 2}, $${base + 3})`;
-        })
-        .join(', ');
-      await client.query(
-        `INSERT INTO app.review_items (session_id, hadith_id, result) VALUES ${rowsSql}`,
-        values,
+    for (const item of input.items) {
+      const { progressId, prev } = await applyToProgress(
+        client,
+        input.studentId,
+        item.hadith_id,
+        input.assignmentId,
+        item.result,
       );
-
-      for (const item of input.items) {
-        await upsertProgressForItem(client, input.studentId, item.hadith_id, input.assignmentId, item.result);
-      }
+      await client.query(
+        `INSERT INTO app.review_items
+           (session_id, hadith_id, result, progress_id, prev_mastery, prev_times_reviewed, prev_last_reviewed)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          session.session_id,
+          item.hadith_id,
+          item.result,
+          progressId,
+          prev.mastery,
+          prev.times_reviewed,
+          prev.last_reviewed,
+        ],
+      );
     }
 
     return session;
   });
 }
 
-function foldResult(
-  state: { mastery: number; times: number },
-  result: 'pass' | 'partial' | 'fail',
-  first: boolean,
-): { mastery: number; times: number } {
-  if (first) {
-    return { mastery: result === 'pass' ? 1 : 0, times: 1 };
-  }
-  if (result === 'pass') return { mastery: Math.min(state.mastery + 1, 4), times: state.times + 1 };
-  if (result === 'fail')
-    return { mastery: Math.max(state.mastery - 1, 0), times: state.times + 1 };
-  return { mastery: state.mastery, times: state.times + 1 };
-}
-
-// Delete a session and rebuild the progress it touched. Mastery folds are
-// path-dependent (least/greatest clamps), so there is no inverse operation:
-// the only exact undo replays the REMAINING items in time order through the
-// same rules creation uses. Attribution needs the triple, and items carry no
-// assignment link — so a hadith studied under several triples refuses with
-// 'ambiguous' (the teacher override stays available for those).
+// Delete a session and put each progress row it changed back to its state
+// before the session (db/11_review_undo.sql). The restore is exact, so a
+// teacher override made before the session survives.
+//
+// The delete is refused when a row no longer holds what this session left in
+// it: a later review or an override changed it, and a restore would erase that
+// change. It is also refused for a session recorded before 11 ran, because
+// those items hold no snapshot.
 //
 // Zeroed rows are UPDATED, never deleted: trg_progress_stats fires on INSERT
 // and UPDATE only, so a delete would leave student_stats stale. A zeroed
@@ -98,63 +111,53 @@ function foldResult(
 export async function deleteReviewSession(
   sessionId: number,
   actorUserId: number,
-): Promise<'deleted' | 'missing' | 'ambiguous'> {
+): Promise<'deleted' | 'missing' | 'legacy' | 'changed'> {
   return withTransaction(async (client) => {
-    const { rows: found } = await client.query<ReviewSessionRow>(
-      `SELECT session_id, student_id, reviewer_id, circle_id, created_at
-         FROM app.review_sessions WHERE session_id = $1`,
+    const { rows: found } = await client.query(
+      'SELECT 1 FROM app.review_sessions WHERE session_id = $1 FOR UPDATE',
       [sessionId],
     );
-    const session = found[0];
-    if (!session) return 'missing';
+    if (found.length === 0) return 'missing';
 
-    const { rows: doomed } = await client.query<{ hadith_id: number }>(
-      `SELECT hadith_id FROM app.review_items WHERE session_id = $1`,
+    const { rows: items } = await client.query<{
+      result: Result;
+      progress_id: number | null;
+      prev_mastery: number | null;
+      prev_times_reviewed: number | null;
+      prev_last_reviewed: string | null;
+      mastery: number | null;
+      times_reviewed: number | null;
+    }>(
+      `SELECT ri.result, ri.progress_id, ri.prev_mastery, ri.prev_times_reviewed,
+              ri.prev_last_reviewed, p.mastery, p.times_reviewed
+         FROM app.review_items ri
+         LEFT JOIN app.progress p ON p.progress_id = ri.progress_id
+        WHERE ri.session_id = $1
+          FOR UPDATE OF ri`,
       [sessionId],
     );
-    const hadiths = [...new Set(doomed.map((r) => r.hadith_id))];
 
-    // Checks first: no writes happen before every triple is attributable.
-    const triples = new Map<number, { progress_id: number; assignment_id: number | null }>();
-    for (const hadithId of hadiths) {
-      const { rows } = await client.query<{
-        progress_id: number;
-        assignment_id: number | null;
-      }>(
-        `SELECT progress_id, assignment_id FROM app.progress
-          WHERE student_id = $1 AND hadith_id = $2`,
-        [session.student_id, hadithId],
-      );
-      if (rows.length !== 1) return 'ambiguous';
-      triples.set(hadithId, rows[0]);
+    // Checks first: no write happens before every item can be restored.
+    // An item whose progress row is gone (its assignment was deleted) has
+    // nothing to restore.
+    const restorable = items.filter((item) => item.progress_id !== null);
+    for (const item of items) {
+      if (item.prev_mastery === null || item.prev_times_reviewed === null) return 'legacy';
+    }
+    for (const item of restorable) {
+      const expectedMastery = applyResult(item.prev_mastery!, item.result);
+      const expectedTimes = item.prev_times_reviewed! + 1;
+      if (item.mastery !== expectedMastery || item.times_reviewed !== expectedTimes) return 'changed';
     }
 
     // Same actor attribution the teacher override uses.
     await client.query(`SELECT set_config('ilham.user_id', $1, true)`, [String(actorUserId)]);
 
-    for (const hadithId of hadiths) {
-      const triple = triples.get(hadithId)!;
-      const { rows: rest } = await client.query<{
-        result: 'pass' | 'partial' | 'fail';
-        created_at: string;
-      }>(
-        `SELECT ri.result, rs.created_at
-           FROM app.review_items ri
-           JOIN app.review_sessions rs ON rs.session_id = ri.session_id
-          WHERE rs.student_id = $1 AND ri.hadith_id = $2 AND rs.session_id <> $3
-          ORDER BY rs.created_at, rs.session_id`,
-        [session.student_id, hadithId, sessionId],
-      );
-      let state = { mastery: 0, times: 0 };
-      let last: string | null = null;
-      rest.forEach((item, i) => {
-        state = foldResult(state, item.result, i === 0);
-        last = item.created_at;
-      });
+    for (const item of restorable) {
       await client.query(
         `UPDATE app.progress SET mastery = $2, times_reviewed = $3, last_reviewed = $4
           WHERE progress_id = $1`,
-        [triple.progress_id, state.mastery, state.times, last],
+        [item.progress_id, item.prev_mastery, item.prev_times_reviewed, item.prev_last_reviewed],
       );
     }
 
