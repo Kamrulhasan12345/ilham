@@ -35,6 +35,9 @@ digraph ERD_Reviews {
     session_id [label=<<U>session_id</U>>];
     rs_created [label="created_at"];
     result_attr [label="result"];
+    prev_mastery [label="prev_mastery"];
+    prev_times [label="prev_times_reviewed"];
+    prev_last [label="prev_last_reviewed"];
 
     // PK edges
     edge [color="#484F58", style=dotted];
@@ -47,6 +50,10 @@ digraph ERD_Reviews {
     ReviewSession -> session_id [color="#E3B341", style=solid, penwidth=1.4];
     ReviewSession -> rs_created;
     Tested -> result_attr;
+    // The progress state before this result, restored when the session is deleted.
+    Tested -> prev_mastery;
+    Tested -> prev_times;
+    Tested -> prev_last;
 
     // Relationships
     edge [color="#8B949E", style=solid, fontsize=11, fontcolor="#C9D1D9", penwidth=1.4];

@@ -311,7 +311,7 @@ npm run verify && npm run doctor
 psql -f rank_map.sql -f narrator_overrides.sql -f sunnah_structure.sql -f hadith_placement.sql
 npm run all && npm run seed
 cd .. && psql -f db/05_post_load.sql
-for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en; do psql -f db/$f.sql; done
+for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en 11_review_undo; do psql -f db/$f.sql; done
 ```
 
 **Without node on the host**, run the `npm` steps in the `etl` container:
