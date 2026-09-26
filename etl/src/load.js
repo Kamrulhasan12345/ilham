@@ -30,7 +30,7 @@ const LOADS = [
   { csv: 'mentions.csv', table: 'staging.mentions',
     cols: ['hadith_id','mention_order','surface_plain','surface_diac','narrator_id'] },
   { csv: 'lk_hadiths.csv', table: 'staging.lk_hadiths',
-    cols: ['book_slug','hadith_num','text_en','arabic_text','arabic_matn'] },
+    cols: ['book_slug','kitab_num','hadith_num','text_en','arabic_text','arabic_matn'] },
 ];
 
 export async function load() {

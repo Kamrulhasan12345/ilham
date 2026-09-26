@@ -97,7 +97,7 @@ keep it. **Never add a runtime write path into `corpus.*`.**
   <span dir="rtl">باب</span> heading in front of `text_plain`. It then matches in
   five tiers, and `hadith_translations.match_via` records the tier (`E/P/6/4/M`).
 
-  **Do not "simplify" this back to a number join.** Coverage is 95.2%. The rest
+  **Do not "simplify" this back to a number join.** Coverage is 95.5%. The rest
   keeps its Arabic, and the loader never deletes it.
 - **`corpus.chain_strength(hadith_id)` is a clear, documented metric.** It takes
   the weakest link in each sanad, and the best sanad wins. An anʿana link takes a

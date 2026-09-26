@@ -267,6 +267,11 @@ check finds a few more (tier 4: 3 of 92, tier M: 3 of 63). This is a
 separate bug in stage 14. The fix is to require the vote to agree
 before a translation is published.
 
+**Fixed (issue #24).** Stage 14 now matches only inside one kitab: the
+LK `Chapter_Number` must equal the placement `kitab_num`. The rebuild
+removed 6 wrong translations, changed 2, and added 60. Coverage moved
+from 95.2% to 95.5%.
+
 ## 8. Records that the ETL drops
 
 Bukhari (135 records without a number):

@@ -23,7 +23,7 @@ instance. It shows a finished read-only corpus and a small read-write study
 layer.
 
 The corpus is large and complete: 14,941 hadiths, 20,957 narrators, 139,766
-chain positions, 154 kitabs, 5,332 babs, and 2 collections. English text covers 95.2%
+chain positions, 154 kitabs, 5,332 babs, and 2 collections. English text covers 95.5%
 of the hadiths. **The frontend never writes to the corpus.** The database role
 holds no write grant on `corpus.*`.
 

@@ -27,7 +27,7 @@ semantic work** on the way to `corpus`. See
 | `narrators` | Flattened narrator profiles |
 | `rank_map` | Curated. Normalised grade string to rank code |
 | `narrator_rank_override` | Curated. Grade claims for named persons |
-| `lk_hadiths` | English text and the Arabic that attaches it |
+| `lk_hadiths` | English text, the Arabic that attaches it, and the LK kitab number that limits the match to one kitab |
 | `name_index` | Normalised name to narrator, with the candidate count |
 | `rejects` | Every row that a stage did not use, with a reason |
 | `resolution_conflicts` | Positions where pass A and pass B disagree |

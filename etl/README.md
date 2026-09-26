@@ -40,8 +40,8 @@ etl/raw/lk-translations/muslim/Chapter1.csv  … Chapter57.csv
 That is 154 files, 47 MB, and 14,659 rows.
 
 If you leave it out, stage 14 does nothing. The corpus then loads Arabic only,
-and every reader falls back to Arabic. With it, **95.2%** of the hadiths carry
-English. Bukhari is 96.9% and Muslim is 93.8%.
+and every reader falls back to Arabic. With it, **95.5%** of the hadiths carry
+English. Bukhari is 97.3% and Muslim is 93.9%.
 
 The loader takes the book from the **directory name**, not from the file name. It
 reports a directory it does not recognise. It never guesses.
