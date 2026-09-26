@@ -13,7 +13,7 @@ The full requirements are in [`prd.md`](prd.md) §2. The resulting tables are in
 |---|---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle, from sunnah.alifta.gov.sa. King Abdullah bin Abdul Aziz Program for the Prophetic Sunnah. University of Malta, 2025) | 276,347 hadiths in 33 books. About 863 MB of JSON and a manifest. 20,957 narrator profiles. Text, chapter, and number are near 100%. Chains are 98.9%. Narrator names are 98.6%. Mention to identifier is 94.1%. All Arabic | **Primary corpus.** Text, chains, narrator identifiers, and rijal grades. One source links them all |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0. *Data in Brief* 54:110439) | Sahih Muslim: 7,748 hadiths, 14,155 sanads, 2,092 narrators. Ordered chains with Arabic and English name columns | **Validation** against the Muslim subset, and **English narrator names**. You can cut it |
-| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable | **English text** for `corpus.hadith_translations`. The join is on normalised Arabic text, because the two numbering systems do not agree. See below. To cut it costs coverage, not the feature. **95.2% of the corpus has English** |
+| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | About 34,000 hadiths in six books. English and Arabic, with the isnad and matn split. The grade fields are unreliable | **English text** for `corpus.hadith_translations`. The join is on normalised Arabic text, because the two numbering systems do not agree. See below. To cut it costs coverage, not the feature. **95.5% of the corpus has English** |
 
 **Language.** Arabic is canonical everywhere. English appears in three places:
 hadith text (`corpus.hadith_translations`, source-tagged), narrator names
@@ -213,12 +213,20 @@ Five tiers run in order. Each tier sees only what the tier before it left.
 
 | Tier | Rule | Bukhari | Muslim |
 |---|---|---:|---:|
-| `E` | The full anchored text is identical | 5,572 | 6,454 |
-| `P` | The first 100 letters, one to one | 1,153 | 531 |
-| `6` | The first 60 letters, one to one | 167 | 111 |
-| `4` | The first 40 letters, one to one | 59 | 47 |
-| `M` | The matn is identical, one to one | 96 | 7 |
-| | **Coverage** | **96.87%** | **93.76%** |
+| `E` | The full anchored text is identical | 5,584 | 6,475 |
+| `P` | The first 100 letters, one to one | 1,165 | 547 |
+| `6` | The first 60 letters, one to one | 167 | 115 |
+| `4` | The first 40 letters, one to one | 65 | 55 |
+| `M` | The matn is identical, one to one | 96 | 6 |
+| | **Coverage** | **97.28%** | **93.90%** |
+
+Every tier matches only inside one kitab. The LK `Chapter_Number` must equal
+the `kitab_num` of the hadith's placement. The two agree for all 14,076 hadiths
+that both sources place. Before this rule, tier `4` sometimes paired two hadiths
+whose first 40 letters were only a shared isnad. It then attached the English of
+a hadith from another kitab (issue #24). The rule removed 6 wrong translations.
+Inside one kitab the same prefix collides less, so the one-to-one rule also
+accepts 60 more hadiths.
 
 Tier `E` lets several hadiths take one LK row. Identical Arabic means that one
 English text is correct for all of them. A guard requires every candidate row to

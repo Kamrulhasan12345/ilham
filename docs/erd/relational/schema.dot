@@ -378,6 +378,10 @@ digraph ilham_relational {
 <TR><TD PORT="session_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">session_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer</FONT></TD></TR>
 <TR><TD PORT="hadith_id" ALIGN="LEFT"><FONT COLOR="#E3B341">PK</FONT> <FONT COLOR="#F85149">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">hadith_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#F85149">integer  -&gt; corpus</FONT></TD></TR>
 <TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">result</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">text  pass|partial|fail</FONT></TD></TR>
+<TR><TD PORT="progress_id" ALIGN="LEFT"><FONT COLOR="#79C0FF">FK</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">progress_id</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#6E7681">bigint NULL  set null</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">prev_mastery</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">smallint NULL  0..4</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">prev_times_reviewed</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">integer NULL</FONT></TD></TR>
+<TR><TD></TD><TD ALIGN="LEFT"><FONT COLOR="#E6EDF3">prev_last_reviewed</FONT></TD><TD ALIGN="LEFT"><FONT COLOR="#8B949E">timestamptz NULL</FONT></TD></TR>
 </TABLE>>];
 
         student_stats [label=<
@@ -442,6 +446,7 @@ digraph ilham_relational {
     review_sessions:reviewer_id       -> teachers:user_id              [arrowtail=crowodot];
     review_sessions:circle_id         -> circles:circle_id             [arrowtail=crowodot];
     review_items:session_id           -> review_sessions:session_id;
+    review_items:progress_id          -> progress:progress_id          [arrowtail=crowodot];
     student_stats:student_id          -> students:user_id              [arrowtail=tee];
 
     // ---- app -> corpus (the only four crossings; read-only target) ----

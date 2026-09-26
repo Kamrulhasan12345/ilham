@@ -52,6 +52,14 @@
 --   4  first  40 letters identical, one-to-one
 --   M  matn identical, one-to-one  (catches editions whose isnad wording differs)
 --
+-- EVERY tier matches only inside one kitab: the LK Chapter_Number must equal
+-- the kitab_num of the hadith's placement (etl/hadith_placement.sql). The two
+-- agree for all 14,076 hadiths that both sources place
+-- (docs/research/lk-kitab-bab-findings.md §3). Without this, tier 4 paired
+-- hadiths whose first 40 letters were only a shared isnad, and attached the
+-- English of a hadith from another kitab (issue #24). Inside the kitab the
+-- same prefix no longer collides, so the one-to-one rule rejects less, too.
+--
 -- Tier E allows several hadiths to take one LK row: if their Arabic is
 -- byte-identical after normalisation they are the same text, so one English is
 -- correct for all of them — but only when every candidate LK row carries the
@@ -80,6 +88,7 @@ DELETE FROM staging.rejects WHERE stage = '14_translations';
 CREATE TEMP TABLE t_ifta ON COMMIT DROP AS
 SELECT h.hadith_id,
        c.slug AS book_slug,
+       k.kitab_num,
        h.hadith_num,
        -- Strip the chapter heading when text_plain opens with it, THEN anchor.
        -- The heading is stripped first because anchoring alone leaves headings
@@ -94,6 +103,7 @@ SELECT h.hadith_id,
        staging.match_key(h.matn_plain) AS m
 FROM corpus.hadiths h
 JOIN corpus.collections c USING (collection_id)
+JOIN corpus.kitabs k ON k.kitab_id = h.kitab_id          -- the placement kitab
 JOIN staging.hadiths sh ON sh.hadith_id = h.hadith_id;   -- the Ifta bab title
 
 ALTER TABLE t_ifta ADD COLUMN alen int, ADD COLUMN mlen int, ADD COLUMN hf text,
@@ -105,6 +115,7 @@ UPDATE t_ifta SET alen = length(a), mlen = length(m), hf = md5(a), hm = md5(m),
 CREATE TEMP TABLE t_lk ON COMMIT DROP AS
 SELECT lk.lk_row_id,
        lk.book_slug,
+       lk.kitab_num,
        lk.hadith_num,
        lk.text_en,
        staging.anchor(staging.match_key(lk.arabic_text)) AS a,
@@ -121,18 +132,18 @@ UPDATE t_lk SET alen = length(a), hf = md5(a),
 -- Ifta matn is the saying alone, an LK full text includes the isnad, so the two
 -- could only ever match by accident.
 CREATE TEMP TABLE t_lkm ON COMMIT DROP AS
-SELECT lk.lk_row_id, lk.book_slug,
+SELECT lk.lk_row_id, lk.book_slug, lk.kitab_num,
        md5(staging.match_key(lk.arabic_matn)) AS hm,
        length(staging.match_key(lk.arabic_matn)) AS mlen
 FROM staging.lk_hadiths lk
 WHERE lk.arabic_matn IS NOT NULL;
 
-CREATE INDEX ON t_ifta (book_slug, hf);   CREATE INDEX ON t_ifta (book_slug, p100);
-CREATE INDEX ON t_ifta (book_slug, p60);  CREATE INDEX ON t_ifta (book_slug, p40);
-CREATE INDEX ON t_ifta (book_slug, hm);
-CREATE INDEX ON t_lk   (book_slug, hf);   CREATE INDEX ON t_lk   (book_slug, p100);
-CREATE INDEX ON t_lk   (book_slug, p60);  CREATE INDEX ON t_lk   (book_slug, p40);
-CREATE INDEX ON t_lkm  (book_slug, hm);
+CREATE INDEX ON t_ifta (book_slug, kitab_num, hf);   CREATE INDEX ON t_ifta (book_slug, kitab_num, p100);
+CREATE INDEX ON t_ifta (book_slug, kitab_num, p60);  CREATE INDEX ON t_ifta (book_slug, kitab_num, p40);
+CREATE INDEX ON t_ifta (book_slug, kitab_num, hm);
+CREATE INDEX ON t_lk   (book_slug, kitab_num, hf);   CREATE INDEX ON t_lk   (book_slug, kitab_num, p100);
+CREATE INDEX ON t_lk   (book_slug, kitab_num, p60);  CREATE INDEX ON t_lk   (book_slug, kitab_num, p40);
+CREATE INDEX ON t_lkm  (book_slug, kitab_num, hm);
 ANALYZE t_ifta; ANALYZE t_lk; ANALYZE t_lkm;
 
 CREATE TEMP TABLE t_match (
@@ -148,7 +159,8 @@ CREATE TEMP TABLE t_match (
 -- fires when every candidate row would have supplied the same English anyway.
 INSERT INTO t_match (hadith_id, lk_row_id, book_slug, via)
 SELECT i.hadith_id, min(l.lk_row_id), i.book_slug, 'E'
-FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.hf = i.hf
+FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.kitab_num = i.kitab_num
+                    AND l.hf = i.hf
 WHERE i.alen > 0
 GROUP BY i.hadith_id, i.book_slug
 HAVING count(DISTINCT l.he) = 1;
@@ -160,7 +172,8 @@ HAVING count(DISTINCT l.he) = 1;
 INSERT INTO t_match (hadith_id, lk_row_id, book_slug, via)
 WITH p AS (
   SELECT i.hadith_id, i.book_slug, l.lk_row_id
-  FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.p100 = i.p100
+  FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.kitab_num = i.kitab_num
+                    AND l.p100 = i.p100
   WHERE i.alen >= 100 AND l.alen >= 100
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.hadith_id = i.hadith_id)
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.lk_row_id = l.lk_row_id)),
@@ -174,7 +187,8 @@ WHERE ic.n = 1 AND lc.n = 1;
 INSERT INTO t_match (hadith_id, lk_row_id, book_slug, via)
 WITH p AS (
   SELECT i.hadith_id, i.book_slug, l.lk_row_id
-  FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.p60 = i.p60
+  FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.kitab_num = i.kitab_num
+                    AND l.p60 = i.p60
   WHERE i.alen >= 60 AND l.alen >= 60
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.hadith_id = i.hadith_id)
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.lk_row_id = l.lk_row_id)),
@@ -188,7 +202,8 @@ WHERE ic.n = 1 AND lc.n = 1;
 INSERT INTO t_match (hadith_id, lk_row_id, book_slug, via)
 WITH p AS (
   SELECT i.hadith_id, i.book_slug, l.lk_row_id
-  FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.p40 = i.p40
+  FROM t_ifta i JOIN t_lk l ON l.book_slug = i.book_slug AND l.kitab_num = i.kitab_num
+                    AND l.p40 = i.p40
   WHERE i.alen >= 40 AND l.alen >= 40
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.hadith_id = i.hadith_id)
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.lk_row_id = l.lk_row_id)),
@@ -206,7 +221,8 @@ WHERE ic.n = 1 AND lc.n = 1;
 INSERT INTO t_match (hadith_id, lk_row_id, book_slug, via)
 WITH p AS (
   SELECT i.hadith_id, i.book_slug, l.lk_row_id
-  FROM t_ifta i JOIN t_lkm l ON l.book_slug = i.book_slug AND l.hm = i.hm
+  FROM t_ifta i JOIN t_lkm l ON l.book_slug = i.book_slug AND l.kitab_num = i.kitab_num
+                    AND l.hm = i.hm
   WHERE i.mlen >= 40 AND l.mlen >= 40
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.hadith_id = i.hadith_id)
     AND NOT EXISTS (SELECT 1 FROM t_match m WHERE m.lk_row_id = l.lk_row_id)),

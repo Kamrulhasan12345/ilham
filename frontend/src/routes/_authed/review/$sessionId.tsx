@@ -295,7 +295,7 @@ function ReviewRecord({ sessionId }: { sessionId: string }) {
     try {
       await apiFetch(`/review-sessions/${sessionId}`, z.unknown(), { method: 'DELETE' });
       await queryClient.invalidateQueries({ queryKey: ['review-sessions'] });
-      toast.success('Session deleted. The progress it touched was rebuilt.');
+      toast.success('Session deleted. The progress it changed is back to what it was before.');
       if (data.circle_id === null) {
         await router.navigate({ to: '/circles' });
       } else {
@@ -390,8 +390,9 @@ function ReviewRecord({ sessionId }: { sessionId: string }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this session?</AlertDialogTitle>
             <AlertDialogDescription>
-              The session and its verdicts go away, and the progress they touched is rebuilt from
-              the remaining sessions.
+              The session and its verdicts go away, and the progress it changed goes back to what it
+              was before this session. If a later review or an override changed that progress, the
+              delete is refused.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

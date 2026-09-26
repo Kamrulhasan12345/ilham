@@ -137,7 +137,7 @@ Triggers fire on **user writes only**. The corpus never takes a runtime write.
 |---|---|
 | **Ifta Sunnah Hadith & Narrators Dataset** (Kaggle; sunnah.alifta.gov.sa). 276,347 hadiths, 33 books, 20,957 narrator profiles | **Primary corpus.** Text, chains, narrator identifiers, and *rijal* grades. **Loaded now: Sahih al-Bukhari and Sahih Muslim = 14,941 hadiths.** A manifest drives the loader, so it extends to all 33 books |
 | **Multi-IsnadSet (MIS)** (Mendeley, CC BY 4.0). Sahih Muslim, ordered chains | **Validation** and English narrator names |
-| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | English text for `hadith_translations`. The join is on Arabic text. Coverage is 95.2% |
+| **LK-Hadith-Corpus** (Leeds and King Saud, LREC 2020) | English text for `hadith_translations`. The join is on Arabic text. Coverage is 95.5% |
 
 Arabic is canonical. English is optional in three places: hadith text
 (`hadith_translations`), narrator names (`narrators.name_en`), and collection
@@ -299,7 +299,7 @@ It runs, in this order:
 
 It takes about 15 minutes. It gives 14,941 hadiths in 154 kitabs and 5,332
 babs, 139,766 chain positions, and 20,957 narrators. Narrator resolution is
-99.58%. English covers 95.2% of the hadiths. The pipeline writes every number
+99.58%. English covers 95.5% of the hadiths. The pipeline writes every number
 to `corpus.etl_metrics`, and a rebuild gives the same numbers again.
 
 **By hand**, against an empty database, the same order:
@@ -311,7 +311,7 @@ npm run verify && npm run doctor
 psql -f rank_map.sql -f narrator_overrides.sql -f sunnah_structure.sql -f hadith_placement.sql
 npm run all && npm run seed
 cd .. && psql -f db/05_post_load.sql
-for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en; do psql -f db/$f.sql; done
+for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en 11_review_undo; do psql -f db/$f.sql; done
 ```
 
 **Without node on the host**, run the `npm` steps in the `etl` container:

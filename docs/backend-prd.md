@@ -551,6 +551,7 @@ correct and deliberate. Do not add an "already assigned" check.
 | POST | `/review-sessions` | A | The API owns the transaction |
 | GET | `/review-sessions` | A | Visibility per §4 |
 | GET | `/review-sessions/:id` | A + visible | With the items |
+| DELETE | `/review-sessions/:id` | A + author | Restores each progress row to its state before the session, from the snapshot on `review_items` (`db/11_review_undo.sql`). 409 if a later review or an override changed a row, or if the session predates the snapshot |
 
 Body:
 
@@ -565,8 +566,10 @@ The flow, on **one pooled client**:
 client = await pool.connect()
 BEGIN
   INSERT INTO app.review_sessions  → session_id
-  INSERT INTO app.review_items     (one multi-row insert)
-  UPDATE app.progress              (see the rule below)
+  for each item:
+    SELECT … FROM app.progress … FOR UPDATE   (the state before)
+    UPDATE or INSERT app.progress             (see the rule below)
+    INSERT INTO app.review_items              (with progress_id and the state before)
   [trg_progress_stats fires per row]
 COMMIT   (or ROLLBACK on any error)
 client.release()

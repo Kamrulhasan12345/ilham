@@ -181,6 +181,8 @@ CREATE TABLE staging.narrator_rank_override (
 CREATE TABLE staging.lk_hadiths (
     lk_row_id    integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     book_slug    text NOT NULL,
+    kitab_num    smallint,           -- LK Chapter_Number = the site kitab_num.
+                                     -- Stage 14 matches only inside one kitab
     hadith_num   text,               -- nullable: LK ranges are not numbers
     text_en      text NOT NULL,
     arabic_text  text NOT NULL,      -- the join key's source

@@ -30,7 +30,7 @@ const MENTION_COLS= ['hadith_id','mention_order','surface_plain','surface_diac',
 const NARRATOR_COLS=['narrator_id','display_name','name','kunya','nickname','lineage','relation',
                      'tabaqa_raw','school','rank_ibn_hajar_raw','rank_dhahabi_raw','date_of_death'];
 const MANIFEST_COLS=['book_slug','title_ar','title_en'];
-const LK_COLS     = ['book_slug','hadith_num','text_en','arabic_text','arabic_matn'];
+const LK_COLS     = ['book_slug','kitab_num','hadith_num','text_en','arabic_text','arabic_matn'];
 
 // LK names its book directories in English; the corpus keys on the Ifta slug.
 // An unlisted directory is reported, never guessed at.
@@ -273,7 +273,8 @@ export async function extract({ keepRawDoc = KEEP_RAW_DOC } = {}) {
             // Both are required: without English there is nothing to store,
             // without Arabic there is no way to attach it to a hadith.
             if (!en || !ar) { skipped++; stats.rejects.push(['lk', !en ? 'no_english' : 'no_arabic', `${dir}/${f}`]); continue; }
-            lkCsv.write({ book_slug: slug, hadith_num: lkNumber(r.Hadith_number),
+            lkCsv.write({ book_slug: slug, kitab_num: lkNumber(r.Chapter_Number),
+                          hadith_num: lkNumber(r.Hadith_number),
                           text_en: en, arabic_text: ar,
                           arabic_matn: lkField(r.Arabic_Matn) });
             kept++;
