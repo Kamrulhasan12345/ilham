@@ -231,6 +231,17 @@ Use `podman compose down` and then `up`. Do not use `stop` and `start`. Only
 has no pods and does not have this problem.
 </details>
 
+**Sign in.** The dump and `npm run seed` both give three working accounts.
+The password of each is `ilham`. These are local test accounts only.
+
+| Role | Email | What it shows |
+|---|---|---|
+| Admin | `admin@ilham.test` | Teacher verification and settings |
+| Teacher | `teacher1@ilham.test` | A verified teacher who leads two circles |
+| Student | `student1@ilham.test` | A student enrolled in a circle, with assignments |
+
+Other seeded users cannot sign in. Their password hash is a dummy.
+
 ### 2. Prefer the CLI? `db/run_container.sh`
 
 `compose.yaml` above is the simplest path — it needs no bash. `db/run_container.sh`
@@ -300,7 +311,7 @@ npm run verify && npm run doctor
 psql -f rank_map.sql -f narrator_overrides.sql -f sunnah_structure.sql -f hadith_placement.sql
 npm run all && npm run seed
 cd .. && psql -f db/05_post_load.sql
-for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation; do psql -f db/$f.sql; done
+for f in 06_refresh_tokens 07_sanad_strength 08_search 09_generation 10_search_en; do psql -f db/$f.sql; done
 ```
 
 **Without node on the host**, run the `npm` steps in the `etl` container:
