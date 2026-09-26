@@ -27,7 +27,19 @@ export function useCorpusCounts() {
   return health.data?.corpus;
 }
 
-/** Eight-point star (khatam) tiling, drawn in currentColor so the preset
+// One 120px period of the 8-fold rosette on the octagon-and-square (4.8.8)
+// tiling, drawn by Hankin's method at a 67.5 degree contact angle. Level one:
+// an 8-point star at each corner. Level two: its edges run on past the points
+// and interlock with the neighbours, so a ring of eight petals frames each
+// star and a small 4-point star sits between rosettes. Generated, not drawn by
+// hand: edit the construction, not the numbers.
+const GIRIH =
+  'M60 0L30 12.4M30 12.4L42.4 42.4M42.4 42.4L12.4 30M12.4 30L0 60M0 60L-12.4 30M30 -12.4L60 0M132.4 30L120 60M120 60L107.6 30M107.6 30L77.6 42.4M77.6 42.4L90 12.4M90 12.4L60 0M60 0L90 -12.4M60 120L30 132.4M-12.4 90L0 60M0 60L12.4 90M12.4 90L42.4 77.6M42.4 77.6L30 107.6M30 107.6L60 120M90 132.4L60 120M60 120L90 107.6M90 107.6L77.6 77.6M77.6 77.6L107.6 90M107.6 90L120 60M120 60L132.4 90M77.6 77.6L60 70.3M60 70.3L42.4 77.6M42.4 77.6L49.7 60M49.7 60L42.4 42.4M42.4 42.4L60 49.7M60 49.7L77.6 42.4M77.6 42.4L70.3 60M70.3 60L77.6 77.6';
+// The khatam (two squares at 45 degrees) carved inside each large star.
+const KHATAM =
+  'M22.8 0L0 22.8L-22.8 0L0 -22.8ZM16.1 16.1L-16.1 16.1L-16.1 -16.1L16.1 -16.1ZM142.8 0L120 22.8L97.2 0L120 -22.8ZM136.1 16.1L103.9 16.1L103.9 -16.1L136.1 -16.1ZM22.8 120L0 142.8L-22.8 120L0 97.2ZM16.1 136.1L-16.1 136.1L-16.1 103.9L16.1 103.9ZM142.8 120L120 142.8L97.2 120L120 97.2ZM136.1 136.1L103.9 136.1L103.9 103.9L136.1 103.9Z';
+
+/** Eight-point star rosette tiling, drawn in currentColor so the preset
     colours it. Set the colour and opacity with a text-* class. */
 export function GeoPattern({ className }: { className?: string }) {
   const id = `geo${useId().replace(/:/g, '')}`;
@@ -37,11 +49,10 @@ export function GeoPattern({ className }: { className?: string }) {
       className={cn('pointer-events-none absolute inset-0 size-full', className)}
     >
       <defs>
-        <pattern id={id} width="64" height="64" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke="currentColor" strokeWidth="1">
-            <rect x="18" y="18" width="28" height="28" />
-            <rect x="18" y="18" width="28" height="28" transform="rotate(45 32 32)" />
-            <path d="M32 0v12M32 52v12M0 32h12M52 32h12" />
+        <pattern id={id} width="120" height="120" patternUnits="userSpaceOnUse">
+          <g fill="none" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+            <path d={GIRIH} />
+            <path d={KHATAM} strokeOpacity="0.7" />
           </g>
         </pattern>
       </defs>
